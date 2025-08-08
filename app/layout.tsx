@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Ubuntu_Condensed } from "next/font/google";
 import "./globals.css";
+import GraphqlProvider from "@/components/providers/GraphqlProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const geistSans = Ubuntu_Condensed({
+    weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -25,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans} antialiased`}
       >
-        {children}
+        <GraphqlProvider>
+            {children}
+        </GraphqlProvider>
       </body>
     </html>
   );
