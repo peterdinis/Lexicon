@@ -2,11 +2,11 @@
 
 import { ReactNode } from "react";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import DashboardSidebar from "./DashboardSidebar";
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const handleNewPage = () => {
     //TODO
   };
@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <AppSidebar />
+        <DashboardSidebar />
         <SidebarInset>
           <header className="h-14 flex items-center gap-3 border-b px-3">
             <SidebarTrigger />
