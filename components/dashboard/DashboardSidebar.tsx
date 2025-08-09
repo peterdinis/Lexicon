@@ -30,11 +30,11 @@ import {
 import { listPages, pagesEvents } from "@/store/pageStore";
 
 const items = [
-	{ title: "Dashboard", url: "/app", icon: LayoutGrid },
-	{ title: "Calendar", url: "/app/calendar", icon: Calendar },
-	{ title: "Tasks", url: "/app/tasks", icon: CheckSquare },
-	{ title: "Templates", url: "/app/templates", icon: LayoutTemplate },
-	{ title: "Settings", url: "/app/settings", icon: Settings },
+	{ title: "Dashboard", url: "/dashboard", icon: LayoutGrid },
+	{ title: "Calendar", url: "/calendar", icon: Calendar },
+	{ title: "Tasks", url: "/tasks", icon: CheckSquare },
+	{ title: "Templates", url: "/templates", icon: LayoutTemplate },
+	{ title: "Settings", url: "/settings", icon: Settings },
 ];
 
 const DashboardSidebar: FC = () => {

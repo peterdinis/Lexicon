@@ -1,3 +1,5 @@
+"use client"
+
 import { Database, FileText, Kanban } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
