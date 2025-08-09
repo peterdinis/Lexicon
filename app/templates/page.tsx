@@ -1,8 +1,8 @@
+import type { NextPage } from "next";
 import TemplatesWrapper from "@/components/templates/TemplatesWrapper";
-import { NextPage } from "next";
 
 const TemplatesPage: NextPage = () => {
-    return <TemplatesWrapper />
-}
+	return <TemplatesWrapper />;
+};
 
-export default TemplatesPage
+export default TemplatesPage;

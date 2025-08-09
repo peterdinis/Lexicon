@@ -1,8 +1,8 @@
+import type { NextPage } from "next";
 import TrashWrapper from "@/components/trash/TrashWrapper";
-import { NextPage } from "next";
 
 const TrashPage: NextPage = () => {
-    return <TrashWrapper />
-}
+	return <TrashWrapper />;
+};
 
-export default TrashPage
+export default TrashPage;
