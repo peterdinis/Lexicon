@@ -1,3 +1,5 @@
+"use client"
+
 import { LayoutGrid, Calendar, CheckSquare, LayoutTemplate, Settings, Trash2 } from "lucide-react";
 import {
   Sidebar,
@@ -10,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FC, useEffect, useState } from "react";
 import { listPages, pagesEvents } from "@/store/pageStore";
 import Link from "next/link";
@@ -33,56 +36,91 @@ const DashboardSidebar: FC = () => {
     return () => window.removeEventListener(pagesEvents.eventName, onUpdate);
   }, []);
 
+  const renderWithTooltip = (label: string, children: React.ReactNode) => {
+    if (!collapsed) return children;
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{children}</TooltipTrigger>
+          <TooltipContent side="right">{label}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
+        {/* Workspace Section */}
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url}>
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </Link>
-                  </SidebarMenuButton>
+                  {renderWithTooltip(
+                    item.title,
+                    <SidebarMenuButton asChild>
+                      <Link href={item.url}>
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Pages Section */}
         <SidebarGroup>
           <SidebarGroupLabel>Pages</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* New Page Button */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="#">
-                    <span className="mr-2 grid h-4 w-4 place-items-center">+</span>
-                    {!collapsed && <span>New page</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {pages.slice(0, 12).map((p) => (
-                <SidebarMenuItem key={p.id}>
+                {renderWithTooltip(
+                  "New page",
                   <SidebarMenuButton asChild>
-                    <Link href={`/app/pages/${p.id}`}>
-                      <span className="mr-2 h-4 w-4 grid place-items-center">📄</span>
-                      {!collapsed && <span className="truncate" title={p.title || "Untitled"}>{p.title || "Untitled"}</span>}
+                    <Link href="#">
+                      <span className="mr-2 grid h-4 w-4 place-items-center">+</span>
+                      {!collapsed && <span>New page</span>}
                     </Link>
                   </SidebarMenuButton>
+                )}
+              </SidebarMenuItem>
+
+              {/* Page List */}
+              {pages.slice(0, 12).map((p) => (
+                <SidebarMenuItem key={p.id}>
+                  {renderWithTooltip(
+                    p.title || "Untitled",
+                    <SidebarMenuButton asChild>
+                      <Link href={`/app/pages/${p.id}`}>
+                        <span className="mr-2 h-4 w-4 grid place-items-center">📄</span>
+                        {!collapsed && (
+                          <span className="truncate" title={p.title || "Untitled"}>
+                            {p.title || "Untitled"}
+                          </span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
+
+              {/* Trash */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/app/trash">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {!collapsed && <span>Trash</span>}
-                  </Link>
-                </SidebarMenuButton>
+                {renderWithTooltip(
+                  "Trash",
+                  <SidebarMenuButton asChild>
+                    <Link href="/app/trash">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>Trash</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -90,7 +128,6 @@ const DashboardSidebar: FC = () => {
       </SidebarContent>
     </Sidebar>
   );
-}
+};
 
-
-export default DashboardSidebar
+export default DashboardSidebar;
