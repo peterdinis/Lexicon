@@ -211,7 +211,7 @@ const DashboardWrapper: FC = () => {
 						<CalendarUI />
 						<div className="mt-4">
 							<Button variant="outline" size="sm" asChild>
-								<Link href="/app/calendar">Open Calendar</Link>
+								<Link href="/calendar">Open Calendar</Link>
 							</Button>
 						</div>
 					</CardContent>
@@ -238,7 +238,7 @@ const DashboardWrapper: FC = () => {
 						</ul>
 						<div className="mt-4">
 							<Button size="sm" asChild>
-								<Link href="/app/tasks">Open Tasks</Link>
+								<Link href="/tasks">Open Tasks</Link>
 							</Button>
 						</div>
 					</CardContent>
@@ -260,7 +260,7 @@ const DashboardWrapper: FC = () => {
 						</div>
 						<div className="mt-2">
 							<Button variant="outline" size="sm" asChild>
-								<Link href="/app/settings">Open Settings</Link>
+								<Link href="/settings">Open Settings</Link>
 							</Button>
 						</div>
 					</CardContent>

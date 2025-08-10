@@ -1,4 +1,6 @@
-import type { FC } from "react";
+"use client"
+
+import type { FC, FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AuthWrapper: FC = () => {
-	const onSubmit = (e: React.FormEvent) => {
+	const onSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		toast("Connect Supabase to enable authentication.");
 	};
