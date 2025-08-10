@@ -9,9 +9,10 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import DashboardSidebar from "./DashboardSidebar";
+import ProfileDropdown from "../auth/ProfileDropdown";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-	
+
 	const handleNewPage = () => {
 		//TODO
 	};
@@ -32,6 +33,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 									New Page
 								</Button>
 							</div>
+							<ProfileDropdown />
 						</header>
 						<div className="p-6">{children}</div>
 					</SidebarInset>
