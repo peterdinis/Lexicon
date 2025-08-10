@@ -1,3 +1,5 @@
+"use client"
+
 import type { FC } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
