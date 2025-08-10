@@ -46,13 +46,10 @@ const SettingsWrapper: FC = () => {
                             <Label htmlFor="pref-dark">Dark mode</Label>
                             <Switch
                                 id="pref-dark"
+                                className="transition-colors duration-300 ease-in-out"
                                 checked={resolvedTheme === "dark"}
                                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                             />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="pref-weekly">Weekly review reminder</Label>
-                            <Switch id="pref-weekly" onCheckedChange={() => toast("Connect Supabase to save preference.")} />
                         </div>
                     </CardContent>
                 </Card>

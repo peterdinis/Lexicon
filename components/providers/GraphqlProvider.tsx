@@ -8,7 +8,7 @@ type GraphqlProviderProps = {
 };
 
 const client = new ApolloClient({
-	uri: "",
+	uri: "http://localhost:4000/graphql", // TODO: Later move this to env variable
 	cache: new InMemoryCache(),
 });
 

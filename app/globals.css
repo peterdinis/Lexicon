@@ -160,3 +160,19 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+::view-transition-old(.slide-in) {
+    animation: slideIn 300ms;
+}
+
+@keyframes slideIn {
+    from {
+        transition: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
