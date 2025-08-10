@@ -111,7 +111,7 @@ const DashboardSidebar: FC = () => {
 									{renderWithTooltip(
 										p.title || "Untitled",
 										<SidebarMenuButton asChild>
-											<Link href={`/app/pages/${p.id}`}>
+											<Link href={`/pages/${p.id}`}>
 												<span className="mr-2 h-4 w-4 grid place-items-center">
 													📄
 												</span>
@@ -134,7 +134,7 @@ const DashboardSidebar: FC = () => {
 								{renderWithTooltip(
 									"Trash",
 									<SidebarMenuButton asChild>
-										<Link href="/app/trash">
+										<Link href="/trash">
 											<Trash2 className="mr-2 h-4 w-4" />
 											{!collapsed && <span>Trash</span>}
 										</Link>

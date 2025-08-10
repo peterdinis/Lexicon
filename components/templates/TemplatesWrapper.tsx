@@ -37,7 +37,7 @@ const TemplatesWrapper: FC = () => {
 
 	const useTemplate = (title: string) => {
 		const page = createPage({ title, content: makeContent(title) });
-		router.push(`/app/pages/${page.id}`);
+		router.push(`/pages/${page.id}`);
 	};
 
 	return (
