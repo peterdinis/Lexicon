@@ -7,3 +7,14 @@ export const GET_HELLO_WORLD_LIST = gql`
     }
   }
 `;
+
+export const ME_QUERY = gql`
+  query Me {
+    me {
+      id
+      email
+      name
+      lastName
+    }
+  }
+`;
