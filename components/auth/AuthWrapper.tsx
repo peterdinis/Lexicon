@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@apollo/client";
+import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,67 +12,92 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { REGISTER_MUTATION, LOGIN_MUTATION } from "@/graphql/mutations/authMutations";
 import { ME_QUERY } from "@/graphql/queries/helloQuery";
 
+type FormData = {
+  email: string;
+  password: string;
+};
+
 const AuthWrapper: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-  const [form, setForm] = useState<{ [key: string]: string }>({});
+  const [showPasswordSignin, setShowPasswordSignin] = useState(false);
+  const [showPasswordSignup, setShowPasswordSignup] = useState(false);
 
-  const [register, { loading: registering }] = useMutation(REGISTER_MUTATION, {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
+  // react-hook-form for signin
+  const {
+    register: registerSignin,
+    handleSubmit: handleSubmitSignin,
+    reset: resetSignin,
+    formState: { errors: errorsSignin },
+  } = useForm<FormData>();
+
+  // react-hook-form for signup
+  const {
+    register: registerSignup,
+    handleSubmit: handleSubmitSignup,
+    reset: resetSignup,
+    formState: { errors: errorsSignup },
+  } = useForm<FormData>();
+
+  const [registerMutation, { loading: registering }] = useMutation(REGISTER_MUTATION, {
     onCompleted(data) {
       toast.success("Registered successfully!");
       localStorage.setItem("token", data.register);
+      setToken(data.register); // update token state
+      resetSignup();
     },
     onError(error) {
       toast.error(error.message);
     },
   });
 
-  const [login, { loading: loggingIn }] = useMutation(LOGIN_MUTATION, {
+  const [loginMutation, { loading: loggingIn }] = useMutation(LOGIN_MUTATION, {
     onCompleted(data) {
       toast.success("Logged in successfully!");
       localStorage.setItem("token", data.login);
+      setToken(data.login); // update token state
+      resetSignin();
     },
     onError(error) {
       toast.error(error.message);
     },
   });
 
-  // Optional: fetch current user
   const { data: meData, loading: meLoading, error: meError } = useQuery(ME_QUERY, {
     fetchPolicy: "network-only",
-    skip: !localStorage.getItem("token"), // only if logged in
+    skip: !token,
     context: {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${token || ""}`,
       },
     },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const onSubmitSignin = (data: FormData) => {
+    loginMutation({
+      variables: {
+        data: {
+          email: data.email,
+          password: data.password,
+        },
+      },
+    });
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (activeTab === "signin") {
-      await login({
-        variables: {
-          data: {
-            email: form.email,
-            password: form.password,
-          },
+  const onSubmitSignup = (data: FormData) => {
+    registerMutation({
+      variables: {
+        data: {
+          email: data.email,
+          password: data.password,
         },
-      });
-    } else {
-      await register({
-        variables: {
-          data: {
-            name: form.name,
-            email: form.email,
-            password: form.password,
-          },
-        },
-      });
-    }
+      },
+    });
   };
 
   if (meLoading) return <p>Loading profile...</p>;
@@ -90,6 +117,7 @@ const AuthWrapper: React.FC = () => {
             <Button
               onClick={() => {
                 localStorage.removeItem("token");
+                setToken(null); // reset token state on logout
                 window.location.reload();
               }}
               className="mt-4"
@@ -113,7 +141,10 @@ const AuthWrapper: React.FC = () => {
             defaultValue="signin"
             onValueChange={(value) => {
               setActiveTab(value as "signin" | "signup");
-              setForm({});
+              resetSignin();
+              resetSignup();
+              setShowPasswordSignin(false);
+              setShowPasswordSignup(false);
             }}
           >
             <TabsList className="grid grid-cols-2 w-full">
@@ -122,23 +153,47 @@ const AuthWrapper: React.FC = () => {
             </TabsList>
 
             <TabsContent value="signin">
-              <form className="space-y-3 mt-4" onSubmit={onSubmit}>
+              <form className="space-y-3 mt-4" onSubmit={handleSubmitSignin(onSubmitSignin)} noValidate>
                 <Input
                   type="email"
-                  name="email"
                   placeholder="Email"
-                  value={form.email || ""}
-                  onChange={handleChange}
-                  required
+                  {...registerSignin("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
                 />
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={form.password || ""}
-                  onChange={handleChange}
-                  required
-                />
+                {errorsSignin.email && (
+                  <p className="text-sm text-red-500">{errorsSignin.email.message}</p>
+                )}
+
+                <div className="relative">
+                  <Input
+                    type={showPasswordSignin ? "text" : "password"}
+                    placeholder="Password"
+                    {...registerSignin("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowPasswordSignin((v) => !v)}
+                    tabIndex={-1}
+                  >
+                    {showPasswordSignin ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {errorsSignin.password && (
+                  <p className="text-sm text-red-500">{errorsSignin.password.message}</p>
+                )}
+
                 <Button type="submit" className="w-full" disabled={loggingIn}>
                   {loggingIn ? "Signing in..." : "Sign in"}
                 </Button>
@@ -146,31 +201,48 @@ const AuthWrapper: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form className="space-y-3 mt-4" onSubmit={onSubmit}>
-                <Input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={form.name || ""}
-                  onChange={handleChange}
-                  required
-                />
+              <form className="space-y-3 mt-4" onSubmit={handleSubmitSignup(onSubmitSignup)} noValidate>
+
                 <Input
                   type="email"
-                  name="email"
                   placeholder="Email"
-                  value={form.email || ""}
-                  onChange={handleChange}
-                  required
+                  {...registerSignup("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
                 />
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={form.password || ""}
-                  onChange={handleChange}
-                  required
-                />
+                {errorsSignup.email && (
+                  <p className="text-sm text-red-500">{errorsSignup.email.message}</p>
+                )}
+
+                <div className="relative">
+                  <Input
+                    type={showPasswordSignup ? "text" : "password"}
+                    placeholder="Password"
+                    {...registerSignup("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowPasswordSignup((v) => !v)}
+                    tabIndex={-1}
+                  >
+                    {showPasswordSignup ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {errorsSignup.password && (
+                  <p className="text-sm text-red-500">{errorsSignup.password.message}</p>
+                )}
+
                 <Button type="submit" className="w-full" disabled={registering}>
                   {registering ? "Creating account..." : "Create account"}
                 </Button>
