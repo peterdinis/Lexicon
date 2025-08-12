@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 const ProfileDropdown: FC = () => {
-  const { data, loading, error } = useQuery(ME_QUERY);
+  const { data, loading} = useQuery(ME_QUERY);
   const router = useRouter();
 
   const logout = () => {
@@ -28,11 +28,7 @@ const ProfileDropdown: FC = () => {
     return <Loader2 className="animate-spin w-8 h-8" />
   }
 
-  if (error || !data?.me) {
-    return null; 
-  }
-
-  const { name, email } = data.me;
+  const {name, email} = data && data?.me
 
   return (
     <DropdownMenu>
@@ -49,11 +45,6 @@ const ProfileDropdown: FC = () => {
             <span className="text-xs text-muted-foreground">{email}</span>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push("/billing")}>Billing</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push("/team")}>Team</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push("/subscription")}>Subscription</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout} className="text-red-600">
           Logout
