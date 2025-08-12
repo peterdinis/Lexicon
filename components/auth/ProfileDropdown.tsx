@@ -28,23 +28,21 @@ const ProfileDropdown: FC = () => {
 		return <Loader2 className="animate-spin w-8 h-8" />;
 	}
 
-	const { name, email } = data && data?.me;
-
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger>
 				<Avatar>
 					<AvatarImage
-						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`}
+						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(data?.me && data?.me?.name)}`}
 					/>
-					<AvatarFallback>{name?.[0]?.toUpperCase()}</AvatarFallback>
+					<AvatarFallback>{data?.me && data?.me?.name?.[0]?.toUpperCase()}</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
 				<DropdownMenuLabel>
 					<div className="flex flex-col">
-						<span>{name}</span>
-						<span className="text-xs text-muted-foreground">{email}</span>
+						<span>{data?.me && data?.me?.name}</span>
+						<span className="text-xs text-muted-foreground">{data?.me && data?.me?.email}</span>
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
