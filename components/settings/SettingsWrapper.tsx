@@ -6,12 +6,12 @@ import {
 	ArrowRight,
 	Building2,
 	Loader2,
-	Pencil,
 	Settings,
+	Pencil,
 	Trash2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,12 +24,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
-import {
-	REMOVE_WORKSPACE,
-	SET_CURRENT_WORKSPACE,
-	UPDATE_WORKSPACE,
-} from "@/graphql/mutations/workspaceMutations";
 import {
 	Dialog,
 	DialogContent,
@@ -37,70 +31,58 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { useState } from "react"
+import {
+	GET_WORKSPACES,
+} from "@/graphql/queries/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
-import { useToast } from "@/hooks/use-toast";
+import { REMOVE_WORKSPACE, SET_CURRENT_WORKSPACE, UPDATE_WORKSPACE } from "@/graphql/mutations/workspaceMutations";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
-	const { toast } = useToast();
 
 	const { data, loading, error, refetch } = useQuery(GET_WORKSPACES, {
 		variables: { query: {} },
 	});
 
 	const [switchWorkspace] = useMutation(SET_CURRENT_WORKSPACE);
-	const [deleteWorkspace] = useMutation(REMOVE_WORKSPACE);
 	const [updateWorkspace] = useMutation(UPDATE_WORKSPACE);
-
-	const [editDialogOpen, setEditDialogOpen] = useState(false);
-	const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
-	const [editName, setEditName] = useState("");
+	const [deleteWorkspace] = useMutation(REMOVE_WORKSPACE);
 
 	const workspaces = data?.workspaces?.items || [];
 
-	// Switch workspace
+	const [editOpen, setEditOpen] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
+	const [editName, setEditName] = useState("");
+
 	const handleSwitchWorkspace = async (workspaceId: string) => {
-		try {
-			await switchWorkspace({ variables: { workspaceId } });
-			localStorage.setItem("currentWorkspaceId", workspaceId);
-			toast({ title: "Workspace switched successfully." });
-		} catch (err: any) {
-			toast({ title: "Error switching workspace", description: err.message });
-		}
+		await switchWorkspace({ variables: { id: workspaceId } });
+		localStorage.setItem("currentWorkspaceId", workspaceId);
+		refetch();
 	};
 
-	// Delete workspace
-	const handleDeleteWorkspace = async (workspaceId: string) => {
-		try {
-			await deleteWorkspace({ variables: { id: workspaceId } });
-			toast({ title: "Workspace deleted" });
-			refetch();
-		} catch (err: any) {
-			toast({ title: "Error deleting workspace", description: err.message });
-		}
+	const handleEditWorkspace = async () => {
+		await updateWorkspace({
+			variables: { id: selectedWorkspace.id, input: { name: editName } },
+		});
+		setEditOpen(false);
+		refetch();
 	};
 
-	// Open edit dialog
-	const openEditDialog = (workspace: any) => {
-		setSelectedWorkspace(workspace);
-		setEditName(workspace.name);
-		setEditDialogOpen(true);
-	};
-
-	// Save updated workspace name
-	const handleUpdateWorkspace = async () => {
-		try {
-			await updateWorkspace({
-				variables: { id: selectedWorkspace.id, name: editName },
-			});
-			toast({ title: "Workspace updated" });
-			setEditDialogOpen(false);
-			refetch();
-		} catch (err: any) {
-			toast({ title: "Error updating workspace", description: err.message });
-		}
+	const handleDeleteWorkspace = async () => {
+		await deleteWorkspace({ variables: { id: selectedWorkspace.id } });
+		setDeleteOpen(false);
+		refetch();
 	};
 
 	return (
@@ -133,7 +115,7 @@ const SettingsWrapper: FC = () => {
 					</CardContent>
 				</Card>
 
-				{/* Workspaces Table */}
+				{/* Workspaces Card */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
@@ -166,12 +148,7 @@ const SettingsWrapper: FC = () => {
 								</TableHeader>
 								<TableBody>
 									<AnimatePresence>
-										{workspaces.map((ws: {
-											id: string;
-											name: string;
-											createdAt: string;
-											updatedAt: string;
-										}, index: number) => (
+										{workspaces.map((ws, index) => (
 											<motion.tr
 												key={ws.id}
 												initial={{ opacity: 0, y: 10 }}
@@ -185,11 +162,13 @@ const SettingsWrapper: FC = () => {
 												className="border-b"
 											>
 												<TableCell className="flex items-center gap-2">
-													{
-														["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-															index % 7
-														]
-													}
+													<span>
+														{
+															["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+																index % 7
+															]
+														}
+													</span>
 													{ws.name}
 												</TableCell>
 												<TableCell>
@@ -198,25 +177,32 @@ const SettingsWrapper: FC = () => {
 												<TableCell>
 													{new Date(ws.updatedAt).toLocaleDateString()}
 												</TableCell>
-												<TableCell className="text-right space-x-2">
+												<TableCell className="text-right flex gap-2 justify-end">
 													<Button
 														variant="outline"
 														size="sm"
 														onClick={() => handleSwitchWorkspace(ws.id)}
 													>
-														Switch <ArrowRight className="w-4 h-4 ml-1" />
+														<ArrowRight className="w-4 h-4" />
 													</Button>
 													<Button
-														variant="secondary"
+														variant="outline"
 														size="sm"
-														onClick={() => openEditDialog(ws)}
+														onClick={() => {
+															setSelectedWorkspace(ws);
+															setEditName(ws.name);
+															setEditOpen(true);
+														}}
 													>
 														<Pencil className="w-4 h-4" />
 													</Button>
 													<Button
 														variant="destructive"
 														size="sm"
-														onClick={() => handleDeleteWorkspace(ws.id)}
+														onClick={() => {
+															setSelectedWorkspace(ws);
+															setDeleteOpen(true);
+														}}
 													>
 														<Trash2 className="w-4 h-4" />
 													</Button>
@@ -232,7 +218,7 @@ const SettingsWrapper: FC = () => {
 			</section>
 
 			{/* Edit Workspace Dialog */}
-			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+			<Dialog open={editOpen} onOpenChange={setEditOpen}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Edit Workspace</DialogTitle>
@@ -243,13 +229,30 @@ const SettingsWrapper: FC = () => {
 						placeholder="Workspace name"
 					/>
 					<DialogFooter>
-						<Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
-							Cancel
-						</Button>
-						<Button onClick={handleUpdateWorkspace}>Save</Button>
+						<Button onClick={handleEditWorkspace}>Save</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Delete Workspace Dialog */}
+			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Are you sure you want to delete this workspace?
+						</AlertDialogTitle>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							className="bg-red-500 text-white hover:bg-red-600"
+							onClick={handleDeleteWorkspace}
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</DashboardLayout>
 	);
 };
