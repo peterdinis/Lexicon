@@ -1,13 +1,14 @@
 "use client";
 
-import { Settings, Loader2, Building2, ArrowRight } from "lucide-react";
+import { useQuery } from "@apollo/client";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Building2, Loader2, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { FC } from "react";
-import { useQuery } from "@apollo/client";
-import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Table,
 	TableBody,
@@ -16,9 +17,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import DashboardLayout from "../dashboard/DashboardLayout";
 import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
+import DashboardLayout from "../dashboard/DashboardLayout";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
@@ -120,9 +120,11 @@ const SettingsWrapper: FC = () => {
 											>
 												<TableCell className="flex items-center gap-2">
 													<span>
-														{["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-															index % 7
-														]}
+														{
+															["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+																index % 7
+															]
+														}
 													</span>
 													{ws.name}
 												</TableCell>
@@ -136,9 +138,7 @@ const SettingsWrapper: FC = () => {
 													<Button
 														variant="outline"
 														size="sm"
-														onClick={() =>
-															handleSwitchWorkspace(ws.id)
-														}
+														onClick={() => handleSwitchWorkspace(ws.id)}
 														className="flex items-center gap-1"
 													>
 														Switch <ArrowRight className="w-4 h-4" />

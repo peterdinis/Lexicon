@@ -2,6 +2,7 @@
 
 import { CalendarRange, Database, FileText, Kanban, Star } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { type FC, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
-import { useTheme } from "next-themes";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");

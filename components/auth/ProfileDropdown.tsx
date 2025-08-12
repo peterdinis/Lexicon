@@ -35,14 +35,18 @@ const ProfileDropdown: FC = () => {
 					<AvatarImage
 						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(data?.me && data?.me?.name)}`}
 					/>
-					<AvatarFallback>{data?.me && data?.me?.name?.[0]?.toUpperCase()}</AvatarFallback>
+					<AvatarFallback>
+						{data?.me && data?.me?.name?.[0]?.toUpperCase()}
+					</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
 				<DropdownMenuLabel>
 					<div className="flex flex-col">
 						<span>{data?.me && data?.me?.name}</span>
-						<span className="text-xs text-muted-foreground">{data?.me && data?.me?.email}</span>
+						<span className="text-xs text-muted-foreground">
+							{data?.me && data?.me?.email}
+						</span>
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />

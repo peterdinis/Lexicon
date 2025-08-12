@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 export const GET_WORKSPACES = gql`
   query Workspaces($query: WorkspaceQueryInput) {
@@ -13,7 +13,6 @@ export const GET_WORKSPACES = gql`
     }
   }
 `;
-
 
 export const GET_WORKSPACE = gql`
   query Workspace($id: Int!) {
