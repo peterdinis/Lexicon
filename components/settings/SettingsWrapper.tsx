@@ -38,9 +38,9 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react"
 import DashboardLayout from "../dashboard/DashboardLayout";
+import { useToast } from "@/hooks/use-toast";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
@@ -166,7 +166,12 @@ const SettingsWrapper: FC = () => {
 								</TableHeader>
 								<TableBody>
 									<AnimatePresence>
-										{workspaces.map((ws, index) => (
+										{workspaces.map((ws: {
+											id: string;
+											name: string;
+											createdAt: string;
+											updatedAt: string;
+										}, index: number) => (
 											<motion.tr
 												key={ws.id}
 												initial={{ opacity: 0, y: 10 }}
