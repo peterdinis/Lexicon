@@ -1,34 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation} from "@apollo/client";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { REGISTER_MUTATION, LOGIN_MUTATION } from "@/graphql/mutations/authMutations";
-import { ME_QUERY } from "@/graphql/queries/helloQuery";
 
 type FormData = {
   email: string;
   password: string;
+  name?: string;
 };
 
-const AuthWrapper: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+const AuthWrapper: FC = () => {
+  const [, setActiveTab] = useState<"signin" | "signup">("signin");
   const [showPasswordSignin, setShowPasswordSignin] = useState(false);
   const [showPasswordSignup, setShowPasswordSignup] = useState(false);
+  const router = useRouter()
 
-  const [token, setToken] = useState<string | null>(null);
+  const [, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
   }, []);
 
-  // react-hook-form for signin
   const {
     register: registerSignin,
     handleSubmit: handleSubmitSignin,
@@ -36,7 +37,6 @@ const AuthWrapper: React.FC = () => {
     formState: { errors: errorsSignin },
   } = useForm<FormData>();
 
-  // react-hook-form for signup
   const {
     register: registerSignup,
     handleSubmit: handleSubmitSignup,
@@ -48,7 +48,7 @@ const AuthWrapper: React.FC = () => {
     onCompleted(data) {
       toast.success("Registered successfully!");
       localStorage.setItem("token", data.register);
-      setToken(data.register); // update token state
+      setToken(data.register);
       resetSignup();
     },
     onError(error) {
@@ -60,21 +60,11 @@ const AuthWrapper: React.FC = () => {
     onCompleted(data) {
       toast.success("Logged in successfully!");
       localStorage.setItem("token", data.login);
-      setToken(data.login); // update token state
+      setToken(data.login);
       resetSignin();
     },
     onError(error) {
       toast.error(error.message);
-    },
-  });
-
-  const { data: meData, loading: meLoading, error: meError } = useQuery(ME_QUERY, {
-    fetchPolicy: "network-only",
-    skip: !token,
-    context: {
-      headers: {
-        Authorization: `Bearer ${token || ""}`,
-      },
     },
   });
 
@@ -87,6 +77,7 @@ const AuthWrapper: React.FC = () => {
         },
       },
     });
+    router.push("/dashboard")
   };
 
   const onSubmitSignup = (data: FormData) => {
@@ -95,40 +86,12 @@ const AuthWrapper: React.FC = () => {
         data: {
           email: data.email,
           password: data.password,
+          name: data.name, // send name
         },
       },
     });
+    setActiveTab("signin")
   };
-
-  if (meLoading) return <p>Loading profile...</p>;
-  if (meError) console.error(meError);
-
-  if (meData?.me) {
-    return (
-      <div className="min-h-screen grid place-items-center p-6">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <CardTitle>Welcome, {meData.me.name || meData.me.email}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Email: {meData.me.email}</p>
-            <p>Name: {meData.me.name}</p>
-            <p>Last Name: {meData.me.lastName}</p>
-            <Button
-              onClick={() => {
-                localStorage.removeItem("token");
-                setToken(null); // reset token state on logout
-                window.location.reload();
-              }}
-              className="mt-4"
-            >
-              Logout
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen grid place-items-center p-6">
@@ -152,22 +115,18 @@ const AuthWrapper: React.FC = () => {
               <TabsTrigger value="signup">Sign up</TabsTrigger>
             </TabsList>
 
+            {/* Sign In */}
             <TabsContent value="signin">
-              <form className="space-y-3 mt-4" onSubmit={handleSubmitSignin(onSubmitSignin)} noValidate>
+              <form className="space-y-3 mt-4" onSubmit={handleSubmitSignin(onSubmitSignin)}>
                 <Input
                   type="email"
                   placeholder="Email"
                   {...registerSignin("email", {
                     required: "Email is required",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Invalid email address",
-                    },
+                    pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" },
                   })}
                 />
-                {errorsSignin.email && (
-                  <p className="text-sm text-red-500">{errorsSignin.email.message}</p>
-                )}
+                {errorsSignin.email && <p className="text-sm text-red-500">{errorsSignin.email.message}</p>}
 
                 <div className="relative">
                   <Input
@@ -175,10 +134,7 @@ const AuthWrapper: React.FC = () => {
                     placeholder="Password"
                     {...registerSignin("password", {
                       required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
+                      minLength: { value: 6, message: "Password must be at least 6 characters" },
                     })}
                   />
                   <button
@@ -190,33 +146,32 @@ const AuthWrapper: React.FC = () => {
                     {showPasswordSignin ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-                {errorsSignin.password && (
-                  <p className="text-sm text-red-500">{errorsSignin.password.message}</p>
-                )}
+                {errorsSignin.password && <p className="text-sm text-red-500">{errorsSignin.password.message}</p>}
 
                 <Button type="submit" className="w-full" disabled={loggingIn}>
-                  {loggingIn ? "Signing in..." : "Sign in"}
+                  {loggingIn ? <Loader2 className="animate-spin w-8 h-8" /> : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
               <form className="space-y-3 mt-4" onSubmit={handleSubmitSignup(onSubmitSignup)} noValidate>
+                <Input
+                  type="text"
+                  placeholder="Name"
+                  {...registerSignup("name", { required: "Name is required" })}
+                />
+                {errorsSignup.name && <p className="text-sm text-red-500">{errorsSignup.name.message}</p>}
 
                 <Input
                   type="email"
                   placeholder="Email"
                   {...registerSignup("email", {
                     required: "Email is required",
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: "Invalid email address",
-                    },
+                    pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" },
                   })}
                 />
-                {errorsSignup.email && (
-                  <p className="text-sm text-red-500">{errorsSignup.email.message}</p>
-                )}
+                {errorsSignup.email && <p className="text-sm text-red-500">{errorsSignup.email.message}</p>}
 
                 <div className="relative">
                   <Input
@@ -224,10 +179,7 @@ const AuthWrapper: React.FC = () => {
                     placeholder="Password"
                     {...registerSignup("password", {
                       required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters",
-                      },
+                      minLength: { value: 6, message: "Password must be at least 6 characters" },
                     })}
                   />
                   <button
@@ -239,12 +191,10 @@ const AuthWrapper: React.FC = () => {
                     {showPasswordSignup ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-                {errorsSignup.password && (
-                  <p className="text-sm text-red-500">{errorsSignup.password.message}</p>
-                )}
+                {errorsSignup.password && <p className="text-sm text-red-500">{errorsSignup.password.message}</p>}
 
                 <Button type="submit" className="w-full" disabled={registering}>
-                  {registering ? "Creating account..." : "Create account"}
+                  {registering ? <Loader2 className="animate-spin w-8 h-8" /> : "Create account"}
                 </Button>
               </form>
             </TabsContent>
