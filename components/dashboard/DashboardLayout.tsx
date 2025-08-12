@@ -1,6 +1,9 @@
 "use client";
 
-import { ReactNode, unstable_ViewTransition as ViewTransition } from "react";
+import {
+	type ReactNode,
+	unstable_ViewTransition as ViewTransition,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,11 +11,10 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import DashboardSidebar from "./DashboardSidebar";
 import ProfileDropdown from "../auth/ProfileDropdown";
+import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-
 	const handleNewPage = () => {
 		//TODO
 	};
