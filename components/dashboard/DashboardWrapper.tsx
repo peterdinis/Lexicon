@@ -12,19 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
+import { useTheme } from "next-themes";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
 	const [filter, setFilter] = useState("");
-
-	const favorites = useMemo(
-		() => [
-			{ emoji: "🧠", title: "Second Brain" },
-			{ emoji: "✅", title: "Tasks" },
-			{ emoji: "📓", title: "Journal" },
-		],
-		[],
-	);
+	const { resolvedTheme, setTheme } = useTheme();
 
 	const recents = useMemo(
 		() => [
@@ -102,28 +95,6 @@ const DashboardWrapper: FC = () => {
 					Welcome back — continue where you left off.
 				</p>
 			</header>
-
-			<section className="mb-8 animate-fade-in">
-				<Card>
-					<CardHeader>
-						<CardTitle>Favorites</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="flex flex-wrap gap-3">
-							{favorites.map((f) => (
-								<Button
-									key={f.title}
-									variant={"secondary"}
-									className="hover-scale"
-								>
-									<span className="mr-1">{f.emoji}</span>
-									{f.title}
-								</Button>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			</section>
 
 			<section className="grid gap-6 md:grid-cols-3 animate-fade-in">
 				<Card className="md:col-span-2">
@@ -252,9 +223,11 @@ const DashboardWrapper: FC = () => {
 						<div className="flex items-center justify-between">
 							<Label htmlFor="dm">Dark mode</Label>
 							<Switch
-								id="dm"
-								onCheckedChange={() =>
-									toast("Connect Supabase to save your preference.")
+								id="pref-dark"
+								className="transition-colors duration-300 ease-in-out"
+								checked={resolvedTheme === "dark"}
+								onCheckedChange={(checked) =>
+									setTheme(checked ? "dark" : "light")
 								}
 							/>
 						</div>
