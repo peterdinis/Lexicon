@@ -1,8 +1,15 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Building2, Loader2, Settings } from "lucide-react";
+import {
+	ArrowRight,
+	Building2,
+	Loader2,
+	Pencil,
+	Settings,
+	Trash2,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import type { FC } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,23 +25,82 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
+import {
+	REMOVE_WORKSPACE,
+	SET_CURRENT_WORKSPACE,
+	UPDATE_WORKSPACE,
+} from "@/graphql/mutations/workspaceMutations";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import DashboardLayout from "../dashboard/DashboardLayout";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
+	const { toast } = useToast();
 
-	const { data, loading, error } = useQuery(GET_WORKSPACES, {
+	const { data, loading, error, refetch } = useQuery(GET_WORKSPACES, {
 		variables: { query: {} },
 	});
 
+	const [switchWorkspace] = useMutation(SET_CURRENT_WORKSPACE);
+	const [deleteWorkspace] = useMutation(REMOVE_WORKSPACE);
+	const [updateWorkspace] = useMutation(UPDATE_WORKSPACE);
+
+	const [editDialogOpen, setEditDialogOpen] = useState(false);
+	const [selectedWorkspace, setSelectedWorkspace] = useState<any>(null);
+	const [editName, setEditName] = useState("");
+
 	const workspaces = data?.workspaces?.items || [];
 
-	const handleSwitchWorkspace = (workspaceId: string) => {
-		// Placeholder for actual logic
-		console.log(`Switching to workspace: ${workspaceId}`);
-		// Example: save to localStorage
-		localStorage.setItem("currentWorkspaceId", workspaceId);
-		// You can also trigger a mutation or a router refresh here
+	// Switch workspace
+	const handleSwitchWorkspace = async (workspaceId: string) => {
+		try {
+			await switchWorkspace({ variables: { workspaceId } });
+			localStorage.setItem("currentWorkspaceId", workspaceId);
+			toast({ title: "Workspace switched successfully." });
+		} catch (err: any) {
+			toast({ title: "Error switching workspace", description: err.message });
+		}
+	};
+
+	// Delete workspace
+	const handleDeleteWorkspace = async (workspaceId: string) => {
+		try {
+			await deleteWorkspace({ variables: { id: workspaceId } });
+			toast({ title: "Workspace deleted" });
+			refetch();
+		} catch (err: any) {
+			toast({ title: "Error deleting workspace", description: err.message });
+		}
+	};
+
+	// Open edit dialog
+	const openEditDialog = (workspace: any) => {
+		setSelectedWorkspace(workspace);
+		setEditName(workspace.name);
+		setEditDialogOpen(true);
+	};
+
+	// Save updated workspace name
+	const handleUpdateWorkspace = async () => {
+		try {
+			await updateWorkspace({
+				variables: { id: selectedWorkspace.id, name: editName },
+			});
+			toast({ title: "Workspace updated" });
+			setEditDialogOpen(false);
+			refetch();
+		} catch (err: any) {
+			toast({ title: "Error updating workspace", description: err.message });
+		}
 	};
 
 	return (
@@ -58,7 +124,6 @@ const SettingsWrapper: FC = () => {
 							<Label htmlFor="pref-dark">Dark mode</Label>
 							<Switch
 								id="pref-dark"
-								className="transition-colors duration-300 ease-in-out"
 								checked={resolvedTheme === "dark"}
 								onCheckedChange={(checked) =>
 									setTheme(checked ? "dark" : "light")
@@ -68,7 +133,7 @@ const SettingsWrapper: FC = () => {
 					</CardContent>
 				</Card>
 
-				{/* Workspaces Card */}
+				{/* Workspaces Table */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
@@ -96,7 +161,7 @@ const SettingsWrapper: FC = () => {
 										<TableHead>Name</TableHead>
 										<TableHead>Created</TableHead>
 										<TableHead>Updated</TableHead>
-										<TableHead className="text-right">Action</TableHead>
+										<TableHead className="text-right">Actions</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -112,20 +177,14 @@ const SettingsWrapper: FC = () => {
 													type: "spring",
 													stiffness: 120,
 												}}
-												whileHover={{
-													scale: 1.02,
-													backgroundColor: "rgba(0,0,0,0.05)",
-												}}
-												className="border-b cursor-pointer"
+												className="border-b"
 											>
 												<TableCell className="flex items-center gap-2">
-													<span>
-														{
-															["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-																index % 7
-															]
-														}
-													</span>
+													{
+														["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+															index % 7
+														]
+													}
 													{ws.name}
 												</TableCell>
 												<TableCell>
@@ -134,14 +193,27 @@ const SettingsWrapper: FC = () => {
 												<TableCell>
 													{new Date(ws.updatedAt).toLocaleDateString()}
 												</TableCell>
-												<TableCell className="text-right">
+												<TableCell className="text-right space-x-2">
 													<Button
 														variant="outline"
 														size="sm"
 														onClick={() => handleSwitchWorkspace(ws.id)}
-														className="flex items-center gap-1"
 													>
-														Switch <ArrowRight className="w-4 h-4" />
+														Switch <ArrowRight className="w-4 h-4 ml-1" />
+													</Button>
+													<Button
+														variant="secondary"
+														size="sm"
+														onClick={() => openEditDialog(ws)}
+													>
+														<Pencil className="w-4 h-4" />
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onClick={() => handleDeleteWorkspace(ws.id)}
+													>
+														<Trash2 className="w-4 h-4" />
 													</Button>
 												</TableCell>
 											</motion.tr>
@@ -153,6 +225,26 @@ const SettingsWrapper: FC = () => {
 					</CardContent>
 				</Card>
 			</section>
+
+			{/* Edit Workspace Dialog */}
+			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Edit Workspace</DialogTitle>
+					</DialogHeader>
+					<Input
+						value={editName}
+						onChange={(e) => setEditName(e.target.value)}
+						placeholder="Workspace name"
+					/>
+					<DialogFooter>
+						<Button variant="secondary" onClick={() => setEditDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleUpdateWorkspace}>Save</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</DashboardLayout>
 	);
 };
