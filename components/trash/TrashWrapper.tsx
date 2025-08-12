@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { RotateCcw, Trash2 } from "lucide-react";
 import { type FC, useEffect, useState } from "react";
