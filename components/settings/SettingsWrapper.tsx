@@ -2,7 +2,7 @@
 
 import { useQuery } from "@apollo/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Building2, Loader2, Settings } from "lucide-react";
+import { ArrowRight, Building2, Loader2, Settings, Trash2, UserIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { FC } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,14 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
+import { Input } from "../ui/input";
+import { UPDATE_PROFILE, DELETE_PROFILE } from "@/graphql/mutations/auth/profileMutations";
+import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
+import { GET_WORKSPACES } from "@/graphql/queries/workspaces/workspaceQueries";
+import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "../ui/alert-dialog";
+import { DialogHeader, DialogFooter } from "../ui/dialog";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
