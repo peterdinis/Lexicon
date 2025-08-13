@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@apollo/client";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import {
 	type ReactNode,
 	useState,
@@ -27,10 +27,12 @@ import {
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaceMutations";
 import ProfileDropdown from "../auth/ProfileDropdown";
 import DashboardSidebar from "./DashboardSidebar";
+import SearchDialog from "../shared/SearchDialog";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const [newWorkspaceName, setNewWorkspaceName] = useState("");
+	const [searchOpen, setSearchOpen] = useState(false);
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
 		onCompleted: (data) => {
@@ -70,7 +72,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 						<header className="h-14 flex items-center gap-3 border-b px-3">
 							<SidebarTrigger />
 							<div className="flex-1 max-w-xl">
-								<Input placeholder="Search your workspace" />
+								<Button variant="outline" onClick={() => setSearchOpen(true)}>
+									<Search className="h-4 w-4 mr-2" /> Search
+								</Button>
+
+								<SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 							</div>
 
 							<div className="flex gap-2 ml-auto">
