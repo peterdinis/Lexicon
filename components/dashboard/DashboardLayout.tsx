@@ -28,6 +28,7 @@ import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutati
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
+import Link from "next/link";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
@@ -46,10 +47,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 			toast.error("Failed to create new workspace");
 		},
 	});
-
-	const handleNewPage = () => {
-		// TODO: Implement New Page creation
-	};
 
 	const handleCreateWorkspace = () => {
 		if (!newWorkspaceName.trim()) return;
@@ -80,8 +77,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 							</div>
 
 							<div className="flex gap-2 ml-auto">
-								<Button variant="default" onClick={handleNewPage}>
-									New Page
+								<Button variant="default">
+									<Link href="/page">New Page</Link>
 								</Button>
 
 								<Dialog open={open} onOpenChange={setOpen}>

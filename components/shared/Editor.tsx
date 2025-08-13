@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useRef, useState } from "react";
+import { type FC, useRef, useState } from "react";
 import ReactQuill, { Quill } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import hljs from "highlight.js";
@@ -26,7 +25,7 @@ class DividerBlot extends BlockEmbed {
 }
 Quill.register(DividerBlot);
 
-const AdvancedQuillEditor: React.FC = () => {
+const Editor: FC = () => {
 	const [value, setValue] = useState<string>("");
 	const quillRef = useRef<ReactQuill | null>(null);
 
@@ -229,4 +228,4 @@ const AdvancedQuillEditor: React.FC = () => {
 	);
 };
 
-export default AdvancedQuillEditor;
+export default Editor;
