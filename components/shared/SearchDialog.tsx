@@ -2,22 +2,30 @@
 
 import { useLazyQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { SEARCH_QUERY } from "@/graphql/queries/searchQueries";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
+import { SEARCH_QUERY } from "@/graphql/queries/searchQueries";
 
-export default function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export default function SearchDialog({
+	open,
+	onOpenChange,
+}: {
+	open: boolean;
+	onOpenChange: (v: boolean) => void;
+}) {
 	const [query, setQuery] = useState("");
-	const [search, { data, loading }] = useLazyQuery(SEARCH_QUERY, { fetchPolicy: "no-cache" });
+	const [search, { data, loading }] = useLazyQuery(SEARCH_QUERY, {
+		fetchPolicy: "no-cache",
+	});
 
 	useEffect(() => {
 		if (query.trim().length > 1) {
@@ -62,22 +70,30 @@ export default function SearchDialog({ open, onOpenChange }: { open: boolean; on
 
 							{!loading && data && (
 								<>
-									{["users", "pages", "workspaces", "tasks", "events"].map((type) => {
-										const results = data.search[type];
-										if (!results?.length) return null;
-										return (
-											<div key={type}>
-												<h3 className="font-semibold capitalize mb-2">{type}</h3>
-												<ul className="space-y-1">
-													{results.map((item: any) => (
-														<li key={item.id} className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">
-															{item.name || item.title} {item.email && `(${item.email})`}
-														</li>
-													))}
-												</ul>
-											</div>
-										);
-									})}
+									{["users", "pages", "workspaces", "tasks", "events"].map(
+										(type) => {
+											const results = data.search[type];
+											if (!results?.length) return null;
+											return (
+												<div key={type}>
+													<h3 className="font-semibold capitalize mb-2">
+														{type}
+													</h3>
+													<ul className="space-y-1">
+														{results.map((item: any) => (
+															<li
+																key={item.id}
+																className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+															>
+																{item.name || item.title}{" "}
+																{item.email && `(${item.email})`}
+															</li>
+														))}
+													</ul>
+												</div>
+											);
+										},
+									)}
 								</>
 							)}
 						</div>

@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/sidebar";
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaceMutations";
 import ProfileDropdown from "../auth/ProfileDropdown";
-import DashboardSidebar from "./DashboardSidebar";
 import SearchDialog from "../shared/SearchDialog";
+import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 					<SidebarInset>
 						<header className="h-14 flex items-center gap-3 border-b px-3">
 							<SidebarTrigger />
-							<div className="flex-1 max-w-xl">
+							<div className="flex-1">
 								<Button variant="outline" onClick={() => setSearchOpen(true)}>
 									<Search className="h-4 w-4 mr-2" /> Search
 								</Button>
