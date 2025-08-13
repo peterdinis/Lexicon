@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { REGISTER_MUTATION, LOGIN_MUTATION } from "@/graphql/mutations/auth/authMutations";
+import {
+	LOGIN_MUTATION,
+	REGISTER_MUTATION,
+} from "@/graphql/mutations/auth/authMutations";
 
 type FormData = {
 	email: string;
