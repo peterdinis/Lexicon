@@ -2,9 +2,16 @@
 
 import { useMutation, useQuery } from "@apollo/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Building2, Loader2, Settings, Trash2, UserIcon } from "lucide-react";
+import {
+	ArrowRight,
+	Building2,
+	Loader2,
+	Settings,
+	Trash2,
+	UserIcon,
+} from "lucide-react";
 import { useTheme } from "next-themes";
-import { type FC, useState, useEffect } from "react";
+import { type FC, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -17,17 +24,24 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {
+	DELETE_PROFILE,
+	UPDATE_PROFILE,
+} from "@/graphql/mutations/profileMutations";
+import { ME_QUERY } from "@/graphql/queries/authQueries";
 import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
-import { ME_QUERY } from "@/graphql/queries/authQueries";
-import { DELETE_PROFILE, UPDATE_PROFILE } from "@/graphql/mutations/profileMutations";
 import { Input } from "../ui/input";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
 
 	// Workspaces query
-	const { data: wsData, loading: wsLoading, error: wsError } = useQuery(GET_WORKSPACES, {
+	const {
+		data: wsData,
+		loading: wsLoading,
+		error: wsError,
+	} = useQuery(GET_WORKSPACES, {
 		variables: { query: {} },
 	});
 	const workspaces = wsData?.workspaces?.items || [];
@@ -46,7 +60,7 @@ const SettingsWrapper: FC = () => {
 		lastName: "",
 		photoUrl: "",
 	});
-	
+
 	useEffect(() => {
 		if (currentUser) {
 			setFormData({
@@ -67,7 +81,11 @@ const SettingsWrapper: FC = () => {
 	};
 
 	const handleDeleteProfile = async () => {
-		if (confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
+		if (
+			confirm(
+				"Are you sure you want to delete your profile? This action cannot be undone.",
+			)
+		) {
 			await deleteProfile();
 			alert("Profile deleted. Logging out...");
 			localStorage.removeItem("token");
@@ -139,55 +157,60 @@ const SettingsWrapper: FC = () => {
 								</TableHeader>
 								<TableBody>
 									<AnimatePresence>
-										{workspaces.map((ws: {
-											id: string;
-											name: string;
-											createdAt: string;
-											updatedAt: string;
-										}, index: number) => (
-											<motion.tr
-												key={ws.id}
-												initial={{ opacity: 0, y: 10 }}
-												animate={{ opacity: 1, y: 0 }}
-												exit={{ opacity: 0, y: -10 }}
-												transition={{
-													delay: index * 0.07,
-													type: "spring",
-													stiffness: 120,
-												}}
-												whileHover={{
-													scale: 1.02,
-													backgroundColor: "rgba(0,0,0,0.05)",
-												}}
-												className="border-b cursor-pointer"
-											>
-												<TableCell className="flex items-center gap-2">
-													<span>
-														{
-															["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-																index % 7
-															]
-														}
-													</span>
-													{ws.name}
-												</TableCell>
-												<TableCell>
-													{new Date(ws.createdAt).toLocaleDateString()}
-												</TableCell>
-												<TableCell>
-													{new Date(ws.updatedAt).toLocaleDateString()}
-												</TableCell>
-												<TableCell className="text-right">
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => handleSwitchWorkspace(ws.id)}
-													>
-														Switch <ArrowRight className="w-4 h-4" />
-													</Button>
-												</TableCell>
-											</motion.tr>
-										))}
+										{workspaces.map(
+											(
+												ws: {
+													id: string;
+													name: string;
+													createdAt: string;
+													updatedAt: string;
+												},
+												index: number,
+											) => (
+												<motion.tr
+													key={ws.id}
+													initial={{ opacity: 0, y: 10 }}
+													animate={{ opacity: 1, y: 0 }}
+													exit={{ opacity: 0, y: -10 }}
+													transition={{
+														delay: index * 0.07,
+														type: "spring",
+														stiffness: 120,
+													}}
+													whileHover={{
+														scale: 1.02,
+														backgroundColor: "rgba(0,0,0,0.05)",
+													}}
+													className="border-b cursor-pointer"
+												>
+													<TableCell className="flex items-center gap-2">
+														<span>
+															{
+																["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+																	index % 7
+																]
+															}
+														</span>
+														{ws.name}
+													</TableCell>
+													<TableCell>
+														{new Date(ws.createdAt).toLocaleDateString()}
+													</TableCell>
+													<TableCell>
+														{new Date(ws.updatedAt).toLocaleDateString()}
+													</TableCell>
+													<TableCell className="text-right">
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => handleSwitchWorkspace(ws.id)}
+														>
+															Switch <ArrowRight className="w-4 h-4" />
+														</Button>
+													</TableCell>
+												</motion.tr>
+											),
+										)}
 									</AnimatePresence>
 								</TableBody>
 							</Table>
@@ -214,21 +237,27 @@ const SettingsWrapper: FC = () => {
 									<Label>Name</Label>
 									<Input
 										value={formData.name}
-										onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+										onChange={(e) =>
+											setFormData({ ...formData, name: e.target.value })
+										}
 									/>
 								</div>
 								<div className="space-y-2">
 									<Label>Last Name</Label>
 									<Input
 										value={formData.lastName}
-										onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+										onChange={(e) =>
+											setFormData({ ...formData, lastName: e.target.value })
+										}
 									/>
 								</div>
 								<div className="space-y-2">
 									<Label>Photo URL</Label>
 									<Input
 										value={formData.photoUrl}
-										onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+										onChange={(e) =>
+											setFormData({ ...formData, photoUrl: e.target.value })
+										}
 									/>
 								</div>
 								<Button
