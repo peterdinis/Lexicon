@@ -24,14 +24,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import {
-	DELETE_PROFILE,
-	UPDATE_PROFILE,
-} from "@/graphql/mutations/profileMutations";
-import { ME_QUERY } from "@/graphql/queries/authQueries";
-import { GET_WORKSPACES } from "@/graphql/queries/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
 import { Input } from "../ui/input";
+import { UPDATE_PROFILE, DELETE_PROFILE } from "@/graphql/mutations/auth/profileMutations";
+import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
+import { GET_WORKSPACES } from "@/graphql/queries/workspaces/workspaceQueries";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();

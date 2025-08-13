@@ -24,10 +24,10 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaceMutations";
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
+import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);

@@ -2,22 +2,18 @@
 
 import { CalendarRange, Database, FileText, Kanban, Star } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { type FC, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
 
 const DashboardWrapper: FC = () => {
   const [note, setNote] = useState("");
   const [filter, setFilter] = useState("");
-  const { resolvedTheme, setTheme } = useTheme();
 
   const recents = useMemo(
     () => [
@@ -184,9 +180,12 @@ const DashboardWrapper: FC = () => {
             <div className="p-4 ounded-lg shadow-md w-full h-auto select-none">
               <CalendarUI className="w-full h-full rounded-md" />
             </div>
-            <div className="mt-4">
+            <div className="mt-4 ml-3">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/calendar">Open Calendar</Link>
+                <Link href="/calendar">Open Events in Calendar</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="ml-4">
+                <Link href="/calendar">Add new event to calendar</Link>
               </Button>
             </div>
           </CardContent>
