@@ -36,7 +36,6 @@ const SettingsWrapper: FC = () => {
 	const { data: meData, loading: meLoading } = useQuery(ME_QUERY);
 	const currentUser = meData?.me;
 
-	// Profile mutations
 	const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE, {
 		refetchQueries: ["Me"],
 	});
@@ -47,8 +46,7 @@ const SettingsWrapper: FC = () => {
 		lastName: "",
 		photoUrl: "",
 	});
-
-	// Fill form once we have user data
+	
 	useEffect(() => {
 		if (currentUser) {
 			setFormData({
