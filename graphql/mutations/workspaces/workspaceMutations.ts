@@ -30,3 +30,13 @@ export const REMOVE_WORKSPACE = gql`
     }
   }
 `;
+
+
+export const SET_CURRENT_WORKSPACE = gql`
+  mutation SetCurrentWorkspace($id: Int!) {
+    setCurrentWorkspace(id: $id) {
+      id
+      currentWorkspaceId
+    }
+  }
+`;

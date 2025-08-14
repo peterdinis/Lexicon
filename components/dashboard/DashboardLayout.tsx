@@ -7,7 +7,6 @@ import {
 	useState,
 	unstable_ViewTransition as ViewTransition,
 } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -28,22 +27,32 @@ import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutati
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const [newWorkspaceName, setNewWorkspaceName] = useState("");
 	const [searchOpen, setSearchOpen] = useState(false);
+	const { toast } = useToast()
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
 		onCompleted: (data) => {
 			console.log("Workspace created:", data.createWorkspace);
 			setNewWorkspaceName("");
 			setOpen(false);
-			toast.success("New workspace was created");
+			toast({
+				title: "New workspace is created",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-xl"
+			})
 		},
 		onError: (error) => {
 			console.error("Error creating workspace:", error);
-			toast.error("Failed to create new workspace");
+			toast({
+				title: "New workspace was not created",
+				duration: 2000,
+				className: "bg-red-800 text-white font-bold text-xl"
+			})
 		},
 	});
 
@@ -61,6 +70,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 				},
 			},
 		});
+
+		toast({
+			title: "New workspace is created",
+			duration: 2000,
+			className: "bg-green-800 text-white font-bold text-xl"
+		})
 	};
 
 	return (
