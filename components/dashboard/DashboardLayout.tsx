@@ -24,16 +24,16 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
+import { useToast } from "@/hooks/use-toast";
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
-import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const [newWorkspaceName, setNewWorkspaceName] = useState("");
 	const [searchOpen, setSearchOpen] = useState(false);
-	const { toast } = useToast()
+	const { toast } = useToast();
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
 		onCompleted: (data) => {
@@ -43,16 +43,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 			toast({
 				title: "New workspace is created",
 				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-xl"
-			})
+				className: "bg-green-800 text-white font-bold text-xl",
+			});
 		},
 		onError: (error) => {
 			console.error("Error creating workspace:", error);
 			toast({
 				title: "New workspace was not created",
 				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-xl"
-			})
+				className: "bg-red-800 text-white font-bold text-xl",
+			});
 		},
 	});
 
@@ -74,8 +74,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 		toast({
 			title: "New workspace is created",
 			duration: 2000,
-			className: "bg-green-800 text-white font-bold text-xl"
-		})
+			className: "bg-green-800 text-white font-bold text-xl",
+		});
 	};
 
 	return (
@@ -116,7 +116,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 								<Dialog open={open} onOpenChange={setOpen}>
 									<DialogTrigger asChild>
-										<Button variant="default" disabled={loading} className="flex-1 sm:flex-none">
+										<Button
+											variant="default"
+											disabled={loading}
+											className="flex-1 sm:flex-none"
+										>
 											<Plus className="mr-2 h-4 w-4" />
 											New Workspace
 										</Button>
