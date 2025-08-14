@@ -56,10 +56,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 		},
 	});
 
-	const handleNewPage = () => {
-		// TODO: Implement New Page creation
-	};
-
 	const handleCreateWorkspace = () => {
 		if (!newWorkspaceName.trim()) return;
 
@@ -106,14 +102,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 								<SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 							</div>
 							<div className="flex gap-2 ml-auto flex-wrap sm:flex-nowrap">
-								<Button
-									variant="default"
-									onClick={handleNewPage}
-									className="flex-1 sm:flex-none"
-								>
-									New Page
-								</Button>
-
 								<Dialog open={open} onOpenChange={setOpen}>
 									<DialogTrigger asChild>
 										<Button
