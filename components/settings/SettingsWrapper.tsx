@@ -11,7 +11,7 @@ import {
 	UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { type FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,36 +24,40 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { Input } from "../ui/input";
+
 import {
 	DELETE_PROFILE,
 	UPDATE_PROFILE,
 } from "@/graphql/mutations/auth/profileMutations";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
-import { GET_WORKSPACES } from "@/graphql/queries/workspaces/workspaceQueries";
+import { GET_WORKSPACES, GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
-import { Input } from "../ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
+	const { toast } = useToast();
 
 	// Workspaces query
-	const {
-		data: wsData,
-		loading: wsLoading,
-		error: wsError,
-	} = useQuery(GET_WORKSPACES, {
-		variables: { query: {} },
-	});
+	const { data: wsData, loading: wsLoading, error: wsError, refetch: refetchWorkspaces } =
+		useQuery(GET_WORKSPACES);
 	const workspaces = wsData?.workspaces?.items || [];
+
+	// Current workspace query
+	const { data: currentWorkspaceData } = useQuery(GET_CURRENT_WORKSPACE);
+	const currentWorkspaceId = currentWorkspaceData?.currentWorkspace?.id;
+
+	console.log(currentWorkspaceId)
 
 	// Me query
 	const { data: meData, loading: meLoading } = useQuery(ME_QUERY);
 	const currentUser = meData?.me;
 
-	const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE, {
+	const [updateProfile] = useMutation(UPDATE_PROFILE, {
 		refetchQueries: ["Me"],
 	});
-	const [deleteProfile, { loading: deleting }] = useMutation(DELETE_PROFILE);
+	const [deleteProfile] = useMutation(DELETE_PROFILE);
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -71,23 +75,42 @@ const SettingsWrapper: FC = () => {
 		}
 	}, [currentUser]);
 
-	const handleSwitchWorkspace = (workspaceId: string) => {
-		localStorage.setItem("currentWorkspaceId", workspaceId);
+	const handleSwitchWorkspace = async (workspaceId: string) => {
+		// Tu môžeš implementovať mutation alebo logiku, ktorá prepne workspace
+		// Napr. refetch CURRENT_WORKSPACE alebo server-side mutation
+		toast({
+			title: "Switched workspace",
+			duration: 2000,
+			className: "bg-green-800 text-white font-bold text-base",
+		});
+		await refetchWorkspaces();
 	};
 
 	const handleUpdateProfile = async () => {
-		await updateProfile({ variables: { data: formData } });
-		alert("Profile updated!");
+		try {
+			await updateProfile({ variables: { data: formData } });
+			toast({
+				title: "Profile Updated",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
+		} catch {
+			toast({
+				title: "Profile update failed",
+				duration: 2000,
+				className: "bg-red-800 text-white font-bold text-base",
+			});
+		}
 	};
 
 	const handleDeleteProfile = async () => {
-		if (
-			confirm(
-				"Are you sure you want to delete your profile? This action cannot be undone.",
-			)
-		) {
+		if (confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
 			await deleteProfile();
-			alert("Profile deleted. Logging out...");
+			toast({
+				title: "Deleting profile",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
 			localStorage.removeItem("token");
 			window.location.href = "/login";
 		}
@@ -95,18 +118,18 @@ const SettingsWrapper: FC = () => {
 
 	return (
 		<DashboardLayout>
-			<header className="mb-6">
-				<h1 className="text-2xl font-semibold flex items-center gap-2">
-					<Settings className="h-5 w-5 text-muted-foreground" /> Settings
+			<header className="mb-8">
+				<h1 className="text-3xl font-bold flex items-center gap-3">
+					<Settings className="h-6 w-6 text-muted-foreground" /> Settings
 				</h1>
-				<p className="text-sm text-muted-foreground mt-1">
+				<p className="text-sm text-muted-foreground mt-2">
 					Manage your workspace preferences and profile.
 				</p>
 			</header>
 
-			<section className="grid gap-6 md:grid-cols-3 animate-fade-in">
+			<section className="grid gap-8 md:grid-cols-3">
 				{/* Preferences Card */}
-				<Card>
+				<Card className="shadow-lg border-gray-100">
 					<CardHeader>
 						<CardTitle>Preferences</CardTitle>
 					</CardHeader>
@@ -116,20 +139,17 @@ const SettingsWrapper: FC = () => {
 							<Switch
 								id="pref-dark"
 								checked={resolvedTheme === "dark"}
-								onCheckedChange={(checked) =>
-									setTheme(checked ? "dark" : "light")
-								}
+								onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
 							/>
 						</div>
 					</CardContent>
 				</Card>
 
 				{/* Workspaces Card */}
-				<Card>
+				<Card className="shadow-lg border-gray-100 col-span-3 md:col-span-1">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Building2 className="w-5 h-5 text-muted-foreground" />
-							All Workspaces
+							<Building2 className="w-5 h-5 text-muted-foreground" /> Workspaces
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -140,77 +160,49 @@ const SettingsWrapper: FC = () => {
 						)}
 
 						{wsError && (
-							<p className="text-red-500 text-sm">
-								Error loading workspaces: {wsError.message}
-							</p>
+							<p className="text-red-500 text-sm">Error loading workspaces: {wsError.message}</p>
 						)}
 
-						{!wsLoading && !wsError && (
-							<Table>
+						{!wsLoading && !wsError && workspaces.length > 0 && (
+							<Table className="text-sm">
 								<TableHeader>
 									<TableRow>
 										<TableHead>Name</TableHead>
-										<TableHead>Created</TableHead>
-										<TableHead>Updated</TableHead>
 										<TableHead className="text-right">Action</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									<AnimatePresence>
-										{workspaces.map(
-											(
-												ws: {
-													id: string;
-													name: string;
-													createdAt: string;
-													updatedAt: string;
-												},
-												index: number,
-											) => (
-												<motion.tr
-													key={ws.id}
-													initial={{ opacity: 0, y: 10 }}
-													animate={{ opacity: 1, y: 0 }}
-													exit={{ opacity: 0, y: -10 }}
-													transition={{
-														delay: index * 0.07,
-														type: "spring",
-														stiffness: 120,
-													}}
-													whileHover={{
-														scale: 1.02,
-														backgroundColor: "rgba(0,0,0,0.05)",
-													}}
-													className="border-b cursor-pointer"
-												>
-													<TableCell className="flex items-center gap-2">
-														<span>
-															{
-																["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-																	index % 7
-																]
-															}
+										{workspaces.map((ws, index) => (
+											<motion.tr
+												key={ws.id}
+												initial={{ opacity: 0, y: 10 }}
+												animate={{ opacity: 1, y: 0 }}
+												exit={{ opacity: 0, y: -10 }}
+												transition={{ delay: index * 0.05 }}
+												whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.03)" }}
+												className="border-b cursor-pointer"
+											>
+												<TableCell className="flex items-center gap-2">
+													<span>{["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][index % 7]}</span>
+													{ws.name}
+													{ws.id === currentWorkspaceId && (
+														<span className="ml-2 text-xs text-green-500 font-semibold">
+															(current)
 														</span>
-														{ws.name}
-													</TableCell>
-													<TableCell>
-														{new Date(ws.createdAt).toLocaleDateString()}
-													</TableCell>
-													<TableCell>
-														{new Date(ws.updatedAt).toLocaleDateString()}
-													</TableCell>
-													<TableCell className="text-right">
-														<Button
-															variant="outline"
-															size="sm"
-															onClick={() => handleSwitchWorkspace(ws.id)}
-														>
-															Switch <ArrowRight className="w-4 h-4" />
-														</Button>
-													</TableCell>
-												</motion.tr>
-											),
-										)}
+													)}
+												</TableCell>
+												<TableCell className="text-right">
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() => handleSwitchWorkspace(ws.id)}
+													>
+														Switch <ArrowRight className="w-4 h-4" />
+													</Button>
+												</TableCell>
+											</motion.tr>
+										))}
 									</AnimatePresence>
 								</TableBody>
 							</Table>
@@ -219,11 +211,10 @@ const SettingsWrapper: FC = () => {
 				</Card>
 
 				{/* Profile Card */}
-				<Card>
+				<Card className="shadow-lg border-gray-100 col-span-3 md:col-span-2">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<UserIcon className="w-5 h-5 text-muted-foreground" />
-							Profile Settings
+							<UserIcon className="w-5 h-5 text-muted-foreground" /> Profile
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
@@ -233,49 +224,50 @@ const SettingsWrapper: FC = () => {
 							</div>
 						) : (
 							<>
-								<div className="space-y-2">
-									<Label>Name</Label>
-									<Input
-										value={formData.name}
-										onChange={(e) =>
-											setFormData({ ...formData, name: e.target.value })
-										}
+								<div className="flex flex-col md:flex-row gap-4 items-center">
+									<img
+										src={formData.photoUrl || "/default-avatar.png"}
+										alt="Profile"
+										className="w-16 h-16 rounded-full object-cover border"
 									/>
+									<div className="flex-1 space-y-2 w-full">
+										<div>
+											<Label>Name</Label>
+											<Input
+												value={formData.name}
+												onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+											/>
+										</div>
+										<div>
+											<Label>Last Name</Label>
+											<Input
+												value={formData.lastName}
+												onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+											/>
+										</div>
+										<div>
+											<Label>Photo URL</Label>
+											<Input
+												value={formData.photoUrl}
+												onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+											/>
+										</div>
+									</div>
 								</div>
-								<div className="space-y-2">
-									<Label>Last Name</Label>
-									<Input
-										value={formData.lastName}
-										onChange={(e) =>
-											setFormData({ ...formData, lastName: e.target.value })
-										}
-									/>
+								<div className="flex gap-2 mt-4">
+									<Button
+										onClick={handleUpdateProfile}
+										variant="default"
+									>
+										Update Profile
+									</Button>
+									<Button
+										onClick={handleDeleteProfile}
+										variant="destructive"
+									>
+										Delete Profile
+									</Button>
 								</div>
-								<div className="space-y-2">
-									<Label>Photo URL</Label>
-									<Input
-										value={formData.photoUrl}
-										onChange={(e) =>
-											setFormData({ ...formData, photoUrl: e.target.value })
-										}
-									/>
-								</div>
-								<Button
-									onClick={handleUpdateProfile}
-									disabled={updating}
-									className="w-full"
-								>
-									{updating ? "Updating..." : "Update Profile"}
-								</Button>
-								<Button
-									variant="destructive"
-									onClick={handleDeleteProfile}
-									disabled={deleting}
-									className="w-full flex items-center gap-2"
-								>
-									<Trash2 className="w-4 h-4" />
-									{deleting ? "Deleting..." : "Delete Profile"}
-								</Button>
 							</>
 						)}
 					</CardContent>
