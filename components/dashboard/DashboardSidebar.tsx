@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Calendar,
 	CheckSquare,
 	LayoutGrid,
 	LayoutTemplate,
@@ -31,7 +30,6 @@ import { listPages, pagesEvents } from "@/store/pageStore";
 
 const items = [
 	{ title: "Dashboard", url: "/dashboard", icon: LayoutGrid },
-	{ title: "Calendar", url: "/calendar", icon: Calendar },
 	{ title: "Tasks", url: "/tasks", icon: CheckSquare },
 	{ title: "Templates", url: "/templates", icon: LayoutTemplate },
 	{ title: "Settings", url: "/settings", icon: Settings },

@@ -24,16 +24,16 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
+import { useToast } from "@/hooks/use-toast";
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
-import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
 	const [newWorkspaceName, setNewWorkspaceName] = useState("");
 	const [searchOpen, setSearchOpen] = useState(false);
-	const { toast } = useToast()
+	const { toast } = useToast();
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
 		onCompleted: (data) => {
@@ -43,22 +43,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 			toast({
 				title: "New workspace is created",
 				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-xl"
-			})
+				className: "bg-green-800 text-white font-bold text-xl",
+			});
 		},
 		onError: (error) => {
 			console.error("Error creating workspace:", error);
 			toast({
 				title: "New workspace was not created",
 				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-xl"
-			})
+				className: "bg-red-800 text-white font-bold text-xl",
+			});
 		},
 	});
-
-	const handleNewPage = () => {
-		// TODO: Implement New Page creation
-	};
 
 	const handleCreateWorkspace = () => {
 		if (!newWorkspaceName.trim()) return;
@@ -74,8 +70,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 		toast({
 			title: "New workspace is created",
 			duration: 2000,
-			className: "bg-green-800 text-white font-bold text-xl"
-		})
+			className: "bg-green-800 text-white font-bold text-xl",
+		});
 	};
 
 	return (
@@ -84,24 +80,35 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 				<div className="flex min-h-screen w-full">
 					<DashboardSidebar />
 					<SidebarInset>
-						<header className="h-14 flex items-center gap-3 border-b px-3">
-							<SidebarTrigger />
-							<div className="flex-1">
-								<Button variant="outline" onClick={() => setSearchOpen(true)}>
+						<header className="h-auto min-h-14 flex flex-wrap md:flex-nowrap items-center gap-3 border-b px-3 py-2">
+							<div className="flex items-center gap-2 flex-1 min-w-[200px]">
+								<SidebarTrigger />
+								<Button
+									variant="outline"
+									onClick={() => setSearchOpen(true)}
+									className="hidden sm:flex"
+								>
 									<Search className="h-4 w-4 mr-2" /> Search
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => setSearchOpen(true)}
+									className="sm:hidden"
+								>
+									<Search className="h-4 w-4" />
 								</Button>
 
 								<SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 							</div>
-
-							<div className="flex gap-2 ml-auto">
-								<Button variant="default" onClick={handleNewPage}>
-									New Page
-								</Button>
-
+							<div className="flex gap-2 ml-auto flex-wrap sm:flex-nowrap">
 								<Dialog open={open} onOpenChange={setOpen}>
 									<DialogTrigger asChild>
-										<Button variant="default" disabled={loading}>
+										<Button
+											variant="default"
+											disabled={loading}
+											className="flex-1 sm:flex-none"
+										>
 											<Plus className="mr-2 h-4 w-4" />
 											New Workspace
 										</Button>
@@ -114,7 +121,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 												settings later.
 											</DialogDescription>
 										</DialogHeader>
-
 										<div className="py-4">
 											<Input
 												placeholder="Workspace Name"
@@ -124,7 +130,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 												disabled={loading}
 											/>
 										</div>
-
 										<DialogFooter>
 											<Button
 												onClick={handleCreateWorkspace}
@@ -140,9 +145,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 										)}
 									</DialogContent>
 								</Dialog>
-							</div>
 
-							<ProfileDropdown />
+								<ProfileDropdown />
+							</div>
 						</header>
 						<div className="p-6">{children}</div>
 					</SidebarInset>
