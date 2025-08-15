@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
+import { useQuery } from "@apollo/client";
+import { GET_TEMPLATES } from "@/graphql/queries/templates/templatesQueries";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
@@ -62,6 +64,10 @@ const DashboardWrapper: FC = () => {
 		],
 		[],
 	);
+
+	const { data, loading, error } = useQuery(GET_TEMPLATES);
+
+	console.log("D", data)
 
 	const mockTasks = [
 		{ id: 1, title: "Design homepage", status: "To do" },
