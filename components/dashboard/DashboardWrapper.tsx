@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { CalendarRange, Database, FileText, Kanban, Star } from "lucide-react";
 import Link from "next/link";
 import { type FC, useMemo, useState } from "react";
@@ -61,6 +62,30 @@ const DashboardWrapper: FC = () => {
 		],
 		[],
 	);
+
+	const mockTasks = [
+		{ id: 1, title: "Design homepage", status: "To do" },
+		{ id: 2, title: "Implement login API", status: "In progress" },
+		{ id: 3, title: "Write tests for dashboard", status: "Done" },
+		{ id: 4, title: "Setup analytics", status: "To do" },
+		{ id: 5, title: "Fix bug #112", status: "In progress" },
+		{ id: 6, title: "Design homepage", status: "To do" },
+		{ id: 7, title: "Implement login API", status: "In progress" },
+		{ id: 8, title: "Write tests for dashboard", status: "Done" },
+		{ id: 9, title: "Setup analytics", status: "To do" },
+		{ id: 10, title: "Fix bug #112", status: "In progress" },
+		{ id: 11, title: "Fix bug #112", status: "In progress" },
+		{ id: 12, title: "Design homepage", status: "To do" },
+		{ id: 13, title: "Implement login API", status: "In progress" },
+		{ id: 14, title: "Write tests for dashboard", status: "Done" },
+		{ id: 15, title: "Setup analytics", status: "To do" },
+		{ id: 16, title: "Fix bug #112", status: "In progress" },
+		{ id: 17, title: "Design homepage", status: "To do" },
+		{ id: 18, title: "Implement login API", status: "In progress" },
+		{ id: 19, title: "Write tests for dashboard", status: "Done" },
+		{ id: 20, title: "Setup analytics", status: "To do" },
+		{ id: 21, title: "Fix bug #112", status: "In progress" },
+	];
 
 	const badgeCls = (color: (typeof recents)[number]["color"]) => {
 		switch (color) {
@@ -210,6 +235,36 @@ const DashboardWrapper: FC = () => {
 								<span className="text-muted-foreground">8</span>
 							</li>
 						</ul>
+
+						{/* Animated tasks table */}
+						<div className="mt-4 overflow-hidden rounded border border-border">
+							<table className="w-full text-left text-sm">
+								<thead className="bg-muted text-muted-foreground">
+									<tr>
+										<th className="px-3 py-2">Task</th>
+										<th className="px-3 py-2">Status</th>
+									</tr>
+								</thead>
+								<tbody>
+									<AnimatePresence>
+										{mockTasks.map((task) => (
+											<motion.tr
+												key={task.id}
+												initial={{ opacity: 0, x: -20 }}
+												animate={{ opacity: 1, x: 0 }}
+												exit={{ opacity: 0, x: 20 }}
+												transition={{ duration: 0.3 }}
+												className="border-t border-border"
+											>
+												<td className="px-3 py-2">{task.title}</td>
+												<td className="px-3 py-2">{task.status}</td>
+											</motion.tr>
+										))}
+									</AnimatePresence>
+								</tbody>
+							</table>
+						</div>
+
 						<div className="mt-4">
 							<Button size="sm" asChild>
 								<Link href="/tasks">Open Tasks</Link>
