@@ -11,7 +11,7 @@ const Navbar: FC = () => {
 					L
 				</div>
 				<span className="font-semibold">Lexicon</span>
-			</div>
+			</div> 
 			<nav className="flex items-center gap-3">
 				<Link href="/auth">
 					<Button variant="outline">Sign in</Button>
