@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { CalendarRange, Database, FileText, Kanban, Star } from "lucide-react";
 import Link from "next/link";
 import { type FC, useMemo, useState } from "react";
@@ -10,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
-import {motion, AnimatePresence} from "framer-motion"
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
@@ -86,7 +86,6 @@ const DashboardWrapper: FC = () => {
 		{ id: 20, title: "Setup analytics", status: "To do" },
 		{ id: 21, title: "Fix bug #112", status: "In progress" },
 	];
-
 
 	const badgeCls = (color: (typeof recents)[number]["color"]) => {
 		switch (color) {
@@ -221,57 +220,57 @@ const DashboardWrapper: FC = () => {
 					<CardHeader>
 						<CardTitle>Tasks</CardTitle>
 					</CardHeader>
-					  <CardContent>
-      <ul className="space-y-2 text-sm">
-        <li className="flex items-center justify-between">
-          <span>To do</span>
-          <span className="text-muted-foreground">5</span>
-        </li>
-        <li className="flex items-center justify-between">
-          <span>In progress</span>
-          <span className="text-muted-foreground">2</span>
-        </li>
-        <li className="flex items-center justify-between">
-          <span>Done</span>
-          <span className="text-muted-foreground">8</span>
-        </li>
-      </ul>
+					<CardContent>
+						<ul className="space-y-2 text-sm">
+							<li className="flex items-center justify-between">
+								<span>To do</span>
+								<span className="text-muted-foreground">5</span>
+							</li>
+							<li className="flex items-center justify-between">
+								<span>In progress</span>
+								<span className="text-muted-foreground">2</span>
+							</li>
+							<li className="flex items-center justify-between">
+								<span>Done</span>
+								<span className="text-muted-foreground">8</span>
+							</li>
+						</ul>
 
-      {/* Animated tasks table */}
-      <div className="mt-4 overflow-hidden rounded border border-border">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Task</th>
-              <th className="px-3 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {mockTasks.map((task) => (
-                <motion.tr
-                  key={task.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                  className="border-t border-border"
-                >
-                  <td className="px-3 py-2">{task.title}</td>
-                  <td className="px-3 py-2">{task.status}</td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
+						{/* Animated tasks table */}
+						<div className="mt-4 overflow-hidden rounded border border-border">
+							<table className="w-full text-left text-sm">
+								<thead className="bg-muted text-muted-foreground">
+									<tr>
+										<th className="px-3 py-2">Task</th>
+										<th className="px-3 py-2">Status</th>
+									</tr>
+								</thead>
+								<tbody>
+									<AnimatePresence>
+										{mockTasks.map((task) => (
+											<motion.tr
+												key={task.id}
+												initial={{ opacity: 0, x: -20 }}
+												animate={{ opacity: 1, x: 0 }}
+												exit={{ opacity: 0, x: 20 }}
+												transition={{ duration: 0.3 }}
+												className="border-t border-border"
+											>
+												<td className="px-3 py-2">{task.title}</td>
+												<td className="px-3 py-2">{task.status}</td>
+											</motion.tr>
+										))}
+									</AnimatePresence>
+								</tbody>
+							</table>
+						</div>
 
-      <div className="mt-4">
-        <Button size="sm" asChild>
-          <Link href="/tasks">Open Tasks</Link>
-        </Button>
-      </div>
-    </CardContent>
+						<div className="mt-4">
+							<Button size="sm" asChild>
+								<Link href="/tasks">Open Tasks</Link>
+							</Button>
+						</div>
+					</CardContent>
 				</Card>
 			</section>
 
