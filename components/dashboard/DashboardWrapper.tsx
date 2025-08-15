@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarRange, Database, FileText, Kanban, Star } from "lucide-react";
+import { CalendarRange, Database, FileText, Kanban, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { type FC, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
+import { useQuery } from "@apollo/client";
+import { GET_TEMPLATES } from "@/graphql/queries/templates/templatesQueries";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
@@ -63,6 +65,9 @@ const DashboardWrapper: FC = () => {
 		[],
 	);
 
+	const { data: templateData, loading: templateLoading, error: templateError } = useQuery(GET_TEMPLATES);
+
+
 	const mockTasks = [
 		{ id: 1, title: "Design homepage", status: "To do" },
 		{ id: 2, title: "Implement login API", status: "In progress" },
@@ -105,6 +110,12 @@ const DashboardWrapper: FC = () => {
 	const filteredRecents = recents.filter((r) =>
 		r.title.toLowerCase().includes(filter.toLowerCase()),
 	);
+
+	if(templateLoading) return <Loader2 className="animate-spin w-8 h-8" />
+
+	if(templateError) return <p className="text-red-800 text-xl font-bold">Failed to load templates</p>
+
+	console.log(templateData.getTemplates)
 
 	return (
 		<DashboardLayout>
@@ -281,13 +292,15 @@ const DashboardWrapper: FC = () => {
 					</CardHeader>
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{templates.map((t) => (
+							{templateData && templateData?.getTemplates.map((t: {
+								title: string
+								desc: string
+							}) => (
 								<div
 									key={t.title}
 									className="border rounded-md p-4 hover-scale transition-transform hover:scale-[1.02]"
 								>
 									<div className="flex items-start gap-3">
-										<t.icon className="h-5 w-5 text-muted-foreground" />
 										<div>
 											<div className="font-medium">{t.title}</div>
 											<div className="text-sm text-muted-foreground">
