@@ -1,11 +1,12 @@
 import { gql } from "@apollo/client";
 
+// TODO: Blocks issues with queries
+
 export const GET_TEMPLATES = gql`
   query GetTemplates {
     getTemplates {
       id
       title
-      blocks
     }
   }
 `;
@@ -15,7 +16,6 @@ export const GET_TEMPLATE = gql`
     getTemplate(id: $id) {
       id
       title
-      blocks
     }
   }
 `;
