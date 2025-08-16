@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarRange, Database, FileText, Kanban, Loader2, Star } from "lucide-react";
+import { CalendarRange, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { type FC, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -11,12 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
-import { useQuery } from "@apollo/client";
-import { GET_TEMPLATES } from "@/graphql/queries/templates/templatesQueries";
+import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
 	const [filter, setFilter] = useState("");
+
+	const {templates: templateData, loading: templateLoading, error: templateError} = useGetAllTemplates()
 
 	const recents = useMemo(
 		() => [
@@ -51,21 +52,6 @@ const DashboardWrapper: FC = () => {
 		],
 		[],
 	);
-
-	const templates = useMemo(
-		() => [
-			{
-				icon: FileText,
-				title: "Meeting Notes",
-				desc: "Capture agendas and outcomes",
-			},
-			{ icon: Kanban, title: "Kanban Board", desc: "Track tasks visually" },
-			{ icon: Database, title: "Database", desc: "Structure anything" },
-		],
-		[],
-	);
-
-	const { data: templateData, loading: templateLoading, error: templateError } = useQuery(GET_TEMPLATES);
 
 
 	const mockTasks = [
