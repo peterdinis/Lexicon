@@ -1,19 +1,16 @@
 "use client";
 
-import { useMutation } from "@apollo/client";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FC, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	LOGIN_MUTATION,
-	REGISTER_MUTATION,
-} from "@/graphql/mutations/auth/authMutations";
+import { useLogin } from "@/hooks/auth/useLogin";
+import { useRegister } from "@/hooks/auth/useRegister";
+
 
 type FormData = {
 	email: string;
@@ -22,12 +19,14 @@ type FormData = {
 };
 
 const AuthWrapper: FC = () => {
-	const [, setActiveTab] = useState<"signin" | "signup">("signin");
+	const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
 	const [showPasswordSignin, setShowPasswordSignin] = useState(false);
 	const [showPasswordSignup, setShowPasswordSignup] = useState(false);
+	const [token, setToken] = useState<string | null>(null);
 	const router = useRouter();
 
-	const [, setToken] = useState<string | null>(null);
+	const { login, loading: loggingIn } = useLogin();
+	const { register: registerUser, loading: registering } = useRegister();
 
 	useEffect(() => {
 		setToken(localStorage.getItem("token"));
@@ -47,55 +46,15 @@ const AuthWrapper: FC = () => {
 		formState: { errors: errorsSignup },
 	} = useForm<FormData>();
 
-	const [registerMutation, { loading: registering }] = useMutation(
-		REGISTER_MUTATION,
-		{
-			onCompleted(data) {
-				toast.success("Registered successfully!");
-				localStorage.setItem("token", data.register);
-				setToken(data.register);
-				resetSignup();
-			},
-			onError(error) {
-				toast.error(error.message);
-			},
-		},
-	);
-
-	const [loginMutation, { loading: loggingIn }] = useMutation(LOGIN_MUTATION, {
-		onCompleted(data) {
-			toast.success("Logged in successfully!");
-			localStorage.setItem("token", data.login);
-			setToken(data.login);
-			resetSignin();
-		},
-		onError(error) {
-			toast.error(error.message);
-		},
-	});
-
-	const onSubmitSignin = (data: FormData) => {
-		loginMutation({
-			variables: {
-				data: {
-					email: data.email,
-					password: data.password,
-				},
-			},
-		});
+	const onSubmitSignin = async (data: FormData) => {
+		await login(data.email, data.password);
+		resetSignin();
 		router.push("/dashboard");
 	};
 
-	const onSubmitSignup = (data: FormData) => {
-		registerMutation({
-			variables: {
-				data: {
-					email: data.email,
-					password: data.password,
-					name: data.name, // send name
-				},
-			},
-		});
+	const onSubmitSignup = async (data: FormData) => {
+		await registerUser(data.name!, data.email, data.password);
+		resetSignup();
 		setActiveTab("signin");
 	};
 
@@ -162,11 +121,7 @@ const AuthWrapper: FC = () => {
 										onClick={() => setShowPasswordSignin((v) => !v)}
 										tabIndex={-1}
 									>
-										{showPasswordSignin ? (
-											<EyeOff size={20} />
-										) : (
-											<Eye size={20} />
-										)}
+										{showPasswordSignin ? <EyeOff size={20} /> : <Eye size={20} />}
 									</button>
 								</div>
 								{errorsSignin.password && (
@@ -176,15 +131,12 @@ const AuthWrapper: FC = () => {
 								)}
 
 								<Button type="submit" className="w-full" disabled={loggingIn}>
-									{loggingIn ? (
-										<Loader2 className="animate-spin w-8 h-8" />
-									) : (
-										"Sign in"
-									)}
+									{loggingIn ? <Loader2 className="animate-spin w-8 h-8" /> : "Sign in"}
 								</Button>
 							</form>
 						</TabsContent>
 
+						{/* Sign Up */}
 						<TabsContent value="signup">
 							<form
 								className="space-y-3 mt-4"
@@ -197,9 +149,7 @@ const AuthWrapper: FC = () => {
 									{...registerSignup("name", { required: "Name is required" })}
 								/>
 								{errorsSignup.name && (
-									<p className="text-sm text-red-500">
-										{errorsSignup.name.message}
-									</p>
+									<p className="text-sm text-red-500">{errorsSignup.name.message}</p>
 								)}
 
 								<Input
@@ -214,9 +164,7 @@ const AuthWrapper: FC = () => {
 									})}
 								/>
 								{errorsSignup.email && (
-									<p className="text-sm text-red-500">
-										{errorsSignup.email.message}
-									</p>
+									<p className="text-sm text-red-500">{errorsSignup.email.message}</p>
 								)}
 
 								<div className="relative">
@@ -237,17 +185,11 @@ const AuthWrapper: FC = () => {
 										onClick={() => setShowPasswordSignup((v) => !v)}
 										tabIndex={-1}
 									>
-										{showPasswordSignup ? (
-											<EyeOff size={20} />
-										) : (
-											<Eye size={20} />
-										)}
+										{showPasswordSignup ? <EyeOff size={20} /> : <Eye size={20} />}
 									</button>
 								</div>
 								{errorsSignup.password && (
-									<p className="text-sm text-red-500">
-										{errorsSignup.password.message}
-									</p>
+									<p className="text-sm text-red-500">{errorsSignup.password.message}</p>
 								)}
 
 								<Button type="submit" className="w-full" disabled={registering}>

@@ -14,9 +14,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
+import { useMe } from "@/hooks/auth/useMe";
 
 const ProfileDropdown: FC = () => {
-	const { data, loading } = useQuery(ME_QUERY);
+	const { me, loading} = useMe();
 	const router = useRouter();
 
 	const logout = () => {
@@ -33,19 +34,19 @@ const ProfileDropdown: FC = () => {
 			<DropdownMenuTrigger>
 				<Avatar>
 					<AvatarImage
-						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(data?.me && data?.me?.name)}`}
+						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(me?.name!)}`}
 					/>
 					<AvatarFallback>
-						{data?.me && data?.me?.name?.[0]?.toUpperCase()}
+						{me && me?.name?.[0]?.toUpperCase()}
 					</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
 				<DropdownMenuLabel>
 					<div className="flex flex-col">
-						<span>{data?.me && data?.me?.name}</span>
+						<span>{me && me?.name}</span>
 						<span className="text-xs text-muted-foreground">
-							{data?.me && data?.me?.email}
+							{me && me?.email}
 						</span>
 					</div>
 				</DropdownMenuLabel>
