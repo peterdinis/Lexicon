@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarRange, Database, FileText, Kanban, Loader2, Star } from "lucide-react";
+import { CalendarRange, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { type FC, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -48,19 +48,6 @@ const DashboardWrapper: FC = () => {
 				color: "orange" as const,
 				updated: "3 days ago",
 			},
-		],
-		[],
-	);
-
-	const templates = useMemo(
-		() => [
-			{
-				icon: FileText,
-				title: "Meeting Notes",
-				desc: "Capture agendas and outcomes",
-			},
-			{ icon: Kanban, title: "Kanban Board", desc: "Track tasks visually" },
-			{ icon: Database, title: "Database", desc: "Structure anything" },
 		],
 		[],
 	);
