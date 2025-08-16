@@ -42,8 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
 	const { toast } = useToast();
-
-	// Workspaces query
+	
 	const {
 		data: wsData,
 		loading: wsLoading,
@@ -52,12 +51,7 @@ const SettingsWrapper: FC = () => {
 	} = useQuery(GET_WORKSPACES);
 	const workspaces = wsData?.workspaces?.items || [];
 
-	// Current workspace query
-	const { data: currentWorkspaceData, refetch: refetchCurrentWorkspace } =
-		useQuery(GET_CURRENT_WORKSPACE);
-	const currentWorkspaceId = currentWorkspaceData?.currentWorkspace?.id;
 
-	// Me query
 	const { data: meData, loading: meLoading } = useQuery(ME_QUERY);
 	const currentUser = meData?.me;
 
@@ -104,7 +98,6 @@ const SettingsWrapper: FC = () => {
 			});
 
 			await refetchWorkspaces();
-			await refetchCurrentWorkspace();
 		} catch (err: any) {
 			toast({
 				title: "Failed to switch workspace",
@@ -230,11 +223,6 @@ const SettingsWrapper: FC = () => {
 														]}
 													</span>
 													{ws.name}
-													{ws.id === currentWorkspaceId && (
-														<span className="ml-2 text-xs text-green-500 font-semibold">
-															(current)
-														</span>
-													)}
 												</TableCell>
 												<TableCell className="text-right">
 													<Button
