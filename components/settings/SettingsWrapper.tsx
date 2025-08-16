@@ -1,13 +1,11 @@
 "use client";
 
-import { useMutation, useQuery } from "@apollo/client";
 import { AnimatePresence, motion } from "framer-motion";
 import {
 	ArrowRight,
 	Building2,
 	Loader2,
 	Settings,
-	Trash2,
 	UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -25,122 +23,60 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Input } from "../ui/input";
-
-import {
-	DELETE_PROFILE,
-	UPDATE_PROFILE,
-} from "@/graphql/mutations/auth/profileMutations";
-import { SWITCH_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
-import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
-import {
-	GET_WORKSPACES,
-	GET_CURRENT_WORKSPACE,
-} from "@/graphql/queries/workspaces/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/shared/use-toast";
+import { useMe } from "@/hooks/auth/useMe";
+import { useProfileMutations } from "@/hooks/auth/useProfile";
+import { useWorkspaces } from "@/hooks/workspces/useWorkspaces";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
-	const { toast } = useToast();
-	
-	const {
-		data: wsData,
-		loading: wsLoading,
-		error: wsError,
-		refetch: refetchWorkspaces,
-	} = useQuery(GET_WORKSPACES);
-	const workspaces = wsData?.workspaces?.items || [];
+  const { toast } = useToast();
 
+  const { me: currentUser, loading: meLoading } = useMe();
+  const { workspaces, loading: wsLoading, error: wsError, refetch: refetchWorkspaces, switchWorkspace, switchLoading } = useWorkspaces();
+  const { updateProfile, deleteProfile } = useProfileMutations();
 
-	const { data: meData, loading: meLoading } = useQuery(ME_QUERY);
-	const currentUser = meData?.me;
+  const [formData, setFormData] = useState({ name: "", lastName: "", photoUrl: "" });
 
-	const [updateProfile] = useMutation(UPDATE_PROFILE, {
-		refetchQueries: ["Me"],
-	});
-	const [deleteProfile] = useMutation(DELETE_PROFILE);
+  useEffect(() => {
+    if (currentUser) {
+      setFormData({
+        name: currentUser.name || "",
+        lastName: currentUser.lastName || "",
+        photoUrl: currentUser.photoUrl || "",
+      });
+    }
+  }, [currentUser]);
 
-	const [switchWorkspaceMutation, { loading: switchLoading }] = useMutation(
-		SWITCH_WORKSPACE,
-		{
-			refetchQueries: ["CurrentWorkspace"],
-		}
-	);
+  const handleSwitchWorkspace = async (workspaceId: number) => {
+    if (!currentUser) return;
+    try {
+      await switchWorkspace(Number(currentUser.id), workspaceId);
+      toast({ title: "Switched workspace", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
+      await refetchWorkspaces();
+    } catch (err: any) {
+      toast({ title: "Failed to switch workspace", description: err.message, duration: 2000, className: "bg-red-800 text-white font-bold text-base" });
+    }
+  };
 
-	const [formData, setFormData] = useState({
-		name: "",
-		lastName: "",
-		photoUrl: "",
-	});
+  const handleUpdateProfile = async () => {
+    try {
+      await updateProfile(formData);
+      toast({ title: "Profile Updated", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
+    } catch {
+      toast({ title: "Profile update failed", duration: 2000, className: "bg-red-800 text-white font-bold text-base" });
+    }
+  };
 
-	useEffect(() => {
-		if (currentUser) {
-			setFormData({
-				name: currentUser.name || "",
-				lastName: currentUser.lastName || "",
-				photoUrl: currentUser.photoUrl || "",
-			});
-		}
-	}, [currentUser]);
-
-	const handleSwitchWorkspace = async (workspaceId: number) => {
-		if (!currentUser) return;
-
-		try {
-			await switchWorkspaceMutation({
-				variables: { userId: Number(currentUser.id), workspaceId },
-			});
-
-			toast({
-				title: "Switched workspace",
-				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-base",
-			});
-
-			await refetchWorkspaces();
-		} catch (err: any) {
-			toast({
-				title: "Failed to switch workspace",
-				description: err.message,
-				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-base",
-			});
-		}
-	};
-
-	const handleUpdateProfile = async () => {
-		try {
-			await updateProfile({ variables: { data: formData } });
-			toast({
-				title: "Profile Updated",
-				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-base",
-			});
-		} catch {
-			toast({
-				title: "Profile update failed",
-				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-base",
-			});
-		}
-	};
-
-	const handleDeleteProfile = async () => {
-		if (
-			confirm(
-				"Are you sure you want to delete your profile? This action cannot be undone."
-			)
-		) {
-			await deleteProfile();
-			toast({
-				title: "Deleting profile",
-				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-base",
-			});
-			localStorage.removeItem("token");
-			window.location.href = "/login";
-		}
-	};
+  const handleDeleteProfile = async () => {
+    if (confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
+      await deleteProfile();
+      toast({ title: "Deleting profile", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+  };
 
 	return (
 		<DashboardLayout>

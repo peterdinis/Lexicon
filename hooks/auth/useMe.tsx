@@ -7,6 +7,8 @@ export type Me = {
   id: number;
   email: string;
   name?: string;
+  photoUrl?: string;
+  lastName?: string;
 };
 
 export const useMe = () => {
