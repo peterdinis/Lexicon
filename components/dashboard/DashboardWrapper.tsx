@@ -11,12 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DashboardLayout from "./DashboardLayout";
-import { useQuery } from "@apollo/client";
-import { GET_TEMPLATES } from "@/graphql/queries/templates/templatesQueries";
+import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
 	const [filter, setFilter] = useState("");
+
+	const {templates: templateData, loading: templateLoading, error: templateError} = useGetAllTemplates()
 
 	const recents = useMemo(
 		() => [
@@ -51,8 +52,6 @@ const DashboardWrapper: FC = () => {
 		],
 		[],
 	);
-
-	const { data: templateData, loading: templateLoading, error: templateError } = useQuery(GET_TEMPLATES);
 
 
 	const mockTasks = [
