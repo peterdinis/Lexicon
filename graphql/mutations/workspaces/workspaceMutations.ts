@@ -39,3 +39,13 @@ export const SET_CURRENT_WORKSPACE = gql`
     }
   }
 `;
+
+export const SWITCH_WORKSPACE = gql`
+  mutation SwitchWorkspace($userId: Int!, $workspaceId: Int!) {
+    switchWorkspace(userId: $userId, workspaceId: $workspaceId) {
+      id
+      name
+      description
+    }
+  }
+`;
