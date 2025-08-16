@@ -1,15 +1,15 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { FC } from "react";
-import { GET_HELLO_WORLD_LIST } from "@/graphql/queries/global/helloQuery";
 import Navbar from "../shared/Navbar";
 import { Button } from "../ui/button";
+import { useHelloWorldList } from "@/hooks/hero/useHelloWorldList";
 
 const HeroWrapper: FC = () => {
-	const { loading, data } = useQuery(GET_HELLO_WORLD_LIST);
+	const { helloWorldList: data, loading } = useHelloWorldList();
+
 
 	if (loading) return <Loader2 className="animate-spin w-8 h-8" />;
 
