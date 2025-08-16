@@ -30,8 +30,12 @@ import {
 	DELETE_PROFILE,
 	UPDATE_PROFILE,
 } from "@/graphql/mutations/auth/profileMutations";
+import { SWITCH_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
-import { GET_WORKSPACES, GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
+import {
+	GET_WORKSPACES,
+	GET_CURRENT_WORKSPACE,
+} from "@/graphql/queries/workspaces/workspaceQueries";
 import DashboardLayout from "../dashboard/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,15 +44,18 @@ const SettingsWrapper: FC = () => {
 	const { toast } = useToast();
 
 	// Workspaces query
-	const { data: wsData, loading: wsLoading, error: wsError, refetch: refetchWorkspaces } =
-		useQuery(GET_WORKSPACES);
+	const {
+		data: wsData,
+		loading: wsLoading,
+		error: wsError,
+		refetch: refetchWorkspaces,
+	} = useQuery(GET_WORKSPACES);
 	const workspaces = wsData?.workspaces?.items || [];
 
 	// Current workspace query
-	const { data: currentWorkspaceData } = useQuery(GET_CURRENT_WORKSPACE);
+	const { data: currentWorkspaceData, refetch: refetchCurrentWorkspace } =
+		useQuery(GET_CURRENT_WORKSPACE);
 	const currentWorkspaceId = currentWorkspaceData?.currentWorkspace?.id;
-
-	console.log(currentWorkspaceId)
 
 	// Me query
 	const { data: meData, loading: meLoading } = useQuery(ME_QUERY);
@@ -58,6 +65,13 @@ const SettingsWrapper: FC = () => {
 		refetchQueries: ["Me"],
 	});
 	const [deleteProfile] = useMutation(DELETE_PROFILE);
+
+	const [switchWorkspaceMutation, { loading: switchLoading }] = useMutation(
+		SWITCH_WORKSPACE,
+		{
+			refetchQueries: ["CurrentWorkspace"],
+		}
+	);
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -75,15 +89,30 @@ const SettingsWrapper: FC = () => {
 		}
 	}, [currentUser]);
 
-	const handleSwitchWorkspace = async (workspaceId: string) => {
-		// Tu môžeš implementovať mutation alebo logiku, ktorá prepne workspace
-		// Napr. refetch CURRENT_WORKSPACE alebo server-side mutation
-		toast({
-			title: "Switched workspace",
-			duration: 2000,
-			className: "bg-green-800 text-white font-bold text-base",
-		});
-		await refetchWorkspaces();
+	const handleSwitchWorkspace = async (workspaceId: number) => {
+		if (!currentUser) return;
+
+		try {
+			await switchWorkspaceMutation({
+				variables: { userId: Number(currentUser.id), workspaceId },
+			});
+
+			toast({
+				title: "Switched workspace",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
+
+			await refetchWorkspaces();
+			await refetchCurrentWorkspace();
+		} catch (err: any) {
+			toast({
+				title: "Failed to switch workspace",
+				description: err.message,
+				duration: 2000,
+				className: "bg-red-800 text-white font-bold text-base",
+			});
+		}
 	};
 
 	const handleUpdateProfile = async () => {
@@ -104,7 +133,11 @@ const SettingsWrapper: FC = () => {
 	};
 
 	const handleDeleteProfile = async () => {
-		if (confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
+		if (
+			confirm(
+				"Are you sure you want to delete your profile? This action cannot be undone."
+			)
+		) {
 			await deleteProfile();
 			toast({
 				title: "Deleting profile",
@@ -139,7 +172,9 @@ const SettingsWrapper: FC = () => {
 							<Switch
 								id="pref-dark"
 								checked={resolvedTheme === "dark"}
-								onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+								onCheckedChange={(checked) =>
+									setTheme(checked ? "dark" : "light")
+								}
 							/>
 						</div>
 					</CardContent>
@@ -160,7 +195,9 @@ const SettingsWrapper: FC = () => {
 						)}
 
 						{wsError && (
-							<p className="text-red-500 text-sm">Error loading workspaces: {wsError.message}</p>
+							<p className="text-red-500 text-sm">
+								Error loading workspaces: {wsError.message}
+							</p>
 						)}
 
 						{!wsLoading && !wsError && workspaces.length > 0 && (
@@ -180,11 +217,18 @@ const SettingsWrapper: FC = () => {
 												animate={{ opacity: 1, y: 0 }}
 												exit={{ opacity: 0, y: -10 }}
 												transition={{ delay: index * 0.05 }}
-												whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.03)" }}
+												whileHover={{
+													scale: 1.02,
+													backgroundColor: "rgba(0,0,0,0.03)",
+												}}
 												className="border-b cursor-pointer"
 											>
 												<TableCell className="flex items-center gap-2">
-													<span>{["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][index % 7]}</span>
+													<span>
+														{["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+															index % 7
+														]}
+													</span>
 													{ws.name}
 													{ws.id === currentWorkspaceId && (
 														<span className="ml-2 text-xs text-green-500 font-semibold">
@@ -197,8 +241,16 @@ const SettingsWrapper: FC = () => {
 														size="sm"
 														variant="outline"
 														onClick={() => handleSwitchWorkspace(ws.id)}
+														disabled={switchLoading}
 													>
-														Switch <ArrowRight className="w-4 h-4" />
+														{switchLoading ? (
+															<Loader2 className="w-4 h-4 animate-spin" />
+														) : (
+															<>
+																Switch{" "}
+																<ArrowRight className="w-4 h-4" />
+															</>
+														)}
 													</Button>
 												</TableCell>
 											</motion.tr>
@@ -235,30 +287,42 @@ const SettingsWrapper: FC = () => {
 											<Label>Name</Label>
 											<Input
 												value={formData.name}
-												onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														name: e.target.value,
+													})
+												}
 											/>
 										</div>
 										<div>
 											<Label>Last Name</Label>
 											<Input
 												value={formData.lastName}
-												onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														lastName: e.target.value,
+													})
+												}
 											/>
 										</div>
 										<div>
 											<Label>Photo URL</Label>
 											<Input
 												value={formData.photoUrl}
-												onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														photoUrl: e.target.value,
+													})
+												}
 											/>
 										</div>
 									</div>
 								</div>
 								<div className="flex gap-2 mt-4">
-									<Button
-										onClick={handleUpdateProfile}
-										variant="default"
-									>
+									<Button onClick={handleUpdateProfile} variant="default">
 										Update Profile
 									</Button>
 									<Button
