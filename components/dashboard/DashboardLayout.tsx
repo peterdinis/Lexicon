@@ -24,10 +24,10 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
-import { useToast } from "@/hooks/use-toast";
 import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
+import { useToast } from "@/hooks/shared/use-toast";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);

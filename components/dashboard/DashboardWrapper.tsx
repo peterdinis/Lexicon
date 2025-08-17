@@ -19,6 +19,7 @@ const DashboardWrapper: FC = () => {
 
 	const {templates: templateData, loading: templateLoading, error: templateError} = useGetAllTemplates()
 
+	console.log("TemplateData", templateData)
 	const recents = useMemo(
 		() => [
 			{
