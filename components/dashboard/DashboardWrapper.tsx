@@ -18,7 +18,6 @@ const DashboardWrapper: FC = () => {
 	const [filter, setFilter] = useState("");
 
 	const {templates: templateData, loading: templateLoading, error: templateError} = useGetAllTemplates()
-
 	const recents = useMemo(
 		() => [
 			{
@@ -278,7 +277,7 @@ const DashboardWrapper: FC = () => {
 					</CardHeader>
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{templateData && templateData?.getTemplates.map((t: {
+							{templateData && templateData?.map((t: {
 								title: string
 								desc: string
 							}) => (
