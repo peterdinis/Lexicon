@@ -1,11 +1,12 @@
 "use client"
 
 import { FC } from "react"
+import Editor from "../shared/Editor"
 
-const CreateNewPage: FC = () => {
+const CreateNewPageForm: FC = () => {
     return (
-        <></>
+        <Editor />
     )
 }
 
-export default CreateNewPage
+export default CreateNewPageForm

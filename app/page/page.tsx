@@ -1,7 +1,8 @@
+import CreateNewPageForm from "@/components/pages/CreateNewPage";
 import { NextPage } from "next";
 
 const CreateNewPage: NextPage = () => {
-    return <CreateNewPage />
+    return <CreateNewPageForm />
 }
 
 export default CreateNewPage

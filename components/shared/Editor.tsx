@@ -6,15 +6,9 @@ import "react-quill/dist/quill.snow.css";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
 import "quill-emoji/dist/quill-emoji.css";
-import { EmojiBlot, ToolbarEmoji } from "quill-emoji";
 import "quill-mention/dist/quill.mention.css";
 import QuillBetterTable from "quill-better-table";
-import QuillMention from "quill-mention";
 
-// --- Register custom modules ---
-Quill.register("modules/emoji", ToolbarEmoji);
-Quill.register({ "formats/emoji": EmojiBlot });
-Quill.register("modules/mention", QuillMention);
 Quill.register({ "modules/better-table": QuillBetterTable });
 
 // --- Divider embed (block-level) ---

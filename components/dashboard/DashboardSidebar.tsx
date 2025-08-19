@@ -93,7 +93,7 @@ const DashboardSidebar: FC = () => {
 								{renderWithTooltip(
 									"New page",
 									<SidebarMenuButton asChild>
-										<Link href="#">
+										<Link href="/page">
 											<span className="mr-2 grid h-4 w-4 place-items-center">
 												+
 											</span>
