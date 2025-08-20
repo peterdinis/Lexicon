@@ -3,7 +3,7 @@
 import { useLazyQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Key, useEffect, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -80,7 +80,12 @@ export default function SearchDialog({
 														{type}
 													</h3>
 													<ul className="space-y-1">
-														{results.map((item: any) => (
+														{results.map((item: {
+															id: Key;
+															name: string;
+															title: string;
+															email: string
+														}) => (
 															<li
 																key={item.id}
 																className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
