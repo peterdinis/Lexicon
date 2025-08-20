@@ -1,9 +1,8 @@
 "use client";
 
-import { useLazyQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Ghost, Loader2 } from "lucide-react";
+import { type Key, useEffect, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SEARCH_QUERY } from "@/graphql/queries/global/searchQueries";
+import { useSearch } from "@/hooks/shared/useSearch";
 
 export default function SearchDialog({
 	open,
@@ -23,18 +22,23 @@ export default function SearchDialog({
 	onOpenChange: (v: boolean) => void;
 }) {
 	const [query, setQuery] = useState("");
-	const [search, { data, loading }] = useLazyQuery(SEARCH_QUERY, {
-		fetchPolicy: "no-cache",
-	});
+	const [hasSearched, setHasSearched] = useState(false);
+
+	const { runSearch, data, error, loading } = useSearch();
 
 	useEffect(() => {
 		if (query.trim().length > 1) {
-			const timeout = setTimeout(() => {
-				search({ variables: { query } });
-			}, 300);
-			return () => clearTimeout(timeout);
+			runSearch(query).then(() => setHasSearched(true));
 		}
-	}, [query, search]);
+	}, [query, runSearch]);
+
+	const hasNoResults =
+		hasSearched &&
+		!loading &&
+		data &&
+		["users", "pages", "workspaces", "tasks", "events"].every(
+			(type) => !data.search[type]?.length,
+		);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,44 +60,70 @@ export default function SearchDialog({
 						<Input
 							placeholder="Type to search..."
 							value={query}
-							onChange={(e) => setQuery(e.target.value)}
+							onChange={(e) => {
+								setQuery(e.target.value);
+								setHasSearched(false);
+							}}
 							autoFocus
 						/>
 					</div>
 					<ScrollArea className="max-h-[400px]">
 						<div className="p-4 space-y-4">
-							{loading && (
-								<div className="flex justify-center py-6">
-									<Loader2 className="h-5 w-5 animate-spin" />
-								</div>
-							)}
-
-							{!loading && data && (
+							{hasSearched && (
 								<>
-									{["users", "pages", "workspaces", "tasks", "events"].map(
-										(type) => {
-											const results = data.search[type];
-											if (!results?.length) return null;
-											return (
-												<div key={type}>
-													<h3 className="font-semibold capitalize mb-2">
-														{type}
-													</h3>
-													<ul className="space-y-1">
-														{results.map((item: any) => (
-															<li
-																key={item.id}
-																className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
-															>
-																{item.name || item.title}{" "}
-																{item.email && `(${item.email})`}
-															</li>
-														))}
-													</ul>
-												</div>
-											);
-										},
+									{loading && (
+										<div className="flex justify-center py-6">
+											<Loader2 className="h-5 w-5 animate-spin" />
+										</div>
 									)}
+
+									{error && (
+										<div className="text-center py-6 text-sm text-red-500">
+											Something went wrong: {error.message}
+										</div>
+									)}
+
+									{hasNoResults && (
+										<div className="text-center py-6 text-sm text-muted-foreground flex flex-col items-center gap-2">
+											<Ghost className="animate-bounce w-8 h-8" />
+											No results found for “{query}”
+										</div>
+									)}
+
+									{!loading &&
+										data &&
+										!hasNoResults &&
+										["users", "pages", "workspaces", "tasks", "events"].map(
+											(type) => {
+												const results = data.search[type];
+												if (!results?.length) return null;
+												return (
+													<div key={type}>
+														<h3 className="font-semibold capitalize mb-2">
+															{type}
+														</h3>
+														<ul className="space-y-1">
+															{results.map(
+																(item: {
+																	id: Key;
+																	name?: string;
+																	title?: string;
+																	email?: string;
+																}) => (
+																	<li
+																		key={item.id}
+																		className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+																	>
+																		{item.name || item.title}{" "}
+																		{item.email && `(${item.email})`}
+																	</li>
+																),
+															)}
+														</ul>
+													</div>
+												);
+											},
+										)}
 								</>
 							)}
 						</div>

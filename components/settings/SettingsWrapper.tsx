@@ -9,7 +9,7 @@ import {
 	UserIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { FC, useEffect, useState } from "react";
+import { type FC, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -22,61 +22,97 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Input } from "../ui/input";
-import DashboardLayout from "../dashboard/DashboardLayout";
-import { useToast } from "@/hooks/shared/use-toast";
 import { useMe } from "@/hooks/auth/useMe";
 import { useProfileMutations } from "@/hooks/auth/useProfile";
+import { useToast } from "@/hooks/shared/use-toast";
 import { useWorkspaces } from "@/hooks/workspces/useWorkspaces";
+import DashboardLayout from "../dashboard/DashboardLayout";
+import { Input } from "../ui/input";
 
 const SettingsWrapper: FC = () => {
 	const { resolvedTheme, setTheme } = useTheme();
-  const { toast } = useToast();
+	const { toast } = useToast();
 
-  const { me: currentUser, loading: meLoading } = useMe();
-  const { workspaces, loading: wsLoading, error: wsError, refetch: refetchWorkspaces, switchWorkspace, switchLoading } = useWorkspaces();
-  const { updateProfile, deleteProfile } = useProfileMutations();
+	const { me: currentUser, loading: meLoading } = useMe();
+	const {
+		workspaces,
+		loading: wsLoading,
+		error: wsError,
+		refetch: refetchWorkspaces,
+		switchWorkspace,
+		switchLoading,
+	} = useWorkspaces();
+	const { updateProfile, deleteProfile } = useProfileMutations();
 
-  const [formData, setFormData] = useState({ name: "", lastName: "", photoUrl: "" });
+	const [formData, setFormData] = useState({
+		name: "",
+		lastName: "",
+		photoUrl: "",
+	});
 
-  useEffect(() => {
-    if (currentUser) {
-      setFormData({
-        name: currentUser.name || "",
-        lastName: currentUser.lastName || "",
-        photoUrl: currentUser.photoUrl || "",
-      });
-    }
-  }, [currentUser]);
+	useEffect(() => {
+		if (currentUser) {
+			setFormData({
+				name: currentUser.name || "",
+				lastName: currentUser.lastName || "",
+				photoUrl: currentUser.photoUrl || "",
+			});
+		}
+	}, [currentUser]);
 
-  const handleSwitchWorkspace = async (workspaceId: number) => {
-    if (!currentUser) return;
-    try {
-      await switchWorkspace(Number(currentUser.id), workspaceId);
-      toast({ title: "Switched workspace", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
-      await refetchWorkspaces();
-    } catch (err: any) {
-      toast({ title: "Failed to switch workspace", description: err.message, duration: 2000, className: "bg-red-800 text-white font-bold text-base" });
-    }
-  };
+	const handleSwitchWorkspace = async (workspaceId: number) => {
+		if (!currentUser) return;
+		try {
+			await switchWorkspace(Number(currentUser.id), workspaceId);
+			toast({
+				title: "Switched workspace",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
+			await refetchWorkspaces();
+		} catch (err: any) {
+			toast({
+				title: "Failed to switch workspace",
+				description: err.message,
+				duration: 2000,
+				className: "bg-red-800 text-white font-bold text-base",
+			});
+		}
+	};
 
-  const handleUpdateProfile = async () => {
-    try {
-      await updateProfile(formData);
-      toast({ title: "Profile Updated", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
-    } catch {
-      toast({ title: "Profile update failed", duration: 2000, className: "bg-red-800 text-white font-bold text-base" });
-    }
-  };
+	const handleUpdateProfile = async () => {
+		try {
+			await updateProfile(formData);
+			toast({
+				title: "Profile Updated",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
+		} catch {
+			toast({
+				title: "Profile update failed",
+				duration: 2000,
+				className: "bg-red-800 text-white font-bold text-base",
+			});
+		}
+	};
 
-  const handleDeleteProfile = async () => {
-    if (confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
-      await deleteProfile();
-      toast({ title: "Deleting profile", duration: 2000, className: "bg-green-800 text-white font-bold text-base" });
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-  };
+	const handleDeleteProfile = async () => {
+		if (
+			confirm(
+				"Are you sure you want to delete your profile? This action cannot be undone.",
+			)
+		) {
+			await deleteProfile();
+			toast({
+				title: "Deleting profile",
+				duration: 2000,
+				className: "bg-green-800 text-white font-bold text-base",
+			});
+			localStorage.removeItem("token");
+			window.location.href = "/login";
+		}
+	};
 
 	return (
 		<DashboardLayout>
@@ -154,9 +190,11 @@ const SettingsWrapper: FC = () => {
 											>
 												<TableCell className="flex items-center gap-2">
 													<span>
-														{["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
-															index % 7
-														]}
+														{
+															["🚀", "💼", "🏢", "📂", "🛠️", "🌍", "📊"][
+																index % 7
+															]
+														}
 													</span>
 													{ws.name}
 												</TableCell>
@@ -171,8 +209,7 @@ const SettingsWrapper: FC = () => {
 															<Loader2 className="w-4 h-4 animate-spin" />
 														) : (
 															<>
-																Switch{" "}
-																<ArrowRight className="w-4 h-4" />
+																Switch <ArrowRight className="w-4 h-4" />
 															</>
 														)}
 													</Button>
@@ -249,10 +286,7 @@ const SettingsWrapper: FC = () => {
 									<Button onClick={handleUpdateProfile} variant="default">
 										Update Profile
 									</Button>
-									<Button
-										onClick={handleDeleteProfile}
-										variant="destructive"
-									>
+									<Button onClick={handleDeleteProfile} variant="destructive">
 										Delete Profile
 									</Button>
 								</div>

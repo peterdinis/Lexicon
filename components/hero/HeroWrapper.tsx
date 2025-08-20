@@ -3,13 +3,12 @@
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { FC } from "react";
+import { useHelloWorldList } from "@/hooks/hero/useHelloWorldList";
 import Navbar from "../shared/Navbar";
 import { Button } from "../ui/button";
-import { useHelloWorldList } from "@/hooks/hero/useHelloWorldList";
 
 const HeroWrapper: FC = () => {
 	const { helloWorldList: data, loading } = useHelloWorldList();
-
 
 	if (loading) return <Loader2 className="animate-spin w-8 h-8" />;
 

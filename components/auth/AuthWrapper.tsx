@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLogin } from "@/hooks/auth/useLogin";
 import { useRegister } from "@/hooks/auth/useRegister";
 
-
 type FormData = {
 	email: string;
 	password: string;
@@ -121,7 +120,11 @@ const AuthWrapper: FC = () => {
 										onClick={() => setShowPasswordSignin((v) => !v)}
 										tabIndex={-1}
 									>
-										{showPasswordSignin ? <EyeOff size={20} /> : <Eye size={20} />}
+										{showPasswordSignin ? (
+											<EyeOff size={20} />
+										) : (
+											<Eye size={20} />
+										)}
 									</button>
 								</div>
 								{errorsSignin.password && (
@@ -131,7 +134,11 @@ const AuthWrapper: FC = () => {
 								)}
 
 								<Button type="submit" className="w-full" disabled={loggingIn}>
-									{loggingIn ? <Loader2 className="animate-spin w-8 h-8" /> : "Sign in"}
+									{loggingIn ? (
+										<Loader2 className="animate-spin w-8 h-8" />
+									) : (
+										"Sign in"
+									)}
 								</Button>
 							</form>
 						</TabsContent>
@@ -149,7 +156,9 @@ const AuthWrapper: FC = () => {
 									{...registerSignup("name", { required: "Name is required" })}
 								/>
 								{errorsSignup.name && (
-									<p className="text-sm text-red-500">{errorsSignup.name.message}</p>
+									<p className="text-sm text-red-500">
+										{errorsSignup.name.message}
+									</p>
 								)}
 
 								<Input
@@ -164,7 +173,9 @@ const AuthWrapper: FC = () => {
 									})}
 								/>
 								{errorsSignup.email && (
-									<p className="text-sm text-red-500">{errorsSignup.email.message}</p>
+									<p className="text-sm text-red-500">
+										{errorsSignup.email.message}
+									</p>
 								)}
 
 								<div className="relative">
@@ -185,11 +196,17 @@ const AuthWrapper: FC = () => {
 										onClick={() => setShowPasswordSignup((v) => !v)}
 										tabIndex={-1}
 									>
-										{showPasswordSignup ? <EyeOff size={20} /> : <Eye size={20} />}
+										{showPasswordSignup ? (
+											<EyeOff size={20} />
+										) : (
+											<Eye size={20} />
+										)}
 									</button>
 								</div>
 								{errorsSignup.password && (
-									<p className="text-sm text-red-500">{errorsSignup.password.message}</p>
+									<p className="text-sm text-red-500">
+										{errorsSignup.password.message}
+									</p>
 								)}
 
 								<Button type="submit" className="w-full" disabled={registering}>
