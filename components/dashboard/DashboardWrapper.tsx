@@ -10,14 +10,18 @@ import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import DashboardLayout from "./DashboardLayout";
 import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
+import DashboardLayout from "./DashboardLayout";
 
 const DashboardWrapper: FC = () => {
 	const [note, setNote] = useState("");
 	const [filter, setFilter] = useState("");
 
-	const {templates: templateData, loading: templateLoading, error: templateError} = useGetAllTemplates()
+	const {
+		templates: templateData,
+		loading: templateLoading,
+		error: templateError,
+	} = useGetAllTemplates();
 	const recents = useMemo(
 		() => [
 			{
@@ -51,7 +55,6 @@ const DashboardWrapper: FC = () => {
 		],
 		[],
 	);
-
 
 	const mockTasks = [
 		{ id: 1, title: "Design homepage", status: "To do" },
@@ -96,11 +99,14 @@ const DashboardWrapper: FC = () => {
 		r.title.toLowerCase().includes(filter.toLowerCase()),
 	);
 
-	if(templateLoading) return <Loader2 className="animate-spin w-8 h-8" />
+	if (templateLoading) return <Loader2 className="animate-spin w-8 h-8" />;
 
-	if(templateError) return <p className="text-red-800 text-xl font-bold">Failed to load templates</p>
+	if (templateError)
+		return (
+			<p className="text-red-800 text-xl font-bold">Failed to load templates</p>
+		);
 
-	console.log(templateData.getTemplates)
+	console.log(templateData.getTemplates);
 
 	return (
 		<DashboardLayout>
@@ -277,37 +283,35 @@ const DashboardWrapper: FC = () => {
 					</CardHeader>
 					<CardContent>
 						<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{templateData && templateData?.map((t: {
-								title: string
-								desc: string
-							}) => (
-								<div
-									key={t.title}
-									className="border rounded-md p-4 hover-scale transition-transform hover:scale-[1.02]"
-								>
-									<div className="flex items-start gap-3">
-										<div>
-											<div className="font-medium">{t.title}</div>
-											<div className="text-sm text-muted-foreground">
-												{t.desc}
+							{templateData &&
+								templateData?.map((t: { title: string; desc: string }) => (
+									<div
+										key={t.title}
+										className="border rounded-md p-4 hover-scale transition-transform hover:scale-[1.02]"
+									>
+										<div className="flex items-start gap-3">
+											<div>
+												<div className="font-medium">{t.title}</div>
+												<div className="text-sm text-muted-foreground">
+													{t.desc}
+												</div>
 											</div>
 										</div>
+										<div className="mt-4">
+											<Button
+												size="sm"
+												variant="outline"
+												onClick={() =>
+													toast(
+														`${t.title} template will be available after connecting Supabase.`,
+													)
+												}
+											>
+												Use template
+											</Button>
+										</div>
 									</div>
-									<div className="mt-4">
-										<Button
-											size="sm"
-											variant="outline"
-											onClick={() =>
-												toast(
-													`${t.title} template will be available after connecting Supabase.`,
-												)
-											}
-										>
-											Use template
-										</Button>
-									</div>
-								</div>
-							))}
+								))}
 						</div>
 					</CardContent>
 				</Card>

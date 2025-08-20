@@ -17,7 +17,7 @@ import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { useMe } from "@/hooks/auth/useMe";
 
 const ProfileDropdown: FC = () => {
-	const { me, loading} = useMe();
+	const { me, loading } = useMe();
 	const router = useRouter();
 
 	const logout = () => {
@@ -36,9 +36,7 @@ const ProfileDropdown: FC = () => {
 					<AvatarImage
 						src={`https://ui-avatars.com/api/?name=${encodeURIComponent(me?.name!)}`}
 					/>
-					<AvatarFallback>
-						{me && me?.name?.[0]?.toUpperCase()}
-					</AvatarFallback>
+					<AvatarFallback>{me && me?.name?.[0]?.toUpperCase()}</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
