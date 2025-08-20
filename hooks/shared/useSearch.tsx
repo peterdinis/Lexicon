@@ -8,7 +8,6 @@ export function useSearch() {
     fetchPolicy: "no-cache",
   });
 
-  // keep it simple: pass the query string only
   const runSearch = (query: string) => {
     return search({ variables: { query } });
   };

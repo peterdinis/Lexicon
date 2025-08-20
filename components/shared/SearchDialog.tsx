@@ -32,8 +32,6 @@ export default function SearchDialog({
       return () => clearTimeout(timeout);
     }
   }, [query, runSearch]);
-
-  // helper to detect empty results
   const hasNoResults =
     !loading &&
     data &&
