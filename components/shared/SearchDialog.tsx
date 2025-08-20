@@ -32,6 +32,14 @@ export default function SearchDialog({
 		}
 	}, [query, runSearch]);
 
+	// 👉 reset input po zavretí
+	useEffect(() => {
+		if (!open) {
+			setQuery("");
+			setHasSearched(false);
+		}
+	}, [open]);
+
 	const hasNoResults =
 		hasSearched &&
 		!loading &&
