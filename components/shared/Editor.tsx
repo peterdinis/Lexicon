@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export const CREATE_PAGE = gql`
   mutation CreatePage($input: CreatePageInput!) {
@@ -26,6 +27,7 @@ const Editor: FC = () => {
   const editor = useCreateBlockNote();
   const [title, setTitle] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const router = useRouter()
 
   const [createPage, { loading }] = useMutation(CREATE_PAGE, {
     onCompleted: (data) => {
@@ -49,6 +51,9 @@ const Editor: FC = () => {
         },
       },
     });
+
+    router.push("/dashboard")
+    
   }, [title, editor, createPage]);
 
   // Debounced autosave when editor changes
