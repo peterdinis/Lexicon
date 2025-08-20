@@ -18,7 +18,6 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext((_, { headers }) => {
-	// Read token from localStorage for each request
 	const token =
 		typeof window !== "undefined" ? localStorage.getItem("token") : null;
 	return {

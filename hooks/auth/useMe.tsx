@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { useQuery } from "@apollo/client";
+import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 
 export type Me = {
-  id: number;
-  email: string;
-  name?: string;
-  photoUrl?: string;
-  lastName?: string;
+	id: number;
+	email: string;
+	name?: string;
+	photoUrl?: string;
+	lastName?: string;
 };
 
 export const useMe = () => {
-  const { data, loading, error } = useQuery<{ me: Me }>(ME_QUERY);
+	const { data, loading, error } = useQuery<{ me: Me }>(ME_QUERY);
 
-  return {
-    me: data?.me ?? null,
-    loading,
-    error,
-  };
+	return {
+		me: data?.me ?? null,
+		loading,
+		error,
+	};
 };

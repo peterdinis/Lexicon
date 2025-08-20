@@ -29,7 +29,6 @@ export const GET_WORKSPACE = gql`
   }
 `;
 
-
 export const GET_CURRENT_WORKSPACE = gql`
   query CurrentWorkspace($userId: Int!) {
     currentWorkspace(userId: $userId) {
