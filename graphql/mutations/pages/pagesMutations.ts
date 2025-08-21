@@ -5,6 +5,7 @@ export const CREATE_PAGE = gql`
     createPage(input: $input) {
       id
       title
+      emoji
     }
   }
 `;

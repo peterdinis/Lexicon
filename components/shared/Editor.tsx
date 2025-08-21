@@ -5,7 +5,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import { FC, useState, useCallback } from "react";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,50 +15,23 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import data from '@emoji-mart/data'
-import Picker from "@emoji-mart/react"
-
-export const CREATE_PAGE = gql`
-  mutation CreatePage($input: CreatePageInput!) {
-    createPage(input: $input) {
-      id
-      title
-      emoji
-    }
-  }
-`;
-
-export const ME_QUERY = gql`
-  query Me {
-    me {
-      id
-      name
-      email
-    }
-  }
-`;
-
-export const GET_CURRENT_WORKSPACE = gql`
-  query CurrentWorkspace($userId: Int!) {
-    currentWorkspace(userId: $userId) {
-      id
-      name
-      description
-      createdAt
-    }
-  }
-`;
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+import { CREATE_PAGE } from "@/graphql/mutations/pages/pagesMutations";
+import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
+import { GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
+import { useRouter } from "next/navigation";
 
 const Editor: FC = () => {
   const editor = useCreateBlockNote();
   const [title, setTitle] = useState("");
-  const [emoji, setEmoji] = useState("📝"); // default emoji
+  const [emoji, setEmoji] = useState("📝");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  // 1. Get current user
+  const router = useRouter(); // 👈 init router
+
   const { data: meData } = useQuery(ME_QUERY);
 
-  // 2. Get workspace
   const { data: wsData } = useQuery(GET_CURRENT_WORKSPACE, {
     skip: !meData?.me?.id,
     variables: { userId: meData?.me?.id },
@@ -68,6 +41,9 @@ const Editor: FC = () => {
     onCompleted: (data) => {
       console.log("Page saved:", data.createPage);
       setLastSaved(new Date());
+
+      // 👇 redirect to dashboard when successful
+      router.push("/dashboard");
     },
     onError: (err) => {
       console.error("Error saving page:", err);
@@ -103,8 +79,8 @@ const Editor: FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
+      {/* Emoji + Title */}
       <div className="flex items-center gap-3 mb-8">
-        {/* Emoji Picker */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -115,14 +91,10 @@ const Editor: FC = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0">
-            <Picker
-              data={data}
-              onEmojiSelect={(e: any) => setEmoji(e.native)}
-            />
+            <Picker data={data} onEmojiSelect={(e: any) => setEmoji(e.native)} />
           </PopoverContent>
         </Popover>
 
-        {/* Title */}
         <Input
           placeholder="Untitled"
           className={cn(
@@ -135,6 +107,7 @@ const Editor: FC = () => {
         />
       </div>
 
+      {/* Editor */}
       <div className="rounded-2xl border shadow-sm p-6">
         {editor && (
           <BlockNoteView
@@ -145,6 +118,7 @@ const Editor: FC = () => {
         )}
       </div>
 
+      {/* Save status + button */}
       <div className="flex items-center justify-between mt-4">
         <div className="text-sm text-muted-foreground">
           {saving ? (
