@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	experimental: {
 		viewTransition: true,
 	},
-	serverExternalPackages: ["yjs"]
+	serverExternalPackages: ["yjs"],
 };
 
 export default nextConfig;
