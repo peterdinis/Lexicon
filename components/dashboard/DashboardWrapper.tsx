@@ -22,6 +22,7 @@ const DashboardWrapper: FC = () => {
 		loading: templateLoading,
 		error: templateError,
 	} = useGetAllTemplates();
+	
 	const recents = useMemo(
 		() => [
 			{
