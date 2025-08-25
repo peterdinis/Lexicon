@@ -33,6 +33,7 @@ const items = [
 	{ title: "Tasks", url: "/tasks", icon: CheckSquare },
 	{ title: "Templates", url: "/templates", icon: LayoutTemplate },
 	{ title: "Settings", url: "/settings", icon: Settings },
+	{title: "Notes", url: "/notes", icon: CheckSquare}
 ];
 
 const DashboardSidebar: FC = () => {
