@@ -60,7 +60,7 @@ const NotesSection: FC = () => {
     });
   };
 
-  if (meLoading) return <div>Loading user...</div>;
+  if (meLoading) return <Loader2 className="animate-spin w-8 h-8" />;
 
   return (
     <Card>
