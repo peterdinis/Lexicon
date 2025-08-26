@@ -119,7 +119,7 @@ const DashboardSidebar: FC = () => {
 											item.title,
 											<SidebarMenuButton asChild>
 												<Link href={item.url}>
-													<item.icon className="mr-2 h-4 w-4" />
+													<item.icon className="h-4 w-4" />
 													{!collapsed && <span>{item.title}</span>}
 												</Link>
 											</SidebarMenuButton>,
@@ -129,7 +129,7 @@ const DashboardSidebar: FC = () => {
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
-					
+
 					<SidebarGroup>
 						<SidebarGroupContent>
 							<SidebarMenu>
@@ -139,7 +139,7 @@ const DashboardSidebar: FC = () => {
 										"New page",
 										<SidebarMenuButton asChild>
 											<Link href="/page">
-												<span className="mr-2 grid h-4 w-4 place-items-center">
+												<span className="grid h-4 w-4 place-items-center">
 													+
 												</span>
 												{!collapsed && <span>New page</span>}
