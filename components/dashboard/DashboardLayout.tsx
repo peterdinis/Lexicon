@@ -25,9 +25,9 @@ import {
 } from "@/components/ui/sidebar";
 import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
 import { useToast } from "@/hooks/shared/use-toast";
-import ProfileDropdown from "../auth/ProfileDropdown";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
+import UserProfileDropdown from "../auth/UpdateProfileDropdown";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
@@ -37,7 +37,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
 		onCompleted: (data) => {
-			console.log("Workspace created:", data.createWorkspace);
 			setNewWorkspaceName("");
 			setOpen(false);
 			toast({
@@ -146,7 +145,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 									</DialogContent>
 								</Dialog>
 
-								<ProfileDropdown />
+								<UserProfileDropdown />
 							</div>
 						</header>
 						<div className="p-6">{children}</div>
