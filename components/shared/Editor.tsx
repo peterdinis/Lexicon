@@ -7,8 +7,10 @@ import "@blocknote/shadcn/style.css";
 import { useMutation, useQuery } from "@apollo/client";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { type FC, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +29,8 @@ const Editor: FC = () => {
 	const [title, setTitle] = useState("");
 	const [emoji, setEmoji] = useState("📝");
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
-	const router = useRouter(); // 👈 init router
+	const { theme } = useTheme();
+	const router = useRouter();
 
 	const { data: meData } = useQuery(ME_QUERY);
 
@@ -41,8 +43,6 @@ const Editor: FC = () => {
 		onCompleted: (data) => {
 			console.log("Page saved:", data.createPage);
 			setLastSaved(new Date());
-
-			// 👇 redirect to dashboard when successful
 			router.push("/dashboard");
 		},
 		onError: (err) => {
@@ -79,8 +79,14 @@ const Editor: FC = () => {
 
 	return (
 		<div className="max-w-4xl mx-auto px-8 py-12">
-			{/* Emoji + Title */}
-			<div className="flex items-center gap-3 mb-8">
+			<Link
+				href="/dashboard"
+				className="flex items-center gap-2 text-primary hover:underline"
+			>
+				<ArrowLeft className="h-4 w-4" />
+				<span>Go Back</span>
+			</Link>
+			<div className="flex items-center gap-3 mt-5 mb-8">
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
@@ -111,10 +117,11 @@ const Editor: FC = () => {
 			</div>
 
 			{/* Editor */}
-			<div className="rounded-2xl border shadow-sm p-6">
+			<div className="rounded-2xl border shadow-sm p-1">
 				{editor && (
 					<BlockNoteView
 						editor={editor}
+						theme={theme === "dark" ? "dark" : "light"}
 						shadCNComponents={{}}
 						className="min-h-[70vh] text-lg"
 					/>
