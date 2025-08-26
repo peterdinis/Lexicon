@@ -8,7 +8,9 @@ import { useMutation, useQuery } from "@apollo/client";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { type FC, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,15 +23,13 @@ import { CREATE_PAGE } from "@/graphql/mutations/pages/pagesMutations";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { useTheme } from "next-themes";
 
 const Editor: FC = () => {
 	const editor = useCreateBlockNote();
 	const [title, setTitle] = useState("");
 	const [emoji, setEmoji] = useState("📝");
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
-	const {theme} = useTheme()
+	const { theme } = useTheme();
 	const router = useRouter();
 
 	const { data: meData } = useQuery(ME_QUERY);
@@ -79,7 +79,6 @@ const Editor: FC = () => {
 
 	return (
 		<div className="max-w-4xl mx-auto px-8 py-12">
-
 			<Link
 				href="/dashboard"
 				className="flex items-center gap-2 text-primary hover:underline"

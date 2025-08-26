@@ -33,7 +33,7 @@ const items = [
 	{ title: "Tasks", url: "/tasks", icon: CheckSquare },
 	{ title: "Templates", url: "/templates", icon: LayoutTemplate },
 	{ title: "Settings", url: "/settings", icon: Settings },
-	{title: "Notes", url: "/notes", icon: CheckSquare}
+	{ title: "Notes", url: "/notes", icon: CheckSquare },
 ];
 
 const DashboardSidebar: FC = () => {
@@ -62,7 +62,6 @@ const DashboardSidebar: FC = () => {
 	return (
 		<Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
 			<SidebarContent>
-				{/* Workspace Section */}
 				<SidebarGroup>
 					<SidebarGroupLabel>Workspace</SidebarGroupLabel>
 					<SidebarGroupContent>

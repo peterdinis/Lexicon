@@ -9,12 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
+import NotesSection from "../notes/NotesSection";
 import DashboardLayout from "./DashboardLayout";
 
 const DashboardWrapper: FC = () => {
-	const [note, setNote] = useState("");
 	const [filter, setFilter] = useState("");
 
 	const {
@@ -106,8 +105,6 @@ const DashboardWrapper: FC = () => {
 			<p className="text-red-800 text-xl font-bold">Failed to load templates</p>
 		);
 
-	console.log(templateData.getTemplates);
-
 	return (
 		<DashboardLayout>
 			<header className="mb-6">
@@ -174,28 +171,7 @@ const DashboardWrapper: FC = () => {
 					</CardContent>
 				</Card>
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Quick note</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-3">
-						<Textarea
-							placeholder="Jot something down..."
-							value={note}
-							onChange={(e) => setNote(e.target.value)}
-							className="min-h-32"
-						/>
-						<div className="flex justify-end">
-							<Button
-								onClick={() =>
-									toast("Connect Supabase to save your notes across sessions.")
-								}
-							>
-								Save note
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
+				<NotesSection />
 			</section>
 
 			<section className="mt-8 grid gap-6 md:grid-cols-2 animate-fade-in">
