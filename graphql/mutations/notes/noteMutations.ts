@@ -4,8 +4,12 @@ export const CREATE_NOTE = gql`
   mutation CreateNote($input: CreateNoteInput!) {
     createNote(input: $input) {
       id
-      title
+      name
+      description
       content
+      createdBy
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -14,8 +18,12 @@ export const UPDATE_NOTE = gql`
   mutation UpdateNote($input: UpdateNoteInput!) {
     updateNote(input: $input) {
       id
-      title
+      name
+      description
       content
+      createdBy
+      createdAt
+      updatedAt
     }
   }
 `;
