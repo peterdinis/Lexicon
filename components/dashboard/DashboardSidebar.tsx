@@ -2,6 +2,7 @@
 
 import {
 	CheckSquare,
+	FilePlus2,
 	LayoutGrid,
 	LayoutTemplate,
 	Settings,
@@ -140,7 +141,7 @@ const DashboardSidebar: FC = () => {
 										<SidebarMenuButton asChild>
 											<Link href="/page">
 												<span className="grid h-4 w-4 place-items-center">
-													+
+													P
 												</span>
 												{!collapsed && <span>New page</span>}
 											</Link>
@@ -153,8 +154,8 @@ const DashboardSidebar: FC = () => {
 									{renderWithTooltip(
 										"New Workspace",
 										<SidebarMenuButton onClick={() => setOpen(true)}>
-											<span className="mr-2 grid h-4 w-4 place-items-center">
-												+
+											<span className="grid h-4 w-4 place-items-center">
+												W
 											</span>
 											{!collapsed && <span>New workspace</span>}
 										</SidebarMenuButton>,
