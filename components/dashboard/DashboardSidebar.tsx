@@ -4,7 +4,6 @@ import {
 	CheckSquare,
 	LayoutGrid,
 	LayoutTemplate,
-	Plus,
 	Settings,
 	Trash2,
 } from "lucide-react";
@@ -38,7 +37,6 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -78,7 +76,7 @@ const DashboardSidebar: FC = () => {
 	};
 
 	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
-		onCompleted: (data) => {
+		onCompleted: () => {
 			setNewWorkspaceName("");
 			setOpen(false);
 			toast({
@@ -102,184 +100,146 @@ const DashboardSidebar: FC = () => {
 
 		createWorkspace({
 			variables: {
-				input: {
-					name: newWorkspaceName.trim(),
-				},
+				input: { name: newWorkspaceName.trim() },
 			},
-		});
-
-		toast({
-			title: "New workspace is created",
-			duration: 2000,
-			className: "bg-green-800 text-white font-bold text-xl",
 		});
 	};
 
 	return (
-		<Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
-			<SidebarContent>
-				<SidebarGroup>
-					<SidebarGroupLabel>Workspace</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{items.map((item) => (
-								<SidebarMenuItem key={item.title}>
+		<>
+			<Sidebar className={collapsed ? "w-14" : "w-60"} collapsible="icon">
+				<SidebarContent>
+					<SidebarGroup>
+						<SidebarGroupLabel>Workspace</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{items.map((item) => (
+									<SidebarMenuItem key={item.title}>
+										{renderWithTooltip(
+											item.title,
+											<SidebarMenuButton asChild>
+												<Link href={item.url}>
+													<item.icon className="mr-2 h-4 w-4" />
+													{!collapsed && <span>{item.title}</span>}
+												</Link>
+											</SidebarMenuButton>,
+										)}
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+
+					{/* Pages Section */}
+					<SidebarGroup>
+						<SidebarGroupLabel>Pages</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{/* New Page */}
+								<SidebarMenuItem>
 									{renderWithTooltip(
-										item.title,
+										"New page",
 										<SidebarMenuButton asChild>
-											<Link href={item.url}>
-												<item.icon className="mr-2 h-4 w-4" />
-												{!collapsed && <span>{item.title}</span>}
+											<Link href="/page">
+												<span className="mr-2 grid h-4 w-4 place-items-center">
+													+
+												</span>
+												{!collapsed && <span>New page</span>}
 											</Link>
 										</SidebarMenuButton>,
 									)}
 								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
 
-				{/* Pages Section */}
-				<SidebarGroup>
-					<SidebarGroupLabel>Pages</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{/* New Page Button */}
-							<SidebarMenuItem>
-								{renderWithTooltip(
-									"New page",
-									<SidebarMenuButton asChild>
-										<Link href="/page">
-											<span className="mr-2 grid h-4 w-4 place-items-center">
-												+
-											</span>
-											{!collapsed && <span>New page</span>}
-										</Link>
-									</SidebarMenuButton>,
-								)}
-							</SidebarMenuItem>
-
-							<SidebarMenuItem>
-								{renderWithTooltip(
-									"New Workspace",
-									<SidebarMenuButton asChild>
-										<Link href="/page">
+								{/* New Workspace (opens dialog) */}
+								<SidebarMenuItem>
+									{renderWithTooltip(
+										"New Workspace",
+										<SidebarMenuButton onClick={() => setOpen(true)}>
 											<span className="mr-2 grid h-4 w-4 place-items-center">
 												+
 											</span>
 											{!collapsed && <span>New workspace</span>}
-										</Link>
-									</SidebarMenuButton>,
-								)}
-							</SidebarMenuItem>
+										</SidebarMenuButton>,
+									)}
+								</SidebarMenuItem>
 
-							{/* Page List */}
-							{pages.slice(0, 12).map((p) => (
-								<SidebarMenuItem key={p.id}>
-									{renderWithTooltip(
-										p.title || "Untitled",
-										<SidebarMenuButton asChild>
-											<Link href={`/pages/${p.id}`}>
-												<span className="mr-2 h-4 w-4 grid place-items-center">
-													📄
-												</span>
-												{!collapsed && (
-													<span
-														className="truncate"
-														title={p.title || "Untitled"}
-													>
-														{p.title || "Untitled"}
+								{/* Page List */}
+								{pages.slice(0, 12).map((p) => (
+									<SidebarMenuItem key={p.id}>
+										{renderWithTooltip(
+											p.title || "Untitled",
+											<SidebarMenuButton asChild>
+												<Link href={`/pages/${p.id}`}>
+													<span className="mr-2 h-4 w-4 grid place-items-center">
+														📄
 													</span>
-												)}
+													{!collapsed && (
+														<span
+															className="truncate"
+															title={p.title || "Untitled"}
+														>
+															{p.title || "Untitled"}
+														</span>
+													)}
+												</Link>
+											</SidebarMenuButton>,
+										)}
+									</SidebarMenuItem>
+								))}
+
+								{/* Trash */}
+								<SidebarMenuItem>
+									{renderWithTooltip(
+										"Trash",
+										<SidebarMenuButton asChild>
+											<Link href="/trash">
+												<Trash2 className="mr-2 h-4 w-4" />
+												{!collapsed && <span>Trash</span>}
 											</Link>
 										</SidebarMenuButton>,
 									)}
 								</SidebarMenuItem>
-							))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</SidebarContent>
+			</Sidebar>
 
-							{/* Trash */}
-							<SidebarMenuItem>
-								{renderWithTooltip(
-									"Trash",
-									<SidebarMenuButton asChild>
-										<Link href="/trash">
-											<Trash2 className="mr-2 h-4 w-4" />
-											{!collapsed && <span>Trash</span>}
-										</Link>
-									</SidebarMenuButton>,
-								)}
-							</SidebarMenuItem>
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
-
-
-				<SidebarGroup>
-					<SidebarGroupLabel>Workspaces</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							<SidebarMenuItem>
-								{renderWithTooltip(
-									"New Workspace",
-									<SidebarMenuButton asChild>
-										<span className="mr-2 grid h-4 w-4 place-items-center">
-											+
-										</span>
-										{!collapsed && <span>New workspace</span>}
-									</SidebarMenuButton>,
-								)}
-							</SidebarMenuItem>
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
-			</SidebarContent>
-
-			<div className="flex gap-2 ml-auto flex-wrap sm:flex-nowrap">
-				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogTrigger asChild>
-						<Button
-							variant="default"
+			{/* Dialog mimo sidebar */}
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Create New Workspace</DialogTitle>
+						<DialogDescription>
+							Enter a name for your new workspace. You can manage its
+							settings later.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<Input
+							placeholder="Workspace Name"
+							value={newWorkspaceName}
+							onChange={(e) => setNewWorkspaceName(e.target.value)}
+							autoFocus
 							disabled={loading}
-							className="flex-1 sm:flex-none"
+						/>
+					</div>
+					<DialogFooter>
+						<Button
+							onClick={handleCreateWorkspace}
+							disabled={!newWorkspaceName.trim() || loading}
 						>
-							<Plus className="mr-2 h-4 w-4" />
-							New Workspace
+							{loading ? "Creating..." : "Create"}
 						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Create New Workspace</DialogTitle>
-							<DialogDescription>
-								Enter a name for your new workspace. You can manage its
-								settings later.
-							</DialogDescription>
-						</DialogHeader>
-						<div className="py-4">
-							<Input
-								placeholder="Workspace Name"
-								value={newWorkspaceName}
-								onChange={(e) => setNewWorkspaceName(e.target.value)}
-								autoFocus
-								disabled={loading}
-							/>
-						</div>
-						<DialogFooter>
-							<Button
-								onClick={handleCreateWorkspace}
-								disabled={!newWorkspaceName.trim() || loading}
-							>
-								{loading ? "Creating..." : "Create"}
-							</Button>
-						</DialogFooter>
-						{error && (
-							<p className="text-red-600 mt-2 text-sm">
-								Error creating workspace: {error.message}
-							</p>
-						)}
-					</DialogContent>
-				</Dialog>
-			</div>
-		</Sidebar>
+					</DialogFooter>
+					{error && (
+						<p className="text-red-600 mt-2 text-sm">
+							Error creating workspace: {error.message}
+						</p>
+					)}
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 };
 

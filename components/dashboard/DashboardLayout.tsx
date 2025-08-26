@@ -1,7 +1,6 @@
 "use client";
 
-import { useMutation } from "@apollo/client";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import {
 	type ReactNode,
 	useState,
@@ -9,69 +8,16 @@ import {
 } from "react";
 import { Button } from "@/components/ui/button";
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
-import { useToast } from "@/hooks/shared/use-toast";
 import SearchDialog from "../shared/SearchDialog";
 import DashboardSidebar from "./DashboardSidebar";
-import UserProfileDropdown from "../auth/UpdateProfileDropdown";
+import ProfileDropdown from "../auth/UpdateProfileDropdown";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-	const [open, setOpen] = useState(false);
-	const [newWorkspaceName, setNewWorkspaceName] = useState("");
 	const [searchOpen, setSearchOpen] = useState(false);
-	const { toast } = useToast();
-
-	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
-		onCompleted: (data) => {
-			setNewWorkspaceName("");
-			setOpen(false);
-			toast({
-				title: "New workspace is created",
-				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-xl",
-			});
-		},
-		onError: (error) => {
-			console.error("Error creating workspace:", error);
-			toast({
-				title: "New workspace was not created",
-				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-xl",
-			});
-		},
-	});
-
-	const handleCreateWorkspace = () => {
-		if (!newWorkspaceName.trim()) return;
-
-		createWorkspace({
-			variables: {
-				input: {
-					name: newWorkspaceName.trim(),
-				},
-			},
-		});
-
-		toast({
-			title: "New workspace is created",
-			duration: 2000,
-			className: "bg-green-800 text-white font-bold text-xl",
-		});
-	};
 
 	return (
 		<ViewTransition enter={"slide-in"}>
@@ -100,53 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 								<SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 							</div>
-							<div className="flex gap-2 ml-auto flex-wrap sm:flex-nowrap">
-								<Dialog open={open} onOpenChange={setOpen}>
-									<DialogTrigger asChild>
-										<Button
-											variant="default"
-											disabled={loading}
-											className="flex-1 sm:flex-none"
-										>
-											<Plus className="mr-2 h-4 w-4" />
-											New Workspace
-										</Button>
-									</DialogTrigger>
-									<DialogContent>
-										<DialogHeader>
-											<DialogTitle>Create New Workspace</DialogTitle>
-											<DialogDescription>
-												Enter a name for your new workspace. You can manage its
-												settings later.
-											</DialogDescription>
-										</DialogHeader>
-										<div className="py-4">
-											<Input
-												placeholder="Workspace Name"
-												value={newWorkspaceName}
-												onChange={(e) => setNewWorkspaceName(e.target.value)}
-												autoFocus
-												disabled={loading}
-											/>
-										</div>
-										<DialogFooter>
-											<Button
-												onClick={handleCreateWorkspace}
-												disabled={!newWorkspaceName.trim() || loading}
-											>
-												{loading ? "Creating..." : "Create"}
-											</Button>
-										</DialogFooter>
-										{error && (
-											<p className="text-red-600 mt-2 text-sm">
-												Error creating workspace: {error.message}
-											</p>
-										)}
-									</DialogContent>
-								</Dialog>
-
-								<UserProfileDropdown />
-							</div>
+							<ProfileDropdown />
 						</header>
 						<div className="p-6">{children}</div>
 					</SidebarInset>

@@ -165,7 +165,7 @@ const DropdownMenuItem = ({ children, onClick }: DropdownMenuItemProps) => (
     </a>
 );
 
-export default function UserProfileDropdown() {
+export default function ProfileDropdown() {
     const { me, loading } = useMe();
     const router = useRouter();
 
