@@ -13,7 +13,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { useMe } from "@/hooks/auth/useMe";
 
 const ProfileDropdown: FC = () => {
