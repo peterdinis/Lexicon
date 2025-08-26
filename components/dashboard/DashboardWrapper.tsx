@@ -13,7 +13,6 @@ import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
 import NotesSection from "../notes/NotesSection";
 import DashboardLayout from "./DashboardLayout";
 
-// dnd-kit imports
 import {
   DndContext,
   closestCenter,
@@ -26,9 +25,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { SortableItem } from "../shared/SortableContext";
 
 const DashboardWrapper: FC = () => {
@@ -43,34 +40,10 @@ const DashboardWrapper: FC = () => {
 
   const recents = useMemo(
     () => [
-      {
-        emoji: "🗒️",
-        title: "Weekly Planning",
-        tag: "Planning",
-        color: "blue" as const,
-        updated: "2h ago",
-      },
-      {
-        emoji: "🎯",
-        title: "Q3 Objectives",
-        tag: "OKRs",
-        color: "purple" as const,
-        updated: "yesterday",
-      },
-      {
-        emoji: "🧪",
-        title: "User Research Notes",
-        tag: "Research",
-        color: "green" as const,
-        updated: "2 days ago",
-      },
-      {
-        emoji: "📦",
-        title: "Roadmap",
-        tag: "Product",
-        color: "orange" as const,
-        updated: "3 days ago",
-      },
+      { emoji: "🗒️", title: "Weekly Planning", tag: "Planning", color: "blue", updated: "2h ago" },
+      { emoji: "🎯", title: "Q3 Objectives", tag: "OKRs", color: "purple", updated: "yesterday" },
+      { emoji: "🧪", title: "User Research Notes", tag: "Research", color: "green", updated: "2 days ago" },
+      { emoji: "📦", title: "Roadmap", tag: "Product", color: "orange", updated: "3 days ago" },
     ],
     [],
   );
@@ -83,24 +56,17 @@ const DashboardWrapper: FC = () => {
     { id: 5, title: "Fix bug #112", status: "In progress" },
   ];
 
-  const badgeCls = (color: (typeof recents)[number]["color"]) => {
+  const badgeCls = (color: string) => {
     switch (color) {
-      case "blue":
-        return "bg-notion-blue/15 text-notion-blue border border-notion-blue/20";
-      case "purple":
-        return "bg-notion-purple/15 text-notion-purple border border-notion-purple/20";
-      case "green":
-        return "bg-notion-green/15 text-notion-green border border-notion-green/20";
-      case "orange":
-        return "bg-notion-orange/15 text-notion-orange border border-notion-orange/20";
-      default:
-        return "bg-muted text-foreground border border-border";
+      case "blue": return "bg-notion-blue/15 text-notion-blue border border-notion-blue/20";
+      case "purple": return "bg-notion-purple/15 text-notion-purple border border-notion-purple/20";
+      case "green": return "bg-notion-green/15 text-notion-green border border-notion-green/20";
+      case "orange": return "bg-notion-orange/15 text-notion-orange border border-notion-orange/20";
+      default: return "bg-muted text-foreground border border-border";
     }
   };
 
-  const filteredRecents = recents.filter((r) =>
-    r.title.toLowerCase().includes(filter.toLowerCase()),
-  );
+  const filteredRecents = recents.filter((r) => r.title.toLowerCase().includes(filter.toLowerCase()));
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -109,8 +75,7 @@ const DashboardWrapper: FC = () => {
 
   if (templateLoading) return <Loader2 className="animate-spin w-8 h-8" />;
 
-  if (templateError)
-    return <p className="text-red-800 text-xl font-bold">Failed to load templates</p>;
+  if (templateError) return <p className="text-red-800 text-xl font-bold">Failed to load templates</p>;
 
   return (
     <DashboardLayout>
@@ -140,29 +105,19 @@ const DashboardWrapper: FC = () => {
             </div>
             <ul className="space-y-2">
               {filteredRecents.map((r) => (
-                <li
-                  key={r.title}
-                  className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted/60 transition-colors"
-                >
+                <li key={r.title} className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted/60 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-lg select-none">{r.emoji}</span>
                     <a
                       className="truncate story-link"
                       href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toast("Connect Supabase to open pages.");
-                      }}
+                      onClick={(e) => { e.preventDefault(); toast("Connect Supabase to open pages."); }}
                     >
                       {r.title}
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`hidden sm:inline-block text-xs rounded-md px-2 py-0.5 ${badgeCls(
-                        r.color,
-                      )}`}
-                    >
+                    <span className={`hidden sm:inline-block text-xs rounded-md px-2 py-0.5 ${badgeCls(r.color)}`}>
                       {r.tag}
                     </span>
                     <span className="text-xs text-muted-foreground shrink-0">
@@ -171,15 +126,14 @@ const DashboardWrapper: FC = () => {
                   </div>
                 </li>
               ))}
-              {filteredRecents.length === 0 && (
-                <li className="text-sm text-muted-foreground">No results.</li>
-              )}
+              {filteredRecents.length === 0 && <li className="text-sm text-muted-foreground">No results.</li>}
             </ul>
           </CardContent>
         </Card>
 
         <NotesSection />
       </section>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -203,11 +157,7 @@ const DashboardWrapper: FC = () => {
                       <Card>
                         <CardHeader className="flex items-center justify-between">
                           <CardTitle>Calendar</CardTitle>
-                          <button
-                            {...listeners}
-                            {...attributes}
-                            className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground"
-                          >
+                          <button {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground">
                             <GripVertical className="h-4 w-4" />
                           </button>
                         </CardHeader>
@@ -215,11 +165,11 @@ const DashboardWrapper: FC = () => {
                           <div className="p-4 rounded-lg shadow-md w-full h-auto select-none">
                             <CalendarUI className="w-full h-full rounded-md" />
                           </div>
-                          <div className="mt-4 ml-3">
+                          <div className="mt-4 ml-3 flex gap-4">
                             <Button variant="outline" size="sm" asChild>
                               <Link href="/calendar">Open Events in Calendar</Link>
                             </Button>
-                            <Button variant="outline" size="sm" asChild className="ml-4">
+                            <Button variant="outline" size="sm" asChild>
                               <Link href="/calendar">Add new event to calendar</Link>
                             </Button>
                           </div>
@@ -231,28 +181,15 @@ const DashboardWrapper: FC = () => {
                       <Card>
                         <CardHeader className="flex items-center justify-between">
                           <CardTitle>Tasks</CardTitle>
-                          <button
-                            {...listeners}
-                            {...attributes}
-                            className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground"
-                          >
+                          <button {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground">
                             <GripVertical className="h-4 w-4" />
                           </button>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2 text-sm">
-                            <li className="flex items-center justify-between">
-                              <span>To do</span>
-                              <span className="text-muted-foreground">5</span>
-                            </li>
-                            <li className="flex items-center justify-between">
-                              <span>In progress</span>
-                              <span className="text-muted-foreground">2</span>
-                            </li>
-                            <li className="flex items-center justify-between">
-                              <span>Done</span>
-                              <span className="text-muted-foreground">8</span>
-                            </li>
+                            <li className="flex items-center justify-between"><span>To do</span><span className="text-muted-foreground">5</span></li>
+                            <li className="flex items-center justify-between"><span>In progress</span><span className="text-muted-foreground">2</span></li>
+                            <li className="flex items-center justify-between"><span>Done</span><span className="text-muted-foreground">8</span></li>
                           </ul>
 
                           <div className="mt-4 overflow-hidden rounded border border-border">
@@ -296,43 +233,33 @@ const DashboardWrapper: FC = () => {
                       <Card>
                         <CardHeader className="flex items-center justify-between">
                           <CardTitle>Templates</CardTitle>
-                          <button
-                            {...listeners}
-                            {...attributes}
-                            className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground"
-                          >
+                          <button {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground">
                             <GripVertical className="h-4 w-4" />
                           </button>
                         </CardHeader>
                         <CardContent>
                           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {templateData &&
-                              templateData?.map((t: { title: string; desc: string }) => (
-                                <div
-                                  key={t.title}
-                                  className="border rounded-md p-4 hover-scale transition-transform hover:scale-[1.02]"
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <div>
-                                      <div className="font-medium">{t.title}</div>
-                                      <div className="text-sm text-muted-foreground">{t.desc}</div>
-                                    </div>
-                                  </div>
-                                  <div className="mt-4">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        toast(
-                                          `${t.title} template will be available after connecting Supabase.`,
-                                        )
-                                      }
-                                    >
-                                      Use template
-                                    </Button>
+                            {templateData?.map((t: { title: string; desc: string }) => (
+                              <div key={t.title} className="border rounded-md p-4 hover-scale transition-transform hover:scale-[1.02]">
+                                <div className="flex items-start gap-3">
+                                  <div>
+                                    <div className="font-medium">{t.title}</div>
+                                    <div className="text-sm text-muted-foreground">{t.desc}</div>
                                   </div>
                                 </div>
-                              ))}
+                                <div className="mt-4">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      toast(`${t.title} template will be available after connecting Supabase.`)
+                                    }
+                                  >
+                                    Use template
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </CardContent>
                       </Card>
