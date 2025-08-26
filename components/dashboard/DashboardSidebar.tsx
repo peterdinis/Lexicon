@@ -129,10 +129,8 @@ const DashboardSidebar: FC = () => {
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
-
-					{/* Pages Section */}
+					
 					<SidebarGroup>
-						<SidebarGroupLabel>Pages</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								{/* New Page */}
@@ -162,30 +160,6 @@ const DashboardSidebar: FC = () => {
 										</SidebarMenuButton>,
 									)}
 								</SidebarMenuItem>
-
-								{/* Page List */}
-								{pages.slice(0, 12).map((p) => (
-									<SidebarMenuItem key={p.id}>
-										{renderWithTooltip(
-											p.title || "Untitled",
-											<SidebarMenuButton asChild>
-												<Link href={`/pages/${p.id}`}>
-													<span className="mr-2 h-4 w-4 grid place-items-center">
-														📄
-													</span>
-													{!collapsed && (
-														<span
-															className="truncate"
-															title={p.title || "Untitled"}
-														>
-															{p.title || "Untitled"}
-														</span>
-													)}
-												</Link>
-											</SidebarMenuButton>,
-										)}
-									</SidebarMenuItem>
-								))}
 
 								{/* Trash */}
 								<SidebarMenuItem>
