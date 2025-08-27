@@ -26,50 +26,27 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "../shared/SortableContext";
+import PagesSection from "../pages/PagesSection";
 
 const DashboardWrapper: FC = () => {
   const [filter, setFilter] = useState("");
-  const [sections, setSections] = useState(["calendar", "tasks", "templates"]);
+  const [sections, setSections] = useState(["calendar", "tasks", "templates", "pages"]);
 
-	const {
-		templates: templateData,
-		loading: templateLoading,
-		error: templateError,
-	} = useGetAllTemplates();
-	
-	const recents = useMemo(
-		() => [
-			{
-				emoji: "🗒️",
-				title: "Weekly Planning",
-				tag: "Planning",
-				color: "blue" as const,
-				updated: "2h ago",
-			},
-			{
-				emoji: "🎯",
-				title: "Q3 Objectives",
-				tag: "OKRs",
-				color: "purple" as const,
-				updated: "yesterday",
-			},
-			{
-				emoji: "🧪",
-				title: "User Research Notes",
-				tag: "Research",
-				color: "green" as const,
-				updated: "2 days ago",
-			},
-			{
-				emoji: "📦",
-				title: "Roadmap",
-				tag: "Product",
-				color: "orange" as const,
-				updated: "3 days ago",
-			},
-		],
-		[],
-	);
+  const {
+    templates: templateData,
+    loading: templateLoading,
+    error: templateError,
+  } = useGetAllTemplates();
+
+  const recents = useMemo(
+    () => [
+      { emoji: "🗒️", title: "Weekly Planning", tag: "Planning", color: "blue" as const, updated: "2h ago" },
+      { emoji: "🎯", title: "Q3 Objectives", tag: "OKRs", color: "purple" as const, updated: "yesterday" },
+      { emoji: "🧪", title: "User Research Notes", tag: "Research", color: "green" as const, updated: "2 days ago" },
+      { emoji: "📦", title: "Roadmap", tag: "Product", color: "orange" as const, updated: "3 days ago" },
+    ],
+    [],
+  );
 
   const mockTasks = [
     { id: 1, title: "Design homepage", status: "To do" },
@@ -288,6 +265,10 @@ const DashboardWrapper: FC = () => {
                       </Card>
                     )}
 
+                    {/* NEW PAGES SECTION */}
+                    {section === "pages" && (
+                      <PagesSection />
+                    )}
 
                   </div>
                 )}
