@@ -2,12 +2,11 @@
 
 import { motion } from "framer-motion";
 import type { FC } from "react";
-import { useQuery, useMutation } from "@apollo/client";
+import { useQuery} from "@apollo/client";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import DashboardLayout from "../dashboard/DashboardLayout";
 import { GET_NOTES } from "@/graphql/queries/notes/notesQueries";
-import { UPDATE_NOTE, REMOVE_NOTE } from "@/graphql/mutations/notes/noteMutations";
 import { Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -17,8 +16,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../ui/dialog";
+import { useRemoveNote } from "@/hooks/notes/useRemoveNote";
+import { useUpdateNote } from "@/hooks/notes/useUpdateNote";
 
 interface FormValues {
   name: string;
@@ -26,9 +26,9 @@ interface FormValues {
 }
 
 const NotesWrapper: FC = () => {
-  const { data, loading, error, refetch } = useQuery(GET_NOTES);
-  const [updateNote] = useMutation(UPDATE_NOTE, { onCompleted: () => refetch() });
-  const [removeNote] = useMutation(REMOVE_NOTE, { onCompleted: () => refetch() });
+  const { data, loading, error} = useQuery(GET_NOTES);
+  const { updateNote } = useUpdateNote();
+  const { removeNote } = useRemoveNote();
 
   const [selectedNote, setSelectedNote] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
