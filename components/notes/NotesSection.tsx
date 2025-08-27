@@ -1,16 +1,15 @@
 "use client";
 
 import { type FC } from "react";
-import { useMutation } from "@apollo/client";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { CREATE_NOTE } from "@/graphql/mutations/notes/noteMutations";
 import { useMe } from "@/hooks/auth/useMe";
 import { Loader2 } from "lucide-react";
+import { useCreateNote } from "@/hooks/notes/useCreateNote";
 
 interface FormValues {
   name: string;
@@ -34,13 +33,9 @@ const NotesSection: FC = () => {
     },
   });
 
-  const [createNote, { loading }] = useMutation(CREATE_NOTE, {
-    onCompleted: () => {
-      toast.success("Note saved successfully!");
-      reset(); // vyčistí formulár
-    },
-    onError: (error) => {
-      toast.error(`Failed to save note: ${error.message}`);
+  const { createNote, loading } = useCreateNote({
+    onSuccess: () => {
+      reset();
     },
   });
 
@@ -108,7 +103,7 @@ const NotesSection: FC = () => {
 
           <div className="flex justify-end">
             <Button type="submit" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin w-8 h-8" />: "Save note"}
+              {loading ? <Loader2 className="animate-spin w-8 h-8" /> : "Save note"}
             </Button>
           </div>
         </form>
