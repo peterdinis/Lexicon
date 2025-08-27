@@ -27,11 +27,23 @@ import {
 } from "@dnd-kit/sortable";
 import { SortableItem } from "../shared/SortableContext";
 import PagesSection from "../pages/PagesSection";
+import { useQuery } from "@apollo/client";
+import { GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
+import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 
 const DashboardWrapper: FC = () => {
   const [filter, setFilter] = useState("");
   const [sections, setSections] = useState(["calendar", "tasks", "templates", "pages"]);
 
+  const { data: meData } = useQuery(ME_QUERY);
+  
+    const { data: wsData } = useQuery(GET_CURRENT_WORKSPACE, {
+      skip: !meData?.me?.id,
+      variables: { userId: meData?.me?.id },
+    });
+
+    console.log("WSDATA", wsData)
+    
   const {
     templates: templateData,
     loading: templateLoading,
@@ -267,7 +279,7 @@ const DashboardWrapper: FC = () => {
 
                     {/* NEW PAGES SECTION */}
                     {section === "pages" && (
-                      <PagesSection />
+                      <PagesSection workspaceId={wsData.id} />
                     )}
 
                   </div>

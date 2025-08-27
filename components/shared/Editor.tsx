@@ -19,7 +19,6 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { CREATE_PAGE } from "@/graphql/mutations/pages/pagesMutations";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,6 @@ const Editor: FC = () => {
 	const [title, setTitle] = useState("");
 	const [emoji, setEmoji] = useState("📝");
 	const { theme } = useTheme();
-	const router = useRouter();
 
 	const { data: meData } = useQuery(ME_QUERY);
 

@@ -1,23 +1,23 @@
 "use client";
 
-import { FC } from "react";
+import { FC, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface PagesSectionProps {
+  workspaceId: number;
   listeners?: any;
   attributes?: any;
 }
 
-const PagesSection: FC<PagesSectionProps> = ({ listeners, attributes }) => {
-  const pages = [
-    { title: "Landing Page" },
-    { title: "About Us Page" },
-    { title: "Contact Page" },
-  ];
+const PagesSection: FC<PagesSectionProps> = ({ workspaceId, listeners, attributes }) => {
+  const { pages, loading, error } = usePages(workspaceId);
+
+  if (loading) return <Loader2 className="animate-spin w-8 h-8" />
+  if (error) return <p>Error loading pages</p>;
 
   return (
     <motion.div
@@ -38,9 +38,9 @@ const PagesSection: FC<PagesSectionProps> = ({ listeners, attributes }) => {
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {pages.map((page, index) => (
+            {pages.map((page: { id: Key | null | undefined; title: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }, index: number) => (
               <motion.li
-                key={page.title}
+                key={page.id}
                 className="flex items-center justify-between"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -65,3 +65,7 @@ const PagesSection: FC<PagesSectionProps> = ({ listeners, attributes }) => {
 };
 
 export default PagesSection;
+function usePages(workspaceId: number): { pages: any; loading: any; error: any; } {
+  throw new Error("Function not implemented.");
+}
+
