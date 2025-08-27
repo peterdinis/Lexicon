@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { useGetAllTemplates } from "@/hooks/templates/useGetAllTemplates";
 import NotesSection from "../notes/NotesSection";
 import DashboardLayout from "./DashboardLayout";
-
 import {
   DndContext,
   closestCenter,

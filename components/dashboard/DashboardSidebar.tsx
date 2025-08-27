@@ -27,8 +27,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { listPages, pagesEvents } from "@/store/pageStore";
-import { useMutation } from "@apollo/client";
-import { CREATE_WORKSPACE } from "@/graphql/mutations/workspaces/workspaceMutations";
 import { useToast } from "@/hooks/shared/use-toast";
 import {
 	Dialog,
@@ -40,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { useCreateWorkspace } from "@/hooks/workspces/useCreateNewWorkspace";
 
 const items = [
 	{ title: "Dashboard", url: "/dashboard", icon: LayoutGrid },
@@ -75,23 +74,10 @@ const DashboardSidebar: FC = () => {
 		);
 	};
 
-	const [createWorkspace, { loading, error }] = useMutation(CREATE_WORKSPACE, {
-		onCompleted: () => {
+	const { createWorkspace, loading, error } = useCreateWorkspace({
+		onSuccess: () => {
 			setNewWorkspaceName("");
 			setOpen(false);
-			toast({
-				title: "New workspace is created",
-				duration: 2000,
-				className: "bg-green-800 text-white font-bold text-xl",
-			});
-		},
-		onError: (error) => {
-			console.error("Error creating workspace:", error);
-			toast({
-				title: "New workspace was not created",
-				duration: 2000,
-				className: "bg-red-800 text-white font-bold text-xl",
-			});
 		},
 	});
 
