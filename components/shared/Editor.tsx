@@ -23,12 +23,12 @@ import { CREATE_PAGE } from "@/graphql/mutations/pages/pagesMutations";
 import { ME_QUERY } from "@/graphql/queries/auth/authQueries";
 import { GET_CURRENT_WORKSPACE } from "@/graphql/queries/workspaces/workspaceQueries";
 import { cn } from "@/lib/utils";
+import { useCreatePage } from "@/hooks/page/useCreatePage";
 
 const Editor: FC = () => {
 	const editor = useCreateBlockNote();
 	const [title, setTitle] = useState("");
 	const [emoji, setEmoji] = useState("📝");
-	const [lastSaved, setLastSaved] = useState<Date | null>(null);
 	const { theme } = useTheme();
 	const router = useRouter();
 
@@ -39,16 +39,7 @@ const Editor: FC = () => {
 		variables: { userId: meData?.me?.id },
 	});
 
-	const [createPage, { loading: saving }] = useMutation(CREATE_PAGE, {
-		onCompleted: (data) => {
-			console.log("Page saved:", data.createPage);
-			setLastSaved(new Date());
-			router.push("/dashboard");
-		},
-		onError: (err) => {
-			console.error("Error saving page:", err);
-		},
-	});
+	const { createPage, saving, lastSaved, setLastSaved } = useCreatePage();
 
 	const savePage = useCallback(async () => {
 		if (!editor || !title.trim()) return;
