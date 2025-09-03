@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/shared/Navigation";
+import { ConvexClientProvider } from "@/components/providers/ConvexProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,14 +26,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full dark:bg-[#1f1f1f]`}
       >
-        <Navigation />
-        <main className="h-full pt-32">
-          {children}  
-        </main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>
+            <Navigation />
+            <main className="h-full pt-32">{children}</main>
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

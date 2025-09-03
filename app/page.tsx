@@ -10,7 +10,7 @@ const Homepage: NextPage = () => {
       <Features />
       <Footer />
     </>
-  )
-}
+  );
+};
 
-export default Homepage
+export default Homepage;

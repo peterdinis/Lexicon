@@ -8,7 +8,8 @@ const featuresData = [
   {
     icon: <Check className="w-6 h-6 text-emerald-500" />,
     title: "Centralized Workspaces",
-    description: "Keep all your projects, notes, and ideas organized in one place.",
+    description:
+      "Keep all your projects, notes, and ideas organized in one place.",
   },
   {
     icon: <Users className="w-6 h-6 text-emerald-500" />,
@@ -41,7 +42,9 @@ const Features: FC = () => {
         >
           <div>{feature.icon}</div>
           <h4 className="text-lg font-semibold">{feature.title}</h4>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">{feature.description}</p>
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
+            {feature.description}
+          </p>
         </motion.div>
       ))}
     </div>
