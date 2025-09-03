@@ -4,7 +4,6 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useConvexAuth } from "convex/react";
 import { Loader2, Menu } from "lucide-react";
 import { redirect } from "next/navigation";
-import { motion } from "framer-motion";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -27,13 +26,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top navbar */}
-        <motion.nav
-          className="bg-background/80 backdrop-blur-sm border-b px-4 py-2 flex items-center"
-          layout
-        >
-          <Menu className="w-5 h-5 text-muted-foreground" />
-        </motion.nav>
         
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-4">

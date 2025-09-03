@@ -1,3 +1,4 @@
+
 "use client";
 
 import { FC, useState } from "react";
@@ -11,52 +12,44 @@ import {
   User,
   FileText,
   Plus,
+  Folder,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Simple Tooltip component (shadcn/ui style)
-const Tooltip = ({ children, content }: { children: React.ReactNode, content: string }) => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  return (
-    <div 
-      className="relative inline-block"
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
-    >
-      {children}
-      {isVisible && (
-        <div className="absolute left-full ml-2 px-2 py-1 bg-popover border rounded-md shadow-md text-sm text-popover-foreground z-50 whitespace-nowrap">
-          {content}
-          <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 w-2 h-2 bg-popover border-l border-b rotate-45"></div>
-        </div>
-      )}
-    </div>
-  );
-};
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const SidebarButton = ({ icon: Icon, label, onClick, className = "" }: {
+  const SidebarButton = ({ icon: Icon, label, onClick, className = "", isActive = false }: {
     icon: any,
     label: string,
     onClick?: () => void,
-    className?: string
+    className?: string,
+    isActive?: boolean
   }) => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-2 py-1 w-full transition-colors ${className}`}
+        className={`flex items-center justify-center ${collapsed ? 'w-12 h-12' : 'justify-start space-x-3 px-3 py-2'} text-sm transition-all duration-200 rounded-lg group relative ${
+          isActive 
+            ? 'bg-primary/10 text-primary border border-primary/20' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+        } ${className}`}
       >
-        <Icon className="w-4 h-4 flex-shrink-0" />
+        <Icon className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0 transition-all duration-200`} />
         <AnimatePresence>
           {!collapsed && (
             <motion.span
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
+              className="font-medium"
             >
               {label}
             </motion.span>
@@ -66,24 +59,79 @@ const DashboardSidebar: FC = () => {
     );
 
     return collapsed ? (
-      <Tooltip content={label}>
-        {button}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex justify-center">
+            {button}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          <p>{label}</p>
+        </TooltipContent>
       </Tooltip>
     ) : button;
   };
 
-  const WorkspaceItem = ({ name, index }: { name: string, index: number }) => {
+  const WorkspaceItem = ({ name, index, isActive = false }: { name: string, index: number, isActive?: boolean }) => {
     const item = (
-      <li className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-accent cursor-pointer transition-colors">
-        <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+      <li className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${
+        collapsed ? 'justify-center w-12 h-12 mx-auto' : 'justify-start space-x-3 px-3 py-2'
+      } ${
+        isActive 
+          ? 'bg-primary/10 text-primary border border-primary/20' 
+          : 'hover:bg-accent/60 text-muted-foreground hover:text-foreground'
+      }`}>
+        {collapsed ? (
+          <Folder className="w-5 h-5 flex-shrink-0" />
+        ) : (
+          <>
+            <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+            <AnimatePresence>
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
+                className="truncate font-medium"
+              >
+                {name}
+              </motion.span>
+            </AnimatePresence>
+          </>
+        )}
+      </li>
+    );
+
+    return collapsed ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {item}
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          <p>{name}</p>
+        </TooltipContent>
+      </Tooltip>
+    ) : item;
+  };
+
+  const PageItem = ({ name, index, isActive = false }: { name: string, index: number, isActive?: boolean }) => {
+    const item = (
+      <li className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${
+        collapsed ? 'justify-center w-12 h-12 mx-auto' : 'justify-start space-x-3 px-3 py-2'
+      } ${
+        isActive 
+          ? 'bg-primary/10 text-primary border border-primary/20' 
+          : 'hover:bg-accent/60 text-muted-foreground hover:text-foreground'
+      }`}>
+        <FileText className={`${collapsed ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0 transition-all duration-200`} />
         <AnimatePresence>
           {!collapsed && (
             <motion.span
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-              className="truncate"
+              transition={{ duration: 0.15 }}
+              className="truncate text-sm font-medium"
             >
               {name}
             </motion.span>
@@ -93,173 +141,184 @@ const DashboardSidebar: FC = () => {
     );
 
     return collapsed ? (
-      <Tooltip content={name}>
-        {item}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {item}
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          <p>{name}</p>
+        </TooltipContent>
       </Tooltip>
     ) : item;
   };
 
   return (
-    <motion.aside
-      initial={{ width: 240 }}
-      animate={{ width: collapsed ? 64 : 240 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="group/sidebar h-full bg-background/40 border-r overflow-hidden sticky flex flex-col z-[99999] min-h-screen left-0 top-0"
-    >
-      {/* Collapse toggle button */}
-      <Tooltip content={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute top-3 right-2 w-6 h-6 text-muted-foreground rounded-sm hover:bg-accent flex items-center justify-center transition-colors z-10"
-        >
-          {collapsed ? (
-            <ChevronsRight className="w-4 h-4" />
-          ) : (
-            <ChevronsLeft className="w-4 h-4" />
-          )}
-        </button>
-      </Tooltip>
-
-      {/* Sidebar content */}
-      <div className="flex flex-col flex-1 p-3 space-y-4 overflow-y-auto">
-        {/* User section */}
-        <div className="flex items-center space-x-2 text-sm font-medium pt-2">
-          <User className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="truncate"
+    <TooltipProvider>
+      <motion.aside
+        initial={{ width: 240 }}
+        animate={{ width: collapsed ? 88 : 240 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="group/sidebar h-full bg-background/60 backdrop-blur-sm border-r border-border/60 sticky flex flex-col z-[99999] min-h-screen left-0 top-0 shadow-sm"
+        style={{ overflow: 'visible' }}
+      >
+        {/* Collapse toggle button */}
+        <div className="flex justify-end p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200"
               >
-                Logged in User
-              </motion.span>
+                {collapsed ? (
+                  <ChevronsRight className="w-5 h-5" />
+                ) : (
+                  <ChevronsLeft className="w-5 h-5" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="ml-2">
+              <p>{collapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Sidebar content */}
+        <div className="flex flex-col flex-1 px-3 space-y-6 pb-3" style={{ overflow: 'visible' }}>
+          {/* User section */}
+          <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} text-sm font-semibold`}>
+            {collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center cursor-pointer">
+                    <User className="w-6 h-6 text-primary flex-shrink-0" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="ml-2">
+                  <div>
+                    <p className="font-medium">John Doe</p>
+                    <p className="text-xs text-muted-foreground">john@example.com</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <>
+                <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary flex-shrink-0" />
+                </div>
+                <AnimatePresence>
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="truncate"
+                  >
+                    <div className="text-foreground">John Doe</div>
+                    <div className="text-xs text-muted-foreground">john@example.com</div>
+                  </motion.div>
+                </AnimatePresence>
+              </>
             )}
-          </AnimatePresence>
-        </div>
-
-        {/* Search */}
-        <SidebarButton icon={Search} label="Search" />
-
-        {/* Add New Page */}
-        <SidebarButton 
-          icon={Plus} 
-          label="New Page" 
-          onClick={() => console.log('New page')}
-        />
-
-        {/* Trash after search */}
-        <SidebarButton icon={Trash} label="Trash" />
-
-        {/* Workspaces section */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground mb-2">
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  WORKSPACES
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <Tooltip content="Add workspace">
-              <button 
-                className="hover:text-foreground hover:bg-accent rounded-sm p-1 transition-colors"
-                onClick={() => console.log('Add workspace')}
-              >
-                <PlusCircle className="w-4 h-4" />
-              </button>
-            </Tooltip>
           </div>
 
-          <ul className="space-y-1">
-            {["Workspace 1", "Workspace 2", "My Projects"].map((workspace, i) => (
-              <WorkspaceItem key={i} name={workspace} index={i} />
-            ))}
-          </ul>
+          {/* Quick actions */}
+          <div className="space-y-2">
+            <SidebarButton icon={Search} label="Search" />
+            <SidebarButton 
+              icon={Plus} 
+              label="New Page" 
+              onClick={() => console.log('New page')}
+            />
+            <SidebarButton icon={Trash} label="Trash" />
+          </div>
 
-          {/* Add workspace button when collapsed */}
-          {collapsed && (
-            <div className="mt-2">
-              <SidebarButton 
-                icon={PlusCircle} 
-                label="Add Workspace" 
-                onClick={() => console.log('Add workspace')}
-              />
+          {/* Workspaces section */}
+          <div className="flex-1 space-y-3">
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Workspaces
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    className={`${collapsed ? 'w-12 h-12' : 'w-6 h-6'} rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    onClick={() => console.log('Add workspace')}
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="ml-2">
+                  <p>Add workspace</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-          )}
-        </div>
 
-        {/* Pages section */}
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground mb-2">
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  RECENT PAGES
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <Tooltip content="New page">
-              <button 
-                className="hover:text-foreground hover:bg-accent rounded-sm p-1 transition-colors"
-                onClick={() => console.log('New page')}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </Tooltip>
+            <ul className="space-y-1">
+              {["My Workspace", "Team Project", "Personal"].map((workspace, i) => (
+                <WorkspaceItem key={i} name={workspace} index={i} isActive={i === 0} />
+              ))}
+            </ul>
           </div>
 
-          <ul className="space-y-1">
-            {["Getting Started", "Project Notes", "Meeting Minutes"].map((page, i) => {
-              const item = (
-                <li 
-                  key={i}
-                  className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-accent cursor-pointer transition-colors"
-                >
-                  <FileText className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="truncate text-sm"
-                      >
-                        {page}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </li>
-              );
+          {/* Pages section */}
+          <div className="space-y-3 border-t border-border/60 pt-4">
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Recent Pages
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    className={`${collapsed ? 'w-12 h-12' : 'w-6 h-6'} rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    onClick={() => console.log('New page')}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="ml-2">
+                  <p>New page</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
 
-              return collapsed ? (
-                <Tooltip key={i} content={page}>
-                  {item}
-                </Tooltip>
-              ) : item;
-            })}
-          </ul>
-        </div>
+            <ul className="space-y-1">
+              {["Getting Started", "Project Notes", "Meeting Minutes"].map((page, i) => (
+                <PageItem key={i} name={page} index={i} isActive={i === 1} />
+              ))}
+            </ul>
+          </div>
 
-        {/* Footer actions */}
-        <div className="mt-auto space-y-1 border-t pt-4">
-          <SidebarButton icon={Settings} label="Settings" />
+          {/* Footer actions */}
+          <div className="mt-auto pt-4 border-t border-border/60">
+            <SidebarButton 
+              icon={Settings} 
+              label="Settings" 
+              onClick={() => console.log('Settings')}
+            />
+          </div>
         </div>
-      </div>
-    </motion.aside>
+      </motion.aside>
+    </TooltipProvider>
   );
 };
 
