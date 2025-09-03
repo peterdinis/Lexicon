@@ -1,35 +1,39 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { motion, AnimatePresence } from "framer-motion"
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   const iconVariants = {
     hidden: { scale: 0, rotate: 90, opacity: 0 },
     visible: { scale: 1, rotate: 0, opacity: 1 },
-  }
+  };
 
   const menuItemVariants = {
     hidden: { x: -10, opacity: 0 },
     visible: { x: 0, opacity: 1 },
-  }
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative overflow-hidden">
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative overflow-hidden"
+        >
           <AnimatePresence initial={false}>
             {theme === "dark" ? (
               <motion.div
@@ -78,5 +82,5 @@ export function ModeToggle() {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
