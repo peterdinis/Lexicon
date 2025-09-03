@@ -4,6 +4,7 @@ import { FC } from "react";
 import { motion } from "framer-motion";
 import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 const DashboardWrapper: FC = () => {
   return (
@@ -42,7 +43,7 @@ const DashboardWrapper: FC = () => {
         >
           <Button className="rounded-xl px-6 py-2 text-base shadow-md flex items-center">
             <PlusCircle className="w-5 h-5 mr-2" />
-            Create a Note
+            <Link href="/document/new">Create a new Document</Link>
           </Button>
         </motion.div>
       </motion.div>
