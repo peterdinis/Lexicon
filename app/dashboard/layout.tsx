@@ -2,11 +2,13 @@
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useConvexAuth } from "convex/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Menu } from "lucide-react";
 import { redirect } from "next/navigation";
+import { motion } from "framer-motion";
 
-const MainLayOut = ({ children }: { children: React.ReactNode }) => {
+const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
+
   if (isLoading) {
     return (
       <div className="h-full min-h-[100vh] flex items-center justify-center">
@@ -18,14 +20,28 @@ const MainLayOut = ({ children }: { children: React.ReactNode }) => {
   if (!isAuthenticated) {
     return redirect("/");
   }
+
   return (
-    <div className="h-full flex dark:bg-[#1f1f1f] ">
+    <div className="h-full flex dark:bg-[#1f1f1f] min-h-screen">
       <DashboardSidebar />
-      <main className="flex-1 h-full overflow-y-auto">
-        {children}
-      </main>
+      
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top navbar */}
+        <motion.nav
+          className="bg-background/80 backdrop-blur-sm border-b px-4 py-2 flex items-center"
+          layout
+        >
+          <Menu className="w-5 h-5 text-muted-foreground" />
+        </motion.nav>
+        
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto p-4">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };
 
-export default MainLayOut;
+export default MainLayout;
