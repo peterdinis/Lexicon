@@ -4,10 +4,15 @@ import { useScrollTop } from "@/hooks/use-scroll-to-top";
 import { cn } from "@/lib/utils";
 import { FC, useState } from "react";
 import { Button } from "../ui/button";
-import { Menu, X } from "lucide-react";
+import { Loader2, Menu, X } from "lucide-react";
+import { useConvexAuth } from "convex/react";
+import { SignInButton, UserButton } from "@clerk/clerk-react";
+import Link from "next/link";
+import { ModeToggle } from "./ModeToggle";
 
 const Navigation: FC = () => {
     const scrolled = useScrollTop();
+    const { isAuthenticated, isLoading } = useConvexAuth();
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -31,8 +36,28 @@ const Navigation: FC = () => {
             <div className="md:ml-auto flex items-center">
                 {/* Desktop tlačidlá */}
                 <div className="hidden md:flex gap-x-2">
-                    <Button>Login</Button>
-                    <Button>New Account</Button>
+                    {isLoading && <Loader2 className="animate-spin w-8 h-8" />}
+                    {!isAuthenticated && !isLoading && (
+                        <>
+                            <SignInButton>
+                                <Button variant={"ghost"} size={"sm"}>
+                                    Log In
+                                </Button>
+                            </SignInButton>
+                            <SignInButton>
+                                <Button size={"sm"}>Get Free Trial</Button>
+                            </SignInButton>
+                        </>
+                    )}
+                    {isAuthenticated && !isLoading && (
+                        <>
+                            <Button variant={"ghost"} size={"sm"}>
+                                <Link href="/decoments">Go to my lexicon</Link>
+                            </Button>
+                            <UserButton afterSwitchSessionUrl="/" />
+                        </>
+                    )}
+                    <ModeToggle />
                 </div>
 
                 {/* Mobile hamburger */}
