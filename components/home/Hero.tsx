@@ -28,7 +28,7 @@ const Hero: FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-xl md:text-2xl font-medium text-gray-700"
+            className="text-base sm:text-xl md:text-2xl font-medium dark:text-white text-gray-700"
           >
             The collaborative workspace where
             <br /> ideas flow, teams connect, and work gets done smarter.
