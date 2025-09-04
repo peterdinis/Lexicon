@@ -37,8 +37,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ConvexClientProvider>
-            <Navigation />
-            <main className="h-full pt-32">{children}</main>
+            <main>{children}</main>
           </ConvexClientProvider>
         </ThemeProvider>
       </body>
