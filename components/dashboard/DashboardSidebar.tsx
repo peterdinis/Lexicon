@@ -30,17 +30,20 @@ import { useClerk, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
 import WorkspaceItem from "../workspaces/WorkspaceItem";
 import WorkspaceDialog from "../workspaces/WorkspaceDialog";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const {user} = useUser()
-  const {signOut} = useClerk()
-
-  // Dialog states
+  const { user } = useUser()
+  const { signOut } = useClerk()
+  
   const [searchOpen, setSearchOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const workspaces = useQuery(api.workspaces.list);
 
   const SidebarButton = ({
     icon: Icon,
@@ -58,18 +61,15 @@ const DashboardSidebar: FC = () => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center justify-center ${
-          collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
-        } text-sm transition-all duration-200 rounded-lg group relative ${
-          isActive
+        className={`flex items-center justify-center ${collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
+          } text-sm transition-all duration-200 rounded-lg group relative ${isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-        } ${className}`}
+          } ${className}`}
       >
         <Icon
-          className={`${
-            collapsed ? "w-5 h-5" : "w-4 h-4"
-          } flex-shrink-0 transition-all duration-200`}
+          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
+            } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -112,18 +112,15 @@ const DashboardSidebar: FC = () => {
   }) => {
     const item = (
       <li
-        className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${
-          collapsed ? "justify-center w-12 h-12 mx-auto" : "justify-start space-x-3 px-3 py-2"
-        } ${
-          isActive
+        className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${collapsed ? "justify-center w-12 h-12 mx-auto" : "justify-start space-x-3 px-3 py-2"
+          } ${isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "hover:bg-accent/60 text-muted-foreground hover:text-foreground"
-        }`}
+          }`}
       >
         <FileText
-          className={`${
-            collapsed ? "w-5 h-5" : "w-4 h-4"
-          } flex-shrink-0 transition-all duration-200`}
+          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
+            } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -156,7 +153,7 @@ const DashboardSidebar: FC = () => {
   return (
     <TooltipProvider>
       {/* ---- Dialogs ---- */}
-      
+
       {/* Search Dialog */}
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden p-0">
@@ -172,7 +169,7 @@ const DashboardSidebar: FC = () => {
                   <DialogDescription>Find pages, workspaces, and content across your account</DialogDescription>
                 </div>
               </div>
-              
+
               {/* Search Input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -303,7 +300,7 @@ const DashboardSidebar: FC = () => {
       </Dialog>
 
       {/* Create Workspace Dialog */}
-      <WorkspaceDialog 
+      <WorkspaceDialog
         workspaceOpen={workspaceOpen}
         setWorkspaceOpen={setWorkspaceOpen}
       />
@@ -324,7 +321,7 @@ const DashboardSidebar: FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <nav className="space-y-1">
                   {[
@@ -338,11 +335,10 @@ const DashboardSidebar: FC = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                        item.active 
-                          ? "bg-primary/10 text-primary border border-primary/20" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                      }`}
+                      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${item.active
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                        }`}
                     >
                       <item.icon className="w-4 h-4" />
                       <span className="text-sm font-medium">{item.label}</span>
@@ -406,7 +402,7 @@ const DashboardSidebar: FC = () => {
                           </div>
                           <Button variant="outline" size="sm">Toggle</Button>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">Email Notifications</div>
@@ -477,9 +473,8 @@ const DashboardSidebar: FC = () => {
         >
           {/* User section - FIXED ALIGNMENT */}
           <div
-            className={`flex items-center ${
-              collapsed ? "justify-center" : "space-x-3"
-            } text-sm font-semibold`}
+            className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"
+              } text-sm font-semibold`}
           >
             {collapsed ? (
               <Tooltip>
@@ -538,9 +533,8 @@ const DashboardSidebar: FC = () => {
           {/* Workspaces section */}
           <div className="flex-1 space-y-3">
             <div
-              className={`flex items-center ${
-                collapsed ? "justify-center" : "justify-between"
-              }`}
+              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
+                }`}
             >
               <AnimatePresence>
                 {!collapsed && (
@@ -558,9 +552,8 @@ const DashboardSidebar: FC = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className={`${
-                      collapsed ? "w-12 h-12" : "w-6 h-6"
-                    } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
+                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
                     onClick={() => setWorkspaceOpen(true)}
                   >
                     <PlusCircle className="w-4 h-4" />
@@ -573,18 +566,34 @@ const DashboardSidebar: FC = () => {
             </div>
 
             <ul className="space-y-1">
-              {["My Workspace", "Team Project", "Personal"].map((workspace, i) => (
-                <WorkspaceItem key={i} name={workspace} index={i} isActive={i === 0} />
+              {workspaces?.map((workspace, i) => (
+                <div
+                  key={workspace._id}
+                >
+                  <WorkspaceItem
+                    name={workspace.name}
+                    index={i}
+                    id={workspace._id as unknown as Id<"documents">}
+                  />
+                </div>
               ))}
+
+              {!workspaces && (
+                <p className="text-xs text-muted-foreground px-4">Loading...</p>
+              )}
+              {workspaces?.length === 0 && (
+                <p className="text-xs text-muted-foreground px-4">
+                  No workspaces yet
+                </p>
+              )}
             </ul>
           </div>
 
           {/* Pages section */}
           <div className="space-y-3 border-t border-border/60 pt-4">
             <div
-              className={`flex items-center ${
-                collapsed ? "justify-center" : "justify-between"
-              }`}
+              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
+                }`}
             >
               <AnimatePresence>
                 {!collapsed && (
@@ -602,9 +611,8 @@ const DashboardSidebar: FC = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className={`${
-                      collapsed ? "w-12 h-12" : "w-6 h-6"
-                    } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
+                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
                     onClick={() => console.log("New page")}
                   >
                     <Plus className="w-4 h-4" />

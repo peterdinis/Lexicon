@@ -3,13 +3,16 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Folder } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import Link from "next/link";
+import { Id } from "@/convex/_generated/dataModel";
 
 const WorkspaceItem = ({
     name,
-    index,
     isActive = false,
-    collapsed = false
+    collapsed = false,
+    id,
 }: {
+    id: Id<"documents">,
     name: string;
     index: number;
     isActive?: boolean;
@@ -36,7 +39,7 @@ const WorkspaceItem = ({
                             transition={{ duration: 0.15 }}
                             className="truncate font-medium"
                         >
-                            {name}
+                            <Link href={`/workspace/${id}`}>{name}</Link>
                         </motion.span>
                     </AnimatePresence>
                 </>
