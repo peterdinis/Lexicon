@@ -10,13 +10,7 @@ import {
   Eye,
   EyeOff,
   ChevronDown,
-  CheckSquare,
-  Calendar,
-  FileText,
-  Target,
-  Lightbulb,
   ArrowLeft,
-  Star,
   Bold,
   Italic,
   Underline,
@@ -35,6 +29,11 @@ import {
 import { useMutation } from "convex/react";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@/convex/_generated/api";
+import { documentTemplates } from "../templates/documentTemplates";
+import { EmojiPicker } from "./EmojiPicker";
+import { backgroundImages } from "./background-images";
+import { useRouter } from "next/navigation";
+import PublishPage from "./PublishPage";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -44,319 +43,12 @@ const CreateDocumentForm: FC = () => {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [showToolbar, setShowToolbar] = useState(true);
-  const [, setSelectedColor] = useState("#000000");
+  const [selectedColor, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const router = useRouter();
   const { user } = useUser();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
-
-  // Custom emoji categories
-  const emojiCategories = {
-    Smileys: [
-      "😀",
-      "😃",
-      "😄",
-      "😁",
-      "😅",
-      "😂",
-      "🤣",
-      "😊",
-      "😇",
-      "🙂",
-      "🙃",
-      "😉",
-      "😌",
-      "😍",
-      "🥰",
-      "😘",
-    ],
-    Objects: [
-      "📝",
-      "📖",
-      "📊",
-      "📈",
-      "💡",
-      "🎯",
-      "🚀",
-      "⭐",
-      "💼",
-      "🔥",
-      "🎨",
-      "📷",
-      "🎵",
-      "🎮",
-      "💻",
-      "📱",
-    ],
-    Nature: [
-      "🌟",
-      "🌈",
-      "🦄",
-      "🌸",
-      "🌺",
-      "🌻",
-      "🌷",
-      "🌹",
-      "🍀",
-      "🌿",
-      "🌱",
-      "🌳",
-      "🌲",
-      "🏔️",
-      "⛰️",
-      "🌊",
-    ],
-    Food: [
-      "☕",
-      "🍎",
-      "🍌",
-      "🍓",
-      "🍇",
-      "🍑",
-      "🥝",
-      "🍅",
-      "🥕",
-      "🌽",
-      "🥒",
-      "🍞",
-      "🧀",
-      "🍕",
-      "🍔",
-      "🍟",
-    ],
-    Activities: [
-      "⚽",
-      "🏀",
-      "🏈",
-      "⚾",
-      "🎾",
-      "🏐",
-      "🏉",
-      "🎱",
-      "🎪",
-      "🎭",
-      "🎨",
-      "🎬",
-      "🎤",
-      "🎧",
-      "🎼",
-      "🎹",
-    ],
-    Symbols: [
-      "❤️",
-      "💙",
-      "💚",
-      "💛",
-      "🧡",
-      "💜",
-      "🖤",
-      "🤍",
-      "🤎",
-      "💔",
-      "❣️",
-      "💕",
-      "💞",
-      "💓",
-      "💗",
-      "💖",
-    ],
-  };
-
-  // Mock background images
-  const backgroundImages = [
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&q=80",
-    "https://images.unsplash.com/photo-1497436072909-f5e92c2b7b20?w=800&q=80",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-  ];
-
-  // Color palette
-  const colors = [
-    "#000000",
-    "#374151",
-    "#6B7280",
-    "#9CA3AF",
-    "#D1D5DB",
-    "#F3F4F6",
-    "#EF4444",
-    "#F97316",
-    "#F59E0B",
-    "#EAB308",
-    "#84CC16",
-    "#22C55E",
-    "#10B981",
-    "#14B8A6",
-    "#06B6D4",
-    "#0EA5E9",
-    "#3B82F6",
-    "#6366F1",
-    "#8B5CF6",
-    "#A855F7",
-    "#C026D3",
-    "#DB2777",
-    "#E11D48",
-    "#DC2626",
-  ];
-
-  // Document templates with content
-  const documentTemplates = [
-    {
-      name: "Blank Document",
-      icon: FileText,
-      emoji: "📄",
-      content: "<p>Start writing your document...</p>",
-      title: "Untitled Document",
-    },
-    {
-      name: "Meeting Notes",
-      icon: Calendar,
-      emoji: "📅",
-      content: `
-        <h1>Meeting Notes</h1>
-        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <p><strong>Attendees:</strong> </p>
-        <p><strong>Agenda:</strong></p>
-        <ul>
-          <li>Topic 1</li>
-          <li>Topic 2</li>
-          <li>Topic 3</li>
-        </ul>
-        <h2>Discussion Points</h2>
-        <p>Add discussion notes here...</p>
-        <h2>Action Items</h2>
-        <ul>
-          <li>☐ Action item 1</li>
-          <li>☐ Action item 2</li>
-        </ul>
-      `,
-      title: "Meeting Notes - " + new Date().toLocaleDateString(),
-    },
-    {
-      name: "Project Plan",
-      icon: Target,
-      emoji: "🎯",
-      content: `
-        <h1>Project Plan</h1>
-        <h2>Project Overview</h2>
-        <p><strong>Project Name:</strong> </p>
-        <p><strong>Start Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <p><strong>End Date:</strong> </p>
-        <p><strong>Project Manager:</strong> </p>
-        
-        <h2>Objectives</h2>
-        <ul>
-          <li>Primary objective</li>
-          <li>Secondary objective</li>
-        </ul>
-        
-        <h2>Milestones</h2>
-        <ol>
-          <li>Phase 1 completion</li>
-          <li>Phase 2 completion</li>
-          <li>Final delivery</li>
-        </ol>
-        
-        <h2>Resources</h2>
-        <p>List required resources, team members, and budget.</p>
-      `,
-      title: "Project Plan",
-    },
-    {
-      name: "Brainstorming",
-      icon: Lightbulb,
-      emoji: "💡",
-      content: `
-        <h1>Brainstorming Session</h1>
-        <p><strong>Topic:</strong> </p>
-        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        
-        <h2>Ideas</h2>
-        <ul>
-          <li>💡 Idea 1</li>
-          <li>💡 Idea 2</li>
-          <li>💡 Idea 3</li>
-        </ul>
-        
-        <h2>Best Ideas</h2>
-        <ol>
-          <li>⭐ Top idea</li>
-          <li>⭐ Second best</li>
-        </ol>
-        
-        <h2>Next Steps</h2>
-        <p>What actions need to be taken based on this brainstorming session?</p>
-      `,
-      title: "Brainstorming Session",
-    },
-    {
-      name: "Task List",
-      icon: CheckSquare,
-      emoji: "✅",
-      content: `
-        <h1>Task List</h1>
-        <p><strong>Project:</strong> </p>
-        <p><strong>Due Date:</strong> </p>
-        
-        <h2>High Priority</h2>
-        <ul>
-          <li>🔴 Urgent task 1</li>
-          <li>🔴 Urgent task 2</li>
-        </ul>
-        
-        <h2>Medium Priority</h2>
-        <ul>
-          <li>🟡 Important task 1</li>
-          <li>🟡 Important task 2</li>
-        </ul>
-        
-        <h2>Low Priority</h2>
-        <ul>
-          <li>🟢 Task 1</li>
-          <li>🟢 Task 2</li>
-        </ul>
-        
-        <h2>Completed</h2>
-        <ul>
-          <li>✅ Completed task example</li>
-        </ul>
-      `,
-      title: "Task List",
-    },
-    {
-      name: "Daily Journal",
-      icon: Star,
-      emoji: "⭐",
-      content: `
-        <h1>Daily Journal</h1>
-        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        
-        <h2>Today's Goals</h2>
-        <ul>
-          <li>Goal 1</li>
-          <li>Goal 2</li>
-          <li>Goal 3</li>
-        </ul>
-        
-        <h2>What Happened Today</h2>
-        <p>Write about the events, experiences, and thoughts from today...</p>
-        
-        <h2>Grateful For</h2>
-        <ul>
-          <li>🙏 Something I'm grateful for</li>
-          <li>🙏 Another thing I appreciate</li>
-        </ul>
-        
-        <h2>Tomorrow's Focus</h2>
-        <p>What do I want to focus on tomorrow?</p>
-        
-        <h2>Reflection</h2>
-        <p>How am I feeling? What did I learn today?</p>
-      `,
-      title: "Daily Journal - " + new Date().toLocaleDateString(),
-    },
-  ];
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -408,8 +100,7 @@ const CreateDocumentForm: FC = () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      // Fallback navigation - you can replace with your router
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     }
   };
 
@@ -481,6 +172,10 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
+  const onSaveDraft = () => {
+    console.log("DO NOTHING FOR NOW");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -524,7 +219,7 @@ const CreateDocumentForm: FC = () => {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Dashboard</span>
               </motion.button>
-              <h1 className="text-2xl font-bold">Create New Document</h1>
+              <h1 className="text-2xl font-bold">Create New Page</h1>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -544,8 +239,9 @@ const CreateDocumentForm: FC = () => {
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
-                <span>Save Document</span>
+                <span>Save Page</span>
               </motion.button>
+              <PublishPage onSaveDraft={onSaveDraft} />
             </div>
           </div>
 
@@ -564,42 +260,12 @@ const CreateDocumentForm: FC = () => {
                   {selectedEmoji}
                 </motion.button>
 
-                <AnimatePresence>
-                  {showEmojiPicker && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 w-80 max-h-96 overflow-y-auto"
-                    >
-                      {Object.entries(emojiCategories).map(
-                        ([category, emojis]) => (
-                          <div key={category} className="mb-4">
-                            <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-                              {category}
-                            </h4>
-                            <div className="grid grid-cols-8 gap-2">
-                              {emojis.map((emoji, index) => (
-                                <motion.button
-                                  key={`${category}-${index}`}
-                                  whileHover={{ scale: 1.2 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => {
-                                    setSelectedEmoji(emoji);
-                                    setShowEmojiPicker(false);
-                                  }}
-                                  className="text-2xl p-1 rounded hover:bg-accent transition-colors"
-                                >
-                                  {emoji}
-                                </motion.button>
-                              ))}
-                            </div>
-                          </div>
-                        ),
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <EmojiPicker
+                  selectedEmoji={selectedEmoji}
+                  onSelect={(emoji) => setSelectedEmoji(emoji)}
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
               </div>
 
               {/* Background Image Picker */}
@@ -682,7 +348,7 @@ const CreateDocumentForm: FC = () => {
               type="text"
               value={documentTitle}
               onChange={(e) => setDocumentTitle(e.target.value)}
-              placeholder="Untitled Document"
+              placeholder="Untitled Page"
               className="w-full text-3xl font-bold bg-transparent border-none outline-none placeholder-muted-foreground"
             />
           </div>
@@ -832,20 +498,19 @@ const CreateDocumentForm: FC = () => {
                           exit={{ opacity: 0, scale: 0.9, y: 10 }}
                           className="absolute top-full left-0 mt-2 p-3 bg-popover border rounded-lg shadow-lg z-30"
                         >
-                          <div className="grid grid-cols-6 gap-2">
-                            {colors.map((color) => (
-                              <button
-                                key={color}
-                                onClick={() => {
-                                  setSelectedColor(color);
-                                  formatText("foreColor", color);
-                                  setShowColorPicker(false);
-                                }}
-                                className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
-                                style={{ backgroundColor: color }}
-                                title={color}
-                              />
-                            ))}
+                          <div className="relative">
+                            <input
+                              type="color"
+                              value={selectedColor}
+                              onChange={(e) => {
+                                const color = e.target.value;
+                                setSelectedColor(color);
+                                formatText("foreColor", color);
+                                setShowColorPicker(false);
+                              }}
+                              className="w-10 h-10 p-0 border-none cursor-pointer rounded"
+                              title="Select text color"
+                            />
                           </div>
                         </motion.div>
                       )}
