@@ -30,6 +30,7 @@ import SearchDialog from "../search/SearchDialog";
 import TrashDialog from "../trash/TrashDialog";
 import SettingsDialog from "../settings/SettingsDialog";
 import PagesItem from "../pages/PagesItem";
+import Link from "next/link";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -353,9 +354,10 @@ const DashboardSidebar: FC = () => {
                   <button
                     className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
                       } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
-                    onClick={() => setWorkspaceOpen(true)}
                   >
-                    <PlusCircle className="w-4 h-4" />
+                    <Link href="/pages/new">
+                      <PlusCircle className="w-4 h-4" />
+                    </Link>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="ml-2">
