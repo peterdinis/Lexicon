@@ -5,7 +5,7 @@ import { useConvexAuth } from "convex/react";
 import { Loader2, Menu } from "lucide-react";
 import { redirect } from "next/navigation";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const WorkspaceLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
 
   if (isLoading) {
@@ -33,4 +33,4 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default DashboardLayout;
+export default WorkspaceLayout;
