@@ -71,3 +71,27 @@ export const getById = query({
     return workspace;
   },
 });
+
+export const listPagesByWorkspace = query({
+  args: { workspaceId: v.id("workspaces") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const userId = identity.subject;
+
+    const workspace = await ctx.db.get(args.workspaceId);
+    if (!workspace) throw new Error("Workspace not found");
+
+    if (workspace.userId !== userId) {
+      throw new Error("Not authorized to access this workspace");
+    }
+
+    return await ctx.db
+      .query("pages")
+      .withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+      .filter((q) => q.eq(q.field("isArchived"), false))
+      .order("desc")
+      .collect();
+  },
+});
