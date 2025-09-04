@@ -33,6 +33,7 @@ import { documentTemplates } from "../templates/documentTemplates";
 import { EmojiPicker } from "./EmojiPicker";
 import { backgroundImages } from "./background-images";
 import { useRouter } from "next/navigation";
+import PublishPage from "./PublishPage";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -171,6 +172,10 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
+  const onSaveDraft = () => {
+    console.log("DO NOTHING FOR NOW")
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -236,15 +241,7 @@ const CreateDocumentForm: FC = () => {
                 <Save className="w-4 h-4" />
                 <span>Save Page</span>
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSaveDocument}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
-              >
-                <Save className="w-4 h-4" />
-                <span>Publish page</span>
-              </motion.button>
+             <PublishPage onSaveDraft={onSaveDraft} />
             </div>
           </div>
 
