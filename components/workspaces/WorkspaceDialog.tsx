@@ -1,7 +1,12 @@
-"use client"
+"use client";
 
-import { FC, useState, FormEvent} from "react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
+import { FC, useState, FormEvent } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "../ui/dialog";
 import { Folder, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
@@ -26,7 +31,7 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       toast.error("Workspace name is required");
       return;
@@ -41,7 +46,7 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
       });
 
       toast.success("Workspace created successfully!");
-      
+
       // Reset form and close dialog
       setName("");
       setDescription("");
@@ -49,9 +54,9 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
     } catch (error) {
       console.error("Failed to create workspace:", error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Failed to create workspace. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Failed to create workspace. Please try again.",
       );
     } finally {
       setIsLoading(false);

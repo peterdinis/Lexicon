@@ -2,7 +2,7 @@ import CreateDocumentForm from "@/components/document/CreateDocumentForm";
 import { NextPage } from "next";
 
 const CreateNewDocumentPage: NextPage = () => {
-    return <CreateDocumentForm />
-}
+  return <CreateDocumentForm />;
+};
 
-export default CreateNewDocumentPage
+export default CreateNewDocumentPage;
