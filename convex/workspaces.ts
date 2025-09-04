@@ -1,7 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Create workspace (už máš definované)
 export const create = mutation({
   args: {
     name: v.string(),
