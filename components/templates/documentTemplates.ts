@@ -1,18 +1,25 @@
-import { Calendar, CheckSquare, FileText, Lightbulb, Star, Target } from "lucide-react";
+import {
+  Calendar,
+  CheckSquare,
+  FileText,
+  Lightbulb,
+  Star,
+  Target,
+} from "lucide-react";
 
 export const documentTemplates = [
-    {
-      name: "Blank Document",
-      icon: FileText,
-      emoji: "📄",
-      content: "<p>Start writing your document...</p>",
-      title: "Untitled Document",
-    },
-    {
-      name: "Meeting Notes",
-      icon: Calendar,
-      emoji: "📅",
-      content: `
+  {
+    name: "Blank Document",
+    icon: FileText,
+    emoji: "📄",
+    content: "<p>Start writing your document...</p>",
+    title: "Untitled Document",
+  },
+  {
+    name: "Meeting Notes",
+    icon: Calendar,
+    emoji: "📅",
+    content: `
         <h1>Meeting Notes</h1>
         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
         <p><strong>Attendees:</strong> </p>
@@ -30,13 +37,13 @@ export const documentTemplates = [
           <li>☐ Action item 2</li>
         </ul>
       `,
-      title: "Meeting Notes - " + new Date().toLocaleDateString(),
-    },
-    {
-      name: "Project Plan",
-      icon: Target,
-      emoji: "🎯",
-      content: `
+    title: "Meeting Notes - " + new Date().toLocaleDateString(),
+  },
+  {
+    name: "Project Plan",
+    icon: Target,
+    emoji: "🎯",
+    content: `
         <h1>Project Plan</h1>
         <h2>Project Overview</h2>
         <p><strong>Project Name:</strong> </p>
@@ -60,13 +67,13 @@ export const documentTemplates = [
         <h2>Resources</h2>
         <p>List required resources, team members, and budget.</p>
       `,
-      title: "Project Plan",
-    },
-    {
-      name: "Brainstorming",
-      icon: Lightbulb,
-      emoji: "💡",
-      content: `
+    title: "Project Plan",
+  },
+  {
+    name: "Brainstorming",
+    icon: Lightbulb,
+    emoji: "💡",
+    content: `
         <h1>Brainstorming Session</h1>
         <p><strong>Topic:</strong> </p>
         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
@@ -87,13 +94,13 @@ export const documentTemplates = [
         <h2>Next Steps</h2>
         <p>What actions need to be taken based on this brainstorming session?</p>
       `,
-      title: "Brainstorming Session",
-    },
-    {
-      name: "Task List",
-      icon: CheckSquare,
-      emoji: "✅",
-      content: `
+    title: "Brainstorming Session",
+  },
+  {
+    name: "Task List",
+    icon: CheckSquare,
+    emoji: "✅",
+    content: `
         <h1>Task List</h1>
         <p><strong>Project:</strong> </p>
         <p><strong>Due Date:</strong> </p>
@@ -121,13 +128,13 @@ export const documentTemplates = [
           <li>✅ Completed task example</li>
         </ul>
       `,
-      title: "Task List",
-    },
-    {
-      name: "Daily Journal",
-      icon: Star,
-      emoji: "⭐",
-      content: `
+    title: "Task List",
+  },
+  {
+    name: "Daily Journal",
+    icon: Star,
+    emoji: "⭐",
+    content: `
         <h1>Daily Journal</h1>
         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
         
@@ -153,6 +160,6 @@ export const documentTemplates = [
         <h2>Reflection</h2>
         <p>How am I feeling? What did I learn today?</p>
       `,
-      title: "Daily Journal - " + new Date().toLocaleDateString(),
-    },
-  ];
+    title: "Daily Journal - " + new Date().toLocaleDateString(),
+  },
+];

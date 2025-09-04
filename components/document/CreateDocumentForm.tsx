@@ -45,7 +45,7 @@ const CreateDocumentForm: FC = () => {
   const [showToolbar, setShowToolbar] = useState(true);
   const [selectedColor, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const router = useRouter()
+  const router = useRouter();
   const { user } = useUser();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -100,7 +100,7 @@ const CreateDocumentForm: FC = () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      router.push("/dashboard")
+      router.push("/dashboard");
     }
   };
 
@@ -173,8 +173,8 @@ const CreateDocumentForm: FC = () => {
   };
 
   const onSaveDraft = () => {
-    console.log("DO NOTHING FOR NOW")
-  }
+    console.log("DO NOTHING FOR NOW");
+  };
 
   return (
     <motion.div
@@ -241,7 +241,7 @@ const CreateDocumentForm: FC = () => {
                 <Save className="w-4 h-4" />
                 <span>Save Page</span>
               </motion.button>
-             <PublishPage onSaveDraft={onSaveDraft} />
+              <PublishPage onSaveDraft={onSaveDraft} />
             </div>
           </div>
 

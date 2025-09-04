@@ -1,8 +1,8 @@
 "use client";
 
 import { FC } from "react";
-import Picker from '@emoji-mart/react';
-import data from '@emoji-mart/data';
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface EmojiPickerProps {

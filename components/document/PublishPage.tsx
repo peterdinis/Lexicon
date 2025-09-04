@@ -27,8 +27,12 @@ const PublishPage: FC<PublishPageProps> = ({ onSaveDraft }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={onSaveDraft}>Save Draft</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => alert("Publishing...")}>Publish Now</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => alert("Schedule publishing")}>Schedule</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => alert("Publishing...")}>
+          Publish Now
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => alert("Schedule publishing")}>
+          Schedule
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
