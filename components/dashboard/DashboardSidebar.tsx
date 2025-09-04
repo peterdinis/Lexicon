@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
+import WorkspaceItem from "../workspaces/WorkspaceItem";
+import WorkspaceDialog from "../workspaces/WorkspaceDialog";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -96,58 +98,6 @@ const DashboardSidebar: FC = () => {
       </Tooltip>
     ) : (
       button
-    );
-  };
-
-  const WorkspaceItem = ({
-    name,
-    index,
-    isActive = false,
-  }: {
-    name: string;
-    index: number;
-    isActive?: boolean;
-  }) => {
-    const item = (
-      <li
-        className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${
-          collapsed ? "justify-center w-12 h-12 mx-auto" : "justify-start space-x-3 px-3 py-2"
-        } ${
-          isActive
-            ? "bg-primary/10 text-primary border border-primary/20"
-            : "hover:bg-accent/60 text-muted-foreground hover:text-foreground"
-        }`}
-      >
-        {collapsed ? (
-          <Folder className="w-5 h-5 flex-shrink-0" />
-        ) : (
-          <>
-            <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-            <AnimatePresence>
-              <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.15 }}
-                className="truncate font-medium"
-              >
-                {name}
-              </motion.span>
-            </AnimatePresence>
-          </>
-        )}
-      </li>
-    );
-
-    return collapsed ? (
-      <Tooltip>
-        <TooltipTrigger asChild>{item}</TooltipTrigger>
-        <TooltipContent side="right" className="ml-2">
-          <p>{name}</p>
-        </TooltipContent>
-      </Tooltip>
-    ) : (
-      item
     );
   };
 
@@ -353,52 +303,10 @@ const DashboardSidebar: FC = () => {
       </Dialog>
 
       {/* Create Workspace Dialog */}
-      <Dialog open={workspaceOpen} onOpenChange={setWorkspaceOpen}>
-        <DialogContent className="max-w-md">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Folder className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-semibold">Create Workspace</DialogTitle>
-              <DialogDescription>Start a new workspace for your team or project</DialogDescription>
-            </div>
-          </div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Workspace Name</label>
-              <input
-                type="text"
-                placeholder="e.g., Marketing Team, Project Alpha..."
-                className="w-full px-4 py-3 border rounded-xl bg-background/50 focus:bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">Description (Optional)</label>
-              <textarea
-                placeholder="What's this workspace for?"
-                className="w-full px-4 py-3 border rounded-xl bg-background/50 focus:bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex items-center justify-end space-x-3 pt-4">
-              <Button variant="outline" onClick={() => setWorkspaceOpen(false)}>
-                Cancel
-              </Button>
-              <Button className="px-6">
-                Create Workspace
-              </Button>
-            </div>
-          </motion.div>
-        </DialogContent>
-      </Dialog>
+      <WorkspaceDialog 
+        workspaceOpen={workspaceOpen}
+        setWorkspaceOpen={setWorkspaceOpen}
+      />
 
       {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
