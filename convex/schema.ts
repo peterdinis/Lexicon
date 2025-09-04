@@ -20,8 +20,6 @@ export default defineSchema({
   workspaces: defineTable({
     name: v.string(),
     userId: v.string(),
-    icon: v.optional(v.string()),
-    coverImage: v.optional(v.string()),
     description: v.optional(v.string()),
   }).index("by_user", ["userId"]),
 });
