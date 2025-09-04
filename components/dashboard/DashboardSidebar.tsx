@@ -11,7 +11,6 @@ import {
   User,
   FileText,
   Plus,
-  Folder,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,11 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
 import WorkspaceItem from "../workspaces/WorkspaceItem";
@@ -35,6 +29,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import SearchDialog from "../search/SearchDialog";
 import TrashDialog from "../trash/TrashDialog";
 import SettingsDialog from "../settings/SettingsDialog";
+import PagesItem from "../pages/PagesItem";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -46,6 +41,7 @@ const DashboardSidebar: FC = () => {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const workspaces = useQuery(api.workspaces.list);
+  const pages = useQuery(api.pages.listByUser, {userId: user?.id!})
 
   const SidebarButton = ({
     icon: Icon,
@@ -333,6 +329,7 @@ const DashboardSidebar: FC = () => {
             </ul>
           </div>
 
+          {/* Pages section */}
           <div className="flex-1 space-y-3">
             <div
               className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
@@ -347,7 +344,7 @@ const DashboardSidebar: FC = () => {
                     transition={{ duration: 0.15 }}
                     className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                   >
-                    Workspaces
+                    Pages
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -362,18 +359,18 @@ const DashboardSidebar: FC = () => {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="ml-2">
-                  <p>Add workspace</p>
+                  <p>New Page</p>
                 </TooltipContent>
               </Tooltip>
             </div>
 
             <ul className="space-y-1">
-              {workspaces?.map((workspace, i) => (
-                <div key={workspace._id}>
-                  <WorkspaceItem
-                    name={workspace.name}
+              {pages?.map((page, i) => (
+                <div key={page._id}>
+                  <PagesItem
+                    name={page.title}
                     index={i}
-                    id={workspace._id as unknown as Id<"workspaces">}
+                    id={page._id as unknown as Id<"pages">}
                   />
                 </div>
               ))}
