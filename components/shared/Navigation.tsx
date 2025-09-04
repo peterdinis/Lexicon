@@ -52,7 +52,7 @@ const Navigation: FC = () => {
           {isAuthenticated && !isLoading && (
             <>
               <Button variant={"ghost"} size={"sm"}>
-                <Link href="/decoments">Go to my lexicon</Link>
+                <Link href="/dashboard">Go to my lexicon</Link>
               </Button>
               <UserButton afterSwitchSessionUrl="/" />
             </>

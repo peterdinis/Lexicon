@@ -43,7 +43,7 @@ const DashboardWrapper: FC = () => {
         >
           <Button className="rounded-xl px-6 py-2 text-base shadow-md flex items-center">
             <PlusCircle className="w-5 h-5 mr-2" />
-            <Link href="/document/new">Create a new Document</Link>
+            <Link href="/pages/new">Create a new Page</Link>
           </Button>
         </motion.div>
       </motion.div>
