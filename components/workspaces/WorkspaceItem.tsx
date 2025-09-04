@@ -12,7 +12,7 @@ const WorkspaceItem = ({
     collapsed = false,
     id,
 }: {
-    id: Id<"documents">,
+    id: Id<"workspaces">,
     name: string;
     index: number;
     isActive?: boolean;

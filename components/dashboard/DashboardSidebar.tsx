@@ -573,7 +573,7 @@ const DashboardSidebar: FC = () => {
                   <WorkspaceItem
                     name={workspace.name}
                     index={i}
-                    id={workspace._id as unknown as Id<"documents">}
+                    id={workspace._id as unknown as Id<"workspaces">}
                   />
                 </div>
               ))}
