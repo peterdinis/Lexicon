@@ -2,11 +2,11 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  documents: defineTable({
+  pages: defineTable({
     title: v.string(),
     userId: v.string(),
     isArchived: v.boolean(),
-    parentDocument: v.optional(v.id("documents")),
+    parentPage: v.optional(v.id("pages")),
     content: v.optional(v.string()),
     coverImage: v.optional(v.string()),
     icon: v.optional(v.string()),
@@ -14,7 +14,7 @@ export default defineSchema({
     workspaceId: v.optional(v.id("workspaces")),
   })
     .index("by_user", ["userId"])
-    .index("by_user_parent", ["userId", "parentDocument"])
+    .index("by_user_parent", ["userId", "parentPage"])
     .index("by_workspace", ["workspaceId"]),
 
   workspaces: defineTable({

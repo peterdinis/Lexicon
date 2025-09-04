@@ -32,7 +32,8 @@ const DashboardWrapper: FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          Organize your thoughts, capture ideas, and start creating beautiful notes effortlessly.
+          Organize your thoughts, capture ideas, and start creating beautiful
+          notes effortlessly.
         </motion.p>
 
         {/* Button */}

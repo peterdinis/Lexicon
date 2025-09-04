@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { FC, useState, useRef } from "react";
+import { FC, useState, useRef, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Image,
@@ -30,8 +30,11 @@ import {
   Palette,
   Heading1,
   Heading2,
-  Heading3
+  Heading3,
 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { useUser } from "@clerk/clerk-react";
+import { api } from "@/convex/_generated/api";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -41,19 +44,122 @@ const CreateDocumentForm: FC = () => {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [showToolbar, setShowToolbar] = useState(true);
-  const [selectedColor, setSelectedColor] = useState("#000000");
+  const [, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
-  
+  const { user } = useUser();
+  const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
-  
+
   // Custom emoji categories
   const emojiCategories = {
-    "Smileys": ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘"],
-    "Objects": ["📝", "📖", "📊", "📈", "💡", "🎯", "🚀", "⭐", "💼", "🔥", "🎨", "📷", "🎵", "🎮", "💻", "📱"],
-    "Nature": ["🌟", "🌈", "🦄", "🌸", "🌺", "🌻", "🌷", "🌹", "🍀", "🌿", "🌱", "🌳", "🌲", "🏔️", "⛰️", "🌊"],
-    "Food": ["☕", "🍎", "🍌", "🍓", "🍇", "🍑", "🥝", "🍅", "🥕", "🌽", "🥒", "🍞", "🧀", "🍕", "🍔", "🍟"],
-    "Activities": ["⚽", "🏀", "🏈", "⚾", "🎾", "🏐", "🏉", "🎱", "🎪", "🎭", "🎨", "🎬", "🎤", "🎧", "🎼", "🎹"],
-    "Symbols": ["❤️", "💙", "💚", "💛", "🧡", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖"]
+    Smileys: [
+      "😀",
+      "😃",
+      "😄",
+      "😁",
+      "😅",
+      "😂",
+      "🤣",
+      "😊",
+      "😇",
+      "🙂",
+      "🙃",
+      "😉",
+      "😌",
+      "😍",
+      "🥰",
+      "😘",
+    ],
+    Objects: [
+      "📝",
+      "📖",
+      "📊",
+      "📈",
+      "💡",
+      "🎯",
+      "🚀",
+      "⭐",
+      "💼",
+      "🔥",
+      "🎨",
+      "📷",
+      "🎵",
+      "🎮",
+      "💻",
+      "📱",
+    ],
+    Nature: [
+      "🌟",
+      "🌈",
+      "🦄",
+      "🌸",
+      "🌺",
+      "🌻",
+      "🌷",
+      "🌹",
+      "🍀",
+      "🌿",
+      "🌱",
+      "🌳",
+      "🌲",
+      "🏔️",
+      "⛰️",
+      "🌊",
+    ],
+    Food: [
+      "☕",
+      "🍎",
+      "🍌",
+      "🍓",
+      "🍇",
+      "🍑",
+      "🥝",
+      "🍅",
+      "🥕",
+      "🌽",
+      "🥒",
+      "🍞",
+      "🧀",
+      "🍕",
+      "🍔",
+      "🍟",
+    ],
+    Activities: [
+      "⚽",
+      "🏀",
+      "🏈",
+      "⚾",
+      "🎾",
+      "🏐",
+      "🏉",
+      "🎱",
+      "🎪",
+      "🎭",
+      "🎨",
+      "🎬",
+      "🎤",
+      "🎧",
+      "🎼",
+      "🎹",
+    ],
+    Symbols: [
+      "❤️",
+      "💙",
+      "💚",
+      "💛",
+      "🧡",
+      "💜",
+      "🖤",
+      "🤍",
+      "🤎",
+      "💔",
+      "❣️",
+      "💕",
+      "💞",
+      "💓",
+      "💗",
+      "💖",
+    ],
   };
 
   // Mock background images
@@ -63,29 +169,49 @@ const CreateDocumentForm: FC = () => {
     "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
     "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&q=80",
     "https://images.unsplash.com/photo-1497436072909-f5e92c2b7b20?w=800&q=80",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
   ];
 
   // Color palette
   const colors = [
-    "#000000", "#374151", "#6B7280", "#9CA3AF", "#D1D5DB", "#F3F4F6",
-    "#EF4444", "#F97316", "#F59E0B", "#EAB308", "#84CC16", "#22C55E",
-    "#10B981", "#14B8A6", "#06B6D4", "#0EA5E9", "#3B82F6", "#6366F1",
-    "#8B5CF6", "#A855F7", "#C026D3", "#DB2777", "#E11D48", "#DC2626"
+    "#000000",
+    "#374151",
+    "#6B7280",
+    "#9CA3AF",
+    "#D1D5DB",
+    "#F3F4F6",
+    "#EF4444",
+    "#F97316",
+    "#F59E0B",
+    "#EAB308",
+    "#84CC16",
+    "#22C55E",
+    "#10B981",
+    "#14B8A6",
+    "#06B6D4",
+    "#0EA5E9",
+    "#3B82F6",
+    "#6366F1",
+    "#8B5CF6",
+    "#A855F7",
+    "#C026D3",
+    "#DB2777",
+    "#E11D48",
+    "#DC2626",
   ];
 
   // Document templates with content
   const documentTemplates = [
-    { 
-      name: "Blank Document", 
-      icon: FileText, 
+    {
+      name: "Blank Document",
+      icon: FileText,
       emoji: "📄",
       content: "<p>Start writing your document...</p>",
-      title: "Untitled Document"
+      title: "Untitled Document",
     },
-    { 
-      name: "Meeting Notes", 
-      icon: Calendar, 
+    {
+      name: "Meeting Notes",
+      icon: Calendar,
       emoji: "📅",
       content: `
         <h1>Meeting Notes</h1>
@@ -105,11 +231,11 @@ const CreateDocumentForm: FC = () => {
           <li>☐ Action item 2</li>
         </ul>
       `,
-      title: "Meeting Notes - " + new Date().toLocaleDateString()
+      title: "Meeting Notes - " + new Date().toLocaleDateString(),
     },
-    { 
-      name: "Project Plan", 
-      icon: Target, 
+    {
+      name: "Project Plan",
+      icon: Target,
       emoji: "🎯",
       content: `
         <h1>Project Plan</h1>
@@ -135,11 +261,11 @@ const CreateDocumentForm: FC = () => {
         <h2>Resources</h2>
         <p>List required resources, team members, and budget.</p>
       `,
-      title: "Project Plan"
+      title: "Project Plan",
     },
-    { 
-      name: "Brainstorming", 
-      icon: Lightbulb, 
+    {
+      name: "Brainstorming",
+      icon: Lightbulb,
       emoji: "💡",
       content: `
         <h1>Brainstorming Session</h1>
@@ -162,11 +288,11 @@ const CreateDocumentForm: FC = () => {
         <h2>Next Steps</h2>
         <p>What actions need to be taken based on this brainstorming session?</p>
       `,
-      title: "Brainstorming Session"
+      title: "Brainstorming Session",
     },
-    { 
-      name: "Task List", 
-      icon: CheckSquare, 
+    {
+      name: "Task List",
+      icon: CheckSquare,
       emoji: "✅",
       content: `
         <h1>Task List</h1>
@@ -196,11 +322,11 @@ const CreateDocumentForm: FC = () => {
           <li>✅ Completed task example</li>
         </ul>
       `,
-      title: "Task List"
+      title: "Task List",
     },
-    { 
-      name: "Daily Journal", 
-      icon: Star, 
+    {
+      name: "Daily Journal",
+      icon: Star,
       emoji: "⭐",
       content: `
         <h1>Daily Journal</h1>
@@ -228,11 +354,11 @@ const CreateDocumentForm: FC = () => {
         <h2>Reflection</h2>
         <p>How am I feeling? What did I learn today?</p>
       `,
-      title: "Daily Journal - " + new Date().toLocaleDateString()
-    }
+      title: "Daily Journal - " + new Date().toLocaleDateString(),
+    },
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -244,7 +370,7 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
-  const handleTemplateSelect = (template: typeof documentTemplates[0]) => {
+  const handleTemplateSelect = (template: (typeof documentTemplates)[0]) => {
     setDocumentTitle(template.title);
     setSelectedEmoji(template.emoji);
     setEditorContent(template.content);
@@ -253,26 +379,37 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
-  const handleSaveDocument = () => {
-    const documentData = {
-      title: documentTitle || "Untitled Document",
-      emoji: selectedEmoji,
-      backgroundImage,
-      content: editorContent,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Saving document:', documentData);
-    alert('Document saved successfully!');
+  const handleSaveDocument = async () => {
+    if (!user) {
+      alert("You must be signed in to save a document!");
+      return;
+    }
+
+    try {
+      await createPage({
+        title: documentTitle || "Untitled Document",
+        userId: user.id,
+        isArchived: false,
+        parentPage: undefined,
+        content: editorContent,
+        coverImage: backgroundImage || undefined,
+        icon: selectedEmoji,
+        isPublished: false,
+        workspaceId: undefined,
+      });
+      alert("Document saved successfully!");
+    } catch (err) {
+      console.error("Error saving document:", err);
+      alert("Failed to save document!");
+    }
   };
 
   const handleBackToDashboard = () => {
-    console.log('Navigating back to dashboard');
     if (window.history.length > 1) {
       window.history.back();
     } else {
       // Fallback navigation - you can replace with your router
-      window.location.href = '/dashboard';
+      window.location.href = "/dashboard";
     }
   };
 
@@ -289,43 +426,43 @@ const CreateDocumentForm: FC = () => {
     let element: HTMLElement;
 
     switch (elementType) {
-      case 'h1':
-        element = document.createElement('h1');
-        element.textContent = 'Heading 1';
-        element.style.fontSize = '2rem';
-        element.style.fontWeight = 'bold';
-        element.style.margin = '1rem 0';
+      case "h1":
+        element = document.createElement("h1");
+        element.textContent = "Heading 1";
+        element.style.fontSize = "2rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "1rem 0";
         break;
-      case 'h2':
-        element = document.createElement('h2');
-        element.textContent = 'Heading 2';
-        element.style.fontSize = '1.5rem';
-        element.style.fontWeight = 'bold';
-        element.style.margin = '0.8rem 0';
+      case "h2":
+        element = document.createElement("h2");
+        element.textContent = "Heading 2";
+        element.style.fontSize = "1.5rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.8rem 0";
         break;
-      case 'h3':
-        element = document.createElement('h3');
-        element.textContent = 'Heading 3';
-        element.style.fontSize = '1.2rem';
-        element.style.fontWeight = 'bold';
-        element.style.margin = '0.6rem 0';
+      case "h3":
+        element = document.createElement("h3");
+        element.textContent = "Heading 3";
+        element.style.fontSize = "1.2rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.6rem 0";
         break;
-      case 'blockquote':
-        element = document.createElement('blockquote');
-        element.textContent = 'Quote text';
-        element.style.borderLeft = '4px solid #e5e7eb';
-        element.style.paddingLeft = '1rem';
-        element.style.margin = '1rem 0';
-        element.style.fontStyle = 'italic';
-        element.style.color = '#6b7280';
+      case "blockquote":
+        element = document.createElement("blockquote");
+        element.textContent = "Quote text";
+        element.style.borderLeft = "4px solid #e5e7eb";
+        element.style.paddingLeft = "1rem";
+        element.style.margin = "1rem 0";
+        element.style.fontStyle = "italic";
+        element.style.color = "#6b7280";
         break;
-      case 'code':
-        element = document.createElement('code');
-        element.textContent = 'Code block';
-        element.style.background = '#f3f4f6';
-        element.style.padding = '0.2rem 0.4rem';
-        element.style.borderRadius = '4px';
-        element.style.fontFamily = 'monospace';
+      case "code":
+        element = document.createElement("code");
+        element.textContent = "Code block";
+        element.style.background = "#f3f4f6";
+        element.style.padding = "0.2rem 0.4rem";
+        element.style.borderRadius = "4px";
+        element.style.fontFamily = "monospace";
         break;
       default:
         return;
@@ -360,9 +497,9 @@ const CreateDocumentForm: FC = () => {
             className="fixed inset-0 z-0"
             style={{
               backgroundImage: `url(${backgroundImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'brightness(0.3)'
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "brightness(0.3)",
             }}
           />
         )}
@@ -373,7 +510,7 @@ const CreateDocumentForm: FC = () => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className={`relative z-10 p-6 ${backgroundImage ? 'text-white' : ''}`}
+        className={`relative z-10 p-6 ${backgroundImage ? "text-white" : ""}`}
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-6">
@@ -394,7 +531,11 @@ const CreateDocumentForm: FC = () => {
                 onClick={() => setShowToolbar(!showToolbar)}
                 className="p-2 rounded-lg hover:bg-accent/60 transition-colors backdrop-blur-sm bg-background/20"
               >
-                {showToolbar ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showToolbar ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -422,7 +563,7 @@ const CreateDocumentForm: FC = () => {
                 >
                   {selectedEmoji}
                 </motion.button>
-                
+
                 <AnimatePresence>
                   {showEmojiPicker && (
                     <motion.div
@@ -431,27 +572,31 @@ const CreateDocumentForm: FC = () => {
                       exit={{ opacity: 0, scale: 0.9, y: 10 }}
                       className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 w-80 max-h-96 overflow-y-auto"
                     >
-                      {Object.entries(emojiCategories).map(([category, emojis]) => (
-                        <div key={category} className="mb-4">
-                          <h4 className="text-sm font-semibold text-muted-foreground mb-2">{category}</h4>
-                          <div className="grid grid-cols-8 gap-2">
-                            {emojis.map((emoji, index) => (
-                              <motion.button
-                                key={`${category}-${index}`}
-                                whileHover={{ scale: 1.2 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => {
-                                  setSelectedEmoji(emoji);
-                                  setShowEmojiPicker(false);
-                                }}
-                                className="text-2xl p-1 rounded hover:bg-accent transition-colors"
-                              >
-                                {emoji}
-                              </motion.button>
-                            ))}
+                      {Object.entries(emojiCategories).map(
+                        ([category, emojis]) => (
+                          <div key={category} className="mb-4">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-2">
+                              {category}
+                            </h4>
+                            <div className="grid grid-cols-8 gap-2">
+                              {emojis.map((emoji, index) => (
+                                <motion.button
+                                  key={`${category}-${index}`}
+                                  whileHover={{ scale: 1.2 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => {
+                                    setSelectedEmoji(emoji);
+                                    setShowEmojiPicker(false);
+                                  }}
+                                  className="text-2xl p-1 rounded hover:bg-accent transition-colors"
+                                >
+                                  {emoji}
+                                </motion.button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ),
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -489,11 +634,15 @@ const CreateDocumentForm: FC = () => {
                             }}
                             className="aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
                           >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img
+                              src={img}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
                           </motion.button>
                         ))}
                       </div>
-                      
+
                       <div className="space-y-2">
                         <label className="w-full flex items-center justify-center space-x-2 p-2 border border-dashed rounded-lg hover:bg-accent transition-colors cursor-pointer">
                           <Upload className="w-4 h-4" />
@@ -505,7 +654,7 @@ const CreateDocumentForm: FC = () => {
                             className="hidden"
                           />
                         </label>
-                        
+
                         {backgroundImage && (
                           <button
                             onClick={() => {
@@ -561,21 +710,21 @@ const CreateDocumentForm: FC = () => {
                   {/* Text Formatting */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
-                      onClick={() => formatText('bold')}
+                      onClick={() => formatText("bold")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Bold"
                     >
                       <Bold className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => formatText('italic')}
+                      onClick={() => formatText("italic")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Italic"
                     >
                       <Italic className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => formatText('underline')}
+                      onClick={() => formatText("underline")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Underline"
                     >
@@ -586,21 +735,21 @@ const CreateDocumentForm: FC = () => {
                   {/* Headings */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
-                      onClick={() => insertElement('h1')}
+                      onClick={() => insertElement("h1")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Heading 1"
                     >
                       <Heading1 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => insertElement('h2')}
+                      onClick={() => insertElement("h2")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Heading 2"
                     >
                       <Heading2 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => insertElement('h3')}
+                      onClick={() => insertElement("h3")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Heading 3"
                     >
@@ -611,28 +760,28 @@ const CreateDocumentForm: FC = () => {
                   {/* Lists and Blocks */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
-                      onClick={() => formatText('insertUnorderedList')}
+                      onClick={() => formatText("insertUnorderedList")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Bullet List"
                     >
                       <List className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => formatText('insertOrderedList')}
+                      onClick={() => formatText("insertOrderedList")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Numbered List"
                     >
                       <ListOrdered className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => insertElement('blockquote')}
+                      onClick={() => insertElement("blockquote")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Quote"
                     >
                       <Quote className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => insertElement('code')}
+                      onClick={() => insertElement("code")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Code"
                     >
@@ -643,21 +792,21 @@ const CreateDocumentForm: FC = () => {
                   {/* Alignment */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
-                      onClick={() => formatText('justifyLeft')}
+                      onClick={() => formatText("justifyLeft")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Align Left"
                     >
                       <AlignLeft className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => formatText('justifyCenter')}
+                      onClick={() => formatText("justifyCenter")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Align Center"
                     >
                       <AlignCenter className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => formatText('justifyRight')}
+                      onClick={() => formatText("justifyRight")}
                       className="p-2 rounded hover:bg-accent transition-colors"
                       title="Align Right"
                     >
@@ -674,7 +823,7 @@ const CreateDocumentForm: FC = () => {
                     >
                       <Palette className="w-4 h-4" />
                     </button>
-                    
+
                     <AnimatePresence>
                       {showColorPicker && (
                         <motion.div
@@ -689,7 +838,7 @@ const CreateDocumentForm: FC = () => {
                                 key={color}
                                 onClick={() => {
                                   setSelectedColor(color);
-                                  formatText('foreColor', color);
+                                  formatText("foreColor", color);
                                   setShowColorPicker(false);
                                 }}
                                 className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
@@ -713,16 +862,18 @@ const CreateDocumentForm: FC = () => {
               ref={editorRef}
               contentEditable
               className="min-h-[400px] outline-none text-foreground leading-relaxed prose prose-lg max-w-none"
-              style={{ fontSize: '16px', lineHeight: '1.6' }}
+              style={{ fontSize: "16px", lineHeight: "1.6" }}
               onInput={handleEditorChange}
               onPaste={(e) => {
                 e.preventDefault();
-                const text = e.clipboardData.getData('text/plain');
-                document.execCommand('insertText', false, text);
+                const text = e.clipboardData.getData("text/plain");
+                document.execCommand("insertText", false, text);
               }}
               suppressContentEditableWarning={true}
             >
-              <p className="text-muted-foreground">Start typing to create your document...</p>
+              <p className="text-muted-foreground">
+                Start typing to create your document...
+              </p>
             </div>
           </div>
         </motion.div>
@@ -734,7 +885,9 @@ const CreateDocumentForm: FC = () => {
           transition={{ delay: 0.4 }}
           className="mt-6"
         >
-          <h3 className={`text-lg font-semibold mb-4 ${backgroundImage ? 'text-white' : ''}`}>
+          <h3
+            className={`text-lg font-semibold mb-4 ${backgroundImage ? "text-white" : ""}`}
+          >
             Quick Templates
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

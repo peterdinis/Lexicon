@@ -36,9 +36,9 @@ import { Id } from "@/convex/_generated/dataModel";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useUser()
-  const { signOut } = useClerk()
-  
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -61,15 +61,18 @@ const DashboardSidebar: FC = () => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center justify-center ${collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
-          } text-sm transition-all duration-200 rounded-lg group relative ${isActive
+        className={`flex items-center justify-center ${
+          collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
+        } text-sm transition-all duration-200 rounded-lg group relative ${
+          isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-          } ${className}`}
+        } ${className}`}
       >
         <Icon
-          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
-            } flex-shrink-0 transition-all duration-200`}
+          className={`${
+            collapsed ? "w-5 h-5" : "w-4 h-4"
+          } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -112,15 +115,20 @@ const DashboardSidebar: FC = () => {
   }) => {
     const item = (
       <li
-        className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${collapsed ? "justify-center w-12 h-12 mx-auto" : "justify-start space-x-3 px-3 py-2"
-          } ${isActive
+        className={`flex items-center transition-all duration-200 rounded-lg cursor-pointer group ${
+          collapsed
+            ? "justify-center w-12 h-12 mx-auto"
+            : "justify-start space-x-3 px-3 py-2"
+        } ${
+          isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "hover:bg-accent/60 text-muted-foreground hover:text-foreground"
-          }`}
+        }`}
       >
         <FileText
-          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
-            } flex-shrink-0 transition-all duration-200`}
+          className={`${
+            collapsed ? "w-5 h-5" : "w-4 h-4"
+          } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -165,8 +173,12 @@ const DashboardSidebar: FC = () => {
                   <Search className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-lg font-semibold">Search Everything</DialogTitle>
-                  <DialogDescription>Find pages, workspaces, and content across your account</DialogDescription>
+                  <DialogTitle className="text-lg font-semibold">
+                    Search Everything
+                  </DialogTitle>
+                  <DialogDescription>
+                    Find pages, workspaces, and content across your account
+                  </DialogDescription>
                 </div>
               </div>
 
@@ -186,30 +198,50 @@ const DashboardSidebar: FC = () => {
             <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4 max-h-96">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Recent Searches</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Recent Searches
+                  </h3>
                   <div className="space-y-1">
-                    {["project notes", "meeting minutes", "team workspace"].map((search, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/60 cursor-pointer group"
-                      >
-                        <Search className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{search}</span>
-                      </motion.div>
-                    ))}
+                    {["project notes", "meeting minutes", "team workspace"].map(
+                      (search, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent/60 cursor-pointer group"
+                        >
+                          <Search className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                            {search}
+                          </span>
+                        </motion.div>
+                      ),
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Quick Actions</h3>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Quick Actions
+                  </h3>
                   <div className="space-y-1">
                     {[
-                      { icon: Plus, label: "Create new page", desc: "Start writing" },
-                      { icon: Folder, label: "Create workspace", desc: "Organize your work" },
-                      { icon: Settings, label: "Open settings", desc: "Manage preferences" }
+                      {
+                        icon: Plus,
+                        label: "Create new page",
+                        desc: "Start writing",
+                      },
+                      {
+                        icon: Folder,
+                        label: "Create workspace",
+                        desc: "Organize your work",
+                      },
+                      {
+                        icon: Settings,
+                        label: "Open settings",
+                        desc: "Manage preferences",
+                      },
                     ].map((action, i) => (
                       <motion.div
                         key={i}
@@ -222,8 +254,12 @@ const DashboardSidebar: FC = () => {
                           <action.icon className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm font-medium group-hover:text-foreground transition-colors">{action.label}</div>
-                          <div className="text-xs text-muted-foreground">{action.desc}</div>
+                          <div className="text-sm font-medium group-hover:text-foreground transition-colors">
+                            {action.label}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {action.desc}
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -247,8 +283,12 @@ const DashboardSidebar: FC = () => {
                     <Trash className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <DialogTitle className="text-lg font-semibold">Trash</DialogTitle>
-                    <DialogDescription>Items deleted in the last 30 days</DialogDescription>
+                    <DialogTitle className="text-lg font-semibold">
+                      Trash
+                    </DialogTitle>
+                    <DialogDescription>
+                      Items deleted in the last 30 days
+                    </DialogDescription>
                   </div>
                 </div>
                 <Button variant="outline" size="sm" className="text-xs">
@@ -261,11 +301,36 @@ const DashboardSidebar: FC = () => {
             <div className="flex-1 overflow-y-auto p-6 max-h-96">
               <div className="space-y-3">
                 {[
-                  { name: "Old Meeting Notes", type: "Page", deletedDate: "2 days ago", icon: FileText },
-                  { name: "Draft Project Plan", type: "Page", deletedDate: "5 days ago", icon: FileText },
-                  { name: "Archived Workspace", type: "Workspace", deletedDate: "1 week ago", icon: Folder },
-                  { name: "Brainstorming Session", type: "Page", deletedDate: "2 weeks ago", icon: FileText },
-                  { name: "Client Feedback", type: "Page", deletedDate: "3 weeks ago", icon: FileText }
+                  {
+                    name: "Old Meeting Notes",
+                    type: "Page",
+                    deletedDate: "2 days ago",
+                    icon: FileText,
+                  },
+                  {
+                    name: "Draft Project Plan",
+                    type: "Page",
+                    deletedDate: "5 days ago",
+                    icon: FileText,
+                  },
+                  {
+                    name: "Archived Workspace",
+                    type: "Workspace",
+                    deletedDate: "1 week ago",
+                    icon: Folder,
+                  },
+                  {
+                    name: "Brainstorming Session",
+                    type: "Page",
+                    deletedDate: "2 weeks ago",
+                    icon: FileText,
+                  },
+                  {
+                    name: "Client Feedback",
+                    type: "Page",
+                    deletedDate: "3 weeks ago",
+                    icon: FileText,
+                  },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
@@ -275,19 +340,35 @@ const DashboardSidebar: FC = () => {
                     className="flex items-center justify-between p-4 rounded-xl border border-border/60 hover:bg-accent/30 group transition-all duration-200"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-lg ${item.type === 'Workspace' ? 'bg-blue-500/10' : 'bg-gray-500/10'}`}>
-                        <item.icon className={`w-5 h-5 ${item.type === 'Workspace' ? 'text-blue-500' : 'text-gray-500'}`} />
+                      <div
+                        className={`p-2 rounded-lg ${item.type === "Workspace" ? "bg-blue-500/10" : "bg-gray-500/10"}`}
+                      >
+                        <item.icon
+                          className={`w-5 h-5 ${item.type === "Workspace" ? "text-blue-500" : "text-gray-500"}`}
+                        />
                       </div>
                       <div>
-                        <div className="font-medium text-foreground group-hover:text-primary transition-colors">{item.name}</div>
-                        <div className="text-sm text-muted-foreground">{item.type} • Deleted {item.deletedDate}</div>
+                        <div className="font-medium text-foreground group-hover:text-primary transition-colors">
+                          {item.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.type} • Deleted {item.deletedDate}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-8 px-3 text-xs">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs"
+                      >
                         Restore
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 px-3 text-xs text-red-500 hover:text-red-600">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-red-500 hover:text-red-600"
+                      >
                         Delete Forever
                       </Button>
                     </div>
@@ -317,7 +398,9 @@ const DashboardSidebar: FC = () => {
                     <Settings className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <DialogTitle className="text-lg font-semibold">Settings</DialogTitle>
+                    <DialogTitle className="text-lg font-semibold">
+                      Settings
+                    </DialogTitle>
                   </div>
                 </div>
               </div>
@@ -328,17 +411,18 @@ const DashboardSidebar: FC = () => {
                     { icon: User, label: "Account", active: true },
                     { icon: Settings, label: "Preferences" },
                     { icon: FileText, label: "Editor" },
-                    { icon: Folder, label: "Workspaces" }
+                    { icon: Folder, label: "Workspaces" },
                   ].map((item, i) => (
                     <motion.button
                       key={i}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${item.active
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                        }`}
+                      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                        item.active
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                      }`}
                     >
                       <item.icon className="w-4 h-4" />
                       <span className="text-sm font-medium">{item.label}</span>
@@ -357,14 +441,20 @@ const DashboardSidebar: FC = () => {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">Account Settings</h3>
-                    <p className="text-sm text-muted-foreground mb-6">Manage your account information and preferences</p>
+                    <h3 className="text-lg font-semibold mb-1">
+                      Account Settings
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Manage your account information and preferences
+                    </p>
                   </div>
 
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">First Name</label>
+                        <label className="text-sm font-medium text-foreground mb-2 block">
+                          First Name
+                        </label>
                         <input
                           type="text"
                           defaultValue={user?.firstName || "John"}
@@ -372,7 +462,9 @@ const DashboardSidebar: FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Last Name</label>
+                        <label className="text-sm font-medium text-foreground mb-2 block">
+                          Last Name
+                        </label>
                         <input
                           type="text"
                           defaultValue={user?.lastName || "Doe"}
@@ -382,14 +474,21 @@ const DashboardSidebar: FC = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Email Address</label>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        Email Address
+                      </label>
                       <input
                         type="email"
-                        defaultValue={user?.emailAddresses[0]?.emailAddress || "john.doe@example.com"}
+                        defaultValue={
+                          user?.emailAddresses[0]?.emailAddress ||
+                          "john.doe@example.com"
+                        }
                         className="w-full px-3 py-2 border rounded-lg bg-background/50 focus:bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
                         disabled
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Email cannot be changed
+                      </p>
                     </div>
 
                     <div className="border-t border-border/60 pt-6">
@@ -398,36 +497,51 @@ const DashboardSidebar: FC = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">Dark Mode</div>
-                            <div className="text-xs text-muted-foreground">Switch between light and dark themes</div>
+                            <div className="text-xs text-muted-foreground">
+                              Switch between light and dark themes
+                            </div>
                           </div>
-                          <Button variant="outline" size="sm">Toggle</Button>
+                          <Button variant="outline" size="sm">
+                            Toggle
+                          </Button>
                         </div>
 
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="font-medium text-sm">Email Notifications</div>
-                            <div className="text-xs text-muted-foreground">Receive updates via email</div>
+                            <div className="font-medium text-sm">
+                              Email Notifications
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Receive updates via email
+                            </div>
                           </div>
-                          <Button variant="outline" size="sm">Enabled</Button>
+                          <Button variant="outline" size="sm">
+                            Enabled
+                          </Button>
                         </div>
 
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">Auto Save</div>
-                            <div className="text-xs text-muted-foreground">Automatically save your work</div>
+                            <div className="text-xs text-muted-foreground">
+                              Automatically save your work
+                            </div>
                           </div>
-                          <Button variant="outline" size="sm">On</Button>
+                          <Button variant="outline" size="sm">
+                            On
+                          </Button>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border/60">
-                      <Button variant="outline" onClick={() => setSettingsOpen(false)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSettingsOpen(false)}
+                      >
                         Cancel
                       </Button>
-                      <Button>
-                        Save Changes
-                      </Button>
+                      <Button>Save Changes</Button>
                     </div>
                   </div>
                 </motion.div>
@@ -473,8 +587,9 @@ const DashboardSidebar: FC = () => {
         >
           {/* User section - FIXED ALIGNMENT */}
           <div
-            className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"
-              } text-sm font-semibold`}
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "space-x-3"
+            } text-sm font-semibold`}
           >
             {collapsed ? (
               <Tooltip>
@@ -514,7 +629,11 @@ const DashboardSidebar: FC = () => {
                     <div className="text-xs text-muted-foreground leading-tight">
                       {user?.emailAddresses[0]?.emailAddress}
                     </div>
-                    <Button variant={"link"} onClick={() => signOut()} className="p-0 h-auto justify-start font-normal text-xs">
+                    <Button
+                      variant={"link"}
+                      onClick={() => signOut()}
+                      className="p-0 h-auto justify-start font-normal text-xs"
+                    >
                       Logout
                     </Button>
                   </motion.div>
@@ -525,16 +644,29 @@ const DashboardSidebar: FC = () => {
 
           {/* Quick actions */}
           <div className="space-y-2">
-            <SidebarButton icon={Search} label="Search" onClick={() => setSearchOpen(true)} />
-            <SidebarButton icon={Plus} label="New Page" onClick={() => console.log("New page")} />
-            <SidebarButton icon={Trash} label="Trash" onClick={() => setTrashOpen(true)} />
+            <SidebarButton
+              icon={Search}
+              label="Search"
+              onClick={() => setSearchOpen(true)}
+            />
+            <SidebarButton
+              icon={Plus}
+              label="New Page"
+              onClick={() => console.log("New page")}
+            />
+            <SidebarButton
+              icon={Trash}
+              label="Trash"
+              onClick={() => setTrashOpen(true)}
+            />
           </div>
 
           {/* Workspaces section */}
           <div className="flex-1 space-y-3">
             <div
-              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
-                }`}
+              className={`flex items-center ${
+                collapsed ? "justify-center" : "justify-between"
+              }`}
             >
               <AnimatePresence>
                 {!collapsed && (
@@ -552,8 +684,9 @@ const DashboardSidebar: FC = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
-                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    className={`${
+                      collapsed ? "w-12 h-12" : "w-6 h-6"
+                    } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
                     onClick={() => setWorkspaceOpen(true)}
                   >
                     <PlusCircle className="w-4 h-4" />
@@ -567,13 +700,11 @@ const DashboardSidebar: FC = () => {
 
             <ul className="space-y-1">
               {workspaces?.map((workspace, i) => (
-                <div
-                  key={workspace._id}
-                >
+                <div key={workspace._id}>
                   <WorkspaceItem
                     name={workspace.name}
                     index={i}
-                    id={workspace._id as unknown as Id<"documents">}
+                    id={workspace._id as unknown as Id<"workspaces">}
                   />
                 </div>
               ))}
@@ -592,8 +723,9 @@ const DashboardSidebar: FC = () => {
           {/* Pages section */}
           <div className="space-y-3 border-t border-border/60 pt-4">
             <div
-              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
-                }`}
+              className={`flex items-center ${
+                collapsed ? "justify-center" : "justify-between"
+              }`}
             >
               <AnimatePresence>
                 {!collapsed && (
@@ -611,8 +743,9 @@ const DashboardSidebar: FC = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
-                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    className={`${
+                      collapsed ? "w-12 h-12" : "w-6 h-6"
+                    } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
                     onClick={() => console.log("New page")}
                   >
                     <Plus className="w-4 h-4" />
@@ -625,15 +758,21 @@ const DashboardSidebar: FC = () => {
             </div>
 
             <ul className="space-y-1">
-              {["Getting Started", "Project Notes", "Meeting Minutes"].map((page, i) => (
-                <PageItem key={i} name={page} index={i} isActive={i === 1} />
-              ))}
+              {["Getting Started", "Project Notes", "Meeting Minutes"].map(
+                (page, i) => (
+                  <PageItem key={i} name={page} index={i} isActive={i === 1} />
+                ),
+              )}
             </ul>
           </div>
 
           {/* Footer actions */}
           <div className="mt-auto pt-4 border-t border-border/60">
-            <SidebarButton icon={Settings} label="Settings" onClick={() => setSettingsOpen(true)} />
+            <SidebarButton
+              icon={Settings}
+              label="Settings"
+              onClick={() => setSettingsOpen(true)}
+            />
           </div>
         </div>
       </motion.aside>
