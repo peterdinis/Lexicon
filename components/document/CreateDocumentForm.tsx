@@ -30,7 +30,9 @@ import { useMutation } from "convex/react";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@/convex/_generated/api";
 import { documentTemplates } from "../templates/documentTemplates";
-import { colors } from "./colors";
+import { EmojiPicker } from "./EmojiPicker";
+import { backgroundImages } from "./background-images";
+import { useRouter } from "next/navigation";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -40,133 +42,12 @@ const CreateDocumentForm: FC = () => {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [showToolbar, setShowToolbar] = useState(true);
-  const [, setSelectedColor] = useState("#000000");
+  const [selectedColor, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const router = useRouter()
   const { user } = useUser();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
-
-  // Custom emoji categories
-  const emojiCategories = {
-    Smileys: [
-      "😀",
-      "😃",
-      "😄",
-      "😁",
-      "😅",
-      "😂",
-      "🤣",
-      "😊",
-      "😇",
-      "🙂",
-      "🙃",
-      "😉",
-      "😌",
-      "😍",
-      "🥰",
-      "😘",
-    ],
-    Objects: [
-      "📝",
-      "📖",
-      "📊",
-      "📈",
-      "💡",
-      "🎯",
-      "🚀",
-      "⭐",
-      "💼",
-      "🔥",
-      "🎨",
-      "📷",
-      "🎵",
-      "🎮",
-      "💻",
-      "📱",
-    ],
-    Nature: [
-      "🌟",
-      "🌈",
-      "🦄",
-      "🌸",
-      "🌺",
-      "🌻",
-      "🌷",
-      "🌹",
-      "🍀",
-      "🌿",
-      "🌱",
-      "🌳",
-      "🌲",
-      "🏔️",
-      "⛰️",
-      "🌊",
-    ],
-    Food: [
-      "☕",
-      "🍎",
-      "🍌",
-      "🍓",
-      "🍇",
-      "🍑",
-      "🥝",
-      "🍅",
-      "🥕",
-      "🌽",
-      "🥒",
-      "🍞",
-      "🧀",
-      "🍕",
-      "🍔",
-      "🍟",
-    ],
-    Activities: [
-      "⚽",
-      "🏀",
-      "🏈",
-      "⚾",
-      "🎾",
-      "🏐",
-      "🏉",
-      "🎱",
-      "🎪",
-      "🎭",
-      "🎨",
-      "🎬",
-      "🎤",
-      "🎧",
-      "🎼",
-      "🎹",
-    ],
-    Symbols: [
-      "❤️",
-      "💙",
-      "💚",
-      "💛",
-      "🧡",
-      "💜",
-      "🖤",
-      "🤍",
-      "🤎",
-      "💔",
-      "❣️",
-      "💕",
-      "💞",
-      "💓",
-      "💗",
-      "💖",
-    ],
-  };
-
-  // Mock background images
-  const backgroundImages = [
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80",
-    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
-    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&q=80",
-    "https://images.unsplash.com/photo-1497436072909-f5e92c2b7b20?w=800&q=80",
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-  ];
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -218,8 +99,7 @@ const CreateDocumentForm: FC = () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      // Fallback navigation - you can replace with your router
-      window.location.href = "/dashboard";
+      router.push("/dashboard")
     }
   };
 
@@ -334,7 +214,7 @@ const CreateDocumentForm: FC = () => {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Dashboard</span>
               </motion.button>
-              <h1 className="text-2xl font-bold">Create New Document</h1>
+              <h1 className="text-2xl font-bold">Create New Page</h1>
             </div>
             <div className="flex items-center space-x-2">
               <button
@@ -354,7 +234,16 @@ const CreateDocumentForm: FC = () => {
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
-                <span>Save Document</span>
+                <span>Save Page</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSaveDocument}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Publish page</span>
               </motion.button>
             </div>
           </div>
@@ -374,42 +263,12 @@ const CreateDocumentForm: FC = () => {
                   {selectedEmoji}
                 </motion.button>
 
-                <AnimatePresence>
-                  {showEmojiPicker && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 w-80 max-h-96 overflow-y-auto"
-                    >
-                      {Object.entries(emojiCategories).map(
-                        ([category, emojis]) => (
-                          <div key={category} className="mb-4">
-                            <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-                              {category}
-                            </h4>
-                            <div className="grid grid-cols-8 gap-2">
-                              {emojis.map((emoji, index) => (
-                                <motion.button
-                                  key={`${category}-${index}`}
-                                  whileHover={{ scale: 1.2 }}
-                                  whileTap={{ scale: 0.9 }}
-                                  onClick={() => {
-                                    setSelectedEmoji(emoji);
-                                    setShowEmojiPicker(false);
-                                  }}
-                                  className="text-2xl p-1 rounded hover:bg-accent transition-colors"
-                                >
-                                  {emoji}
-                                </motion.button>
-                              ))}
-                            </div>
-                          </div>
-                        ),
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <EmojiPicker
+                  selectedEmoji={selectedEmoji}
+                  onSelect={(emoji) => setSelectedEmoji(emoji)}
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
               </div>
 
               {/* Background Image Picker */}
@@ -492,7 +351,7 @@ const CreateDocumentForm: FC = () => {
               type="text"
               value={documentTitle}
               onChange={(e) => setDocumentTitle(e.target.value)}
-              placeholder="Untitled Document"
+              placeholder="Untitled Page"
               className="w-full text-3xl font-bold bg-transparent border-none outline-none placeholder-muted-foreground"
             />
           </div>
@@ -642,20 +501,19 @@ const CreateDocumentForm: FC = () => {
                           exit={{ opacity: 0, scale: 0.9, y: 10 }}
                           className="absolute top-full left-0 mt-2 p-3 bg-popover border rounded-lg shadow-lg z-30"
                         >
-                          <div className="grid grid-cols-6 gap-2">
-                            {colors.map((color) => (
-                              <button
-                                key={color}
-                                onClick={() => {
-                                  setSelectedColor(color);
-                                  formatText("foreColor", color);
-                                  setShowColorPicker(false);
-                                }}
-                                className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
-                                style={{ backgroundColor: color }}
-                                title={color}
-                              />
-                            ))}
+                          <div className="relative">
+                            <input
+                              type="color"
+                              value={selectedColor}
+                              onChange={(e) => {
+                                const color = e.target.value;
+                                setSelectedColor(color);
+                                formatText("foreColor", color);
+                                setShowColorPicker(false);
+                              }}
+                              className="w-10 h-10 p-0 border-none cursor-pointer rounded"
+                              title="Select text color"
+                            />
                           </div>
                         </motion.div>
                       )}
