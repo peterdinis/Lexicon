@@ -11,7 +11,6 @@ import {
   User,
   FileText,
   Plus,
-  Folder,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,11 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
 import WorkspaceItem from "../workspaces/WorkspaceItem";
@@ -35,6 +29,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import SearchDialog from "../search/SearchDialog";
 import TrashDialog from "../trash/TrashDialog";
 import SettingsDialog from "../settings/SettingsDialog";
+import PagesItem from "../pages/PagesItem";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -46,6 +41,7 @@ const DashboardSidebar: FC = () => {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const workspaces = useQuery(api.workspaces.list);
+  const pages = useQuery(api.pages.listByUser, {userId: user?.id!})
 
   const SidebarButton = ({
     icon: Icon,
@@ -270,11 +266,6 @@ const DashboardSidebar: FC = () => {
               onClick={() => setSearchOpen(true)}
             />
             <SidebarButton
-              icon={Plus}
-              label="New Page"
-              onClick={() => console.log("New page")}
-            />
-            <SidebarButton
               icon={Trash}
               label="Trash"
               onClick={() => setTrashOpen(true)}
@@ -339,7 +330,7 @@ const DashboardSidebar: FC = () => {
           </div>
 
           {/* Pages section */}
-          <div className="space-y-3 border-t border-border/60 pt-4">
+          <div className="flex-1 space-y-3">
             <div
               className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
                 }`}
@@ -353,7 +344,7 @@ const DashboardSidebar: FC = () => {
                     transition={{ duration: 0.15 }}
                     className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                   >
-                    Recent Pages
+                    Pages
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -362,26 +353,38 @@ const DashboardSidebar: FC = () => {
                   <button
                     className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
                       } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
-                    onClick={() => console.log("New page")}
+                    onClick={() => setWorkspaceOpen(true)}
                   >
-                    <Plus className="w-4 h-4" />
+                    <PlusCircle className="w-4 h-4" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="ml-2">
-                  <p>New page</p>
+                  <p>New Page</p>
                 </TooltipContent>
               </Tooltip>
             </div>
 
             <ul className="space-y-1">
-              {["Getting Started", "Project Notes", "Meeting Minutes"].map(
-                (page, i) => (
-                  <PageItem key={i} name={page} index={i} isActive={i === 1} />
-                ),
+              {pages?.map((page, i) => (
+                <div key={page._id}>
+                  <PagesItem
+                    name={page.title}
+                    index={i}
+                    id={page._id as unknown as Id<"pages">}
+                  />
+                </div>
+              ))}
+
+              {!workspaces && (
+                <p className="text-xs text-muted-foreground px-4">Loading...</p>
+              )}
+              {workspaces?.length === 0 && (
+                <p className="text-xs text-muted-foreground px-4">
+                  No workspaces yet
+                </p>
               )}
             </ul>
           </div>
-
           {/* Footer actions */}
           <div className="mt-auto pt-4 border-t border-border/60">
             <SidebarButton
