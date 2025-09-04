@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, useState, useRef } from "react";
+import { FC, useState, useRef, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Image,
@@ -32,6 +32,9 @@ import {
   Heading2,
   Heading3
 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { useUser } from "@clerk/clerk-react";
+import { api } from "@/convex/_generated/api";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -41,9 +44,10 @@ const CreateDocumentForm: FC = () => {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [showToolbar, setShowToolbar] = useState(true);
-  const [selectedColor, setSelectedColor] = useState("#000000");
+  const [, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
-  
+  const { user } = useUser();
+  const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
   
   // Custom emoji categories
@@ -232,7 +236,7 @@ const CreateDocumentForm: FC = () => {
     }
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -253,21 +257,32 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
-  const handleSaveDocument = () => {
-    const documentData = {
-      title: documentTitle || "Untitled Document",
-      emoji: selectedEmoji,
-      backgroundImage,
-      content: editorContent,
-      createdAt: new Date().toISOString()
-    };
-    
-    console.log('Saving document:', documentData);
-    alert('Document saved successfully!');
+  const handleSaveDocument = async () => {
+    if (!user) {
+      alert("You must be signed in to save a document!");
+      return;
+    }
+
+    try {
+      await createPage({
+        title: documentTitle || "Untitled Document",
+        userId: user.id,
+        isArchived: false,
+        parentPage: undefined,
+        content: editorContent,
+        coverImage: backgroundImage || undefined,
+        icon: selectedEmoji,
+        isPublished: false,
+        workspaceId: undefined,
+      });
+      alert("Document saved successfully!");
+    } catch (err) {
+      console.error("Error saving document:", err);
+      alert("Failed to save document!");
+    }
   };
 
   const handleBackToDashboard = () => {
-    console.log('Navigating back to dashboard');
     if (window.history.length > 1) {
       window.history.back();
     } else {

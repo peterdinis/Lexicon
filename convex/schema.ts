@@ -6,7 +6,7 @@ export default defineSchema({
     title: v.string(),
     userId: v.string(),
     isArchived: v.boolean(),
-    parentPage: v.optional(v.id("documents")),
+    parentPage: v.optional(v.id("pages")),
     content: v.optional(v.string()),
     coverImage: v.optional(v.string()),
     icon: v.optional(v.string()),
