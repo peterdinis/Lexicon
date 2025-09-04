@@ -385,51 +385,6 @@ const DashboardSidebar: FC = () => {
               )}
             </ul>
           </div>
-
-          {/* Pages section */}
-          <div className="space-y-3 border-t border-border/60 pt-4">
-            <div
-              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
-                }`}
-            >
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
-                  >
-                    Recent Pages
-                  </motion.span>
-                )}
-              </AnimatePresence>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
-                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
-                    onClick={() => console.log("New page")}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="ml-2">
-                  <p>New page</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            <ul className="space-y-1">
-              {["Getting Started", "Project Notes", "Meeting Minutes"].map(
-                (page, i) => (
-                  <PageItem key={i} name={page} index={i} isActive={i === 1} />
-                ),
-              )}
-            </ul>
-          </div>
-
           {/* Footer actions */}
           <div className="mt-auto pt-4 border-t border-border/60">
             <SidebarButton
