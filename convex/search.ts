@@ -9,7 +9,7 @@ export const searchAll = query(
     }: {
       userId: string;
       searchText?: string;
-    }
+    },
   ) => {
     const pages = await db
       .query("pages")
@@ -18,10 +18,10 @@ export const searchAll = query(
 
     const filteredPages = searchText
       ? pages.filter((p) =>
-          p.title.toLowerCase().includes(searchText.toLowerCase())
+          p.title.toLowerCase().includes(searchText.toLowerCase()),
         )
       : pages;
-      
+
     const workspaces = await db
       .query("workspaces")
       .filter((q) => q.eq(q.field("userId"), userId))
@@ -29,7 +29,7 @@ export const searchAll = query(
 
     const filteredWorkspaces = searchText
       ? workspaces.filter((w) =>
-          w.name.toLowerCase().includes(searchText.toLowerCase())
+          w.name.toLowerCase().includes(searchText.toLowerCase()),
         )
       : workspaces;
 
@@ -37,5 +37,5 @@ export const searchAll = query(
       pages: filteredPages,
       workspaces: filteredWorkspaces,
     };
-  }
+  },
 );

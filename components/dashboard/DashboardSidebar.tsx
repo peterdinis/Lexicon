@@ -10,10 +10,9 @@ import {
   Trash,
   User,
   FileText,
-  Plus,
   Folder,
   Loader2,
-  AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,7 +32,7 @@ import SearchDialog from "../search/SearchDialog";
 import TrashDialog from "../trash/TrashDialog";
 import SettingsDialog from "../settings/SettingsDialog";
 import PagesItem from "../pages/PagesItem";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -44,9 +43,9 @@ const DashboardSidebar: FC = () => {
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  
+  const router = useRouter()
   const workspaces = useQuery(api.workspaces.list);
-  const pages = useQuery(api.pages.listByUser, {userId: user?.id!});
+  const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
 
   const SidebarButton = ({
     icon: Icon,
@@ -64,15 +63,18 @@ const DashboardSidebar: FC = () => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center justify-center ${collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
-          } text-sm transition-all duration-200 rounded-lg group relative ${isActive
+        className={`flex items-center justify-center ${
+          collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
+        } text-sm transition-all duration-200 rounded-lg group relative ${
+          isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-          } ${className}`}
+        } ${className}`}
       >
         <Icon
-          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
-            } flex-shrink-0 transition-all duration-200`}
+          className={`${
+            collapsed ? "w-5 h-5" : "w-4 h-4"
+          } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -106,7 +108,9 @@ const DashboardSidebar: FC = () => {
 
   // Enhanced loading state component
   const LoadingState = ({ message }: { message: string }) => (
-    <div className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}>
+    <div
+      className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}
+    >
       <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
       <AnimatePresence>
         {!collapsed && (
@@ -124,8 +128,16 @@ const DashboardSidebar: FC = () => {
   );
 
   // Enhanced empty state component
-  const EmptyState = ({ message, icon: Icon }: { message: string; icon: any }) => (
-    <div className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}>
+  const EmptyState = ({
+    message,
+    icon: Icon,
+  }: {
+    message: string;
+    icon: any;
+  }) => (
+    <div
+      className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}
+    >
       <Icon className="w-4 h-4 text-muted-foreground/60" />
       <AnimatePresence>
         {!collapsed && (
@@ -142,40 +154,23 @@ const DashboardSidebar: FC = () => {
     </div>
   );
 
-  // Error state component
-  const ErrorState = ({ message }: { message: string }) => (
-    <div className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}>
-      <AlertCircle className="w-4 h-4 text-destructive/60" />
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-xs text-destructive/80"
-          >
-            {message}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-
   // Enhanced section header component
-  const SectionHeader = ({ 
-    title, 
-    onAdd, 
-    addTooltip, 
+  const SectionHeader = ({
+    title,
+    onAdd,
+    addTooltip,
     icon: Icon,
-    count 
-  }: { 
-    title: string; 
-    onAdd?: () => void; 
-    addTooltip: string; 
+    count,
+  }: {
+    title: string;
+    onAdd?: () => void;
+    addTooltip: string;
     icon: any;
     count?: number;
   }) => (
-    <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
+    <div
+      className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}
+    >
       <AnimatePresence>
         {!collapsed && (
           <motion.div
@@ -200,8 +195,9 @@ const DashboardSidebar: FC = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
-              } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105`}
+            className={`${
+              collapsed ? "w-12 h-12" : "w-6 h-6"
+            } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105`}
             onClick={onAdd}
           >
             <PlusCircle className="w-4 h-4" />
@@ -223,7 +219,10 @@ const DashboardSidebar: FC = () => {
         workspaceOpen={workspaceOpen}
         setWorkspaceOpen={setWorkspaceOpen}
       />
-      <SettingsDialog settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+      <SettingsDialog
+        settingsOpen={settingsOpen}
+        setSettingsOpen={setSettingsOpen}
+      />
 
       {/* ---- Sidebar ---- */}
       <motion.aside
@@ -261,8 +260,9 @@ const DashboardSidebar: FC = () => {
         >
           {/* User section */}
           <div
-            className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"
-              } text-sm font-semibold`}
+            className={`flex items-center ${
+              collapsed ? "justify-center" : "space-x-3"
+            } text-sm font-semibold`}
           >
             {collapsed ? (
               <Tooltip>
@@ -326,6 +326,14 @@ const DashboardSidebar: FC = () => {
               label="Trash"
               onClick={() => setTrashOpen(true)}
             />
+
+            <SidebarButton
+              icon={ArrowLeft}
+              label="Go to Dashboard"
+              onClick={() => {
+                router.push("/dashboard")
+              }}
+            />
           </div>
 
           {/* Workspaces section */}
@@ -344,7 +352,7 @@ const DashboardSidebar: FC = () => {
               ) : workspaces.length === 0 ? (
                 <EmptyState message="No workspaces yet" icon={Folder} />
               ) : (
-                <motion.ul 
+                <motion.ul
                   className="space-y-1"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -352,7 +360,7 @@ const DashboardSidebar: FC = () => {
                 >
                   <AnimatePresence>
                     {workspaces.map((workspace, i) => (
-                      <motion.div 
+                      <motion.div
                         key={workspace._id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -377,7 +385,9 @@ const DashboardSidebar: FC = () => {
             <SectionHeader
               title="Pages"
               icon={FileText}
-              onAdd={() => {/* Link handles navigation */}}
+              onAdd={() => {
+                /* Link handles navigation */
+              }}
               addTooltip="New Page"
               count={pages?.length}
             />
@@ -388,7 +398,7 @@ const DashboardSidebar: FC = () => {
               ) : pages.length === 0 ? (
                 <EmptyState message="No pages yet" icon={FileText} />
               ) : (
-                <motion.ul 
+                <motion.ul
                   className="space-y-1"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -396,7 +406,7 @@ const DashboardSidebar: FC = () => {
                 >
                   <AnimatePresence>
                     {pages.map((page, i) => (
-                      <motion.div 
+                      <motion.div
                         key={page._id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}

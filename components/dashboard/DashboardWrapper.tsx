@@ -39,8 +39,8 @@ const DashboardWrapper: FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          Organize your thoughts, capture ideas, and create beautiful notes with ease.  
-          Your second brain starts here.
+          Organize your thoughts, capture ideas, and create beautiful notes with
+          ease. Your second brain starts here.
         </motion.p>
 
         {/* Quick Actions */}
@@ -50,28 +50,43 @@ const DashboardWrapper: FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
         >
-          <Button asChild className="rounded-xl py-3 text-base shadow-md flex items-center justify-center gap-2">
+          <Button
+            asChild
+            className="rounded-xl py-3 text-base shadow-md flex items-center justify-center gap-2"
+          >
             <Link href="/pages/new">
               <PlusCircle className="w-5 h-5" />
               New Page
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="rounded-xl py-3 text-base flex items-center justify-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl py-3 text-base flex items-center justify-center gap-2"
+          >
             <Link href="/workspaces/new">
               <FolderPlus className="w-5 h-5" />
               New Workspace
             </Link>
           </Button>
 
-          <Button asChild variant="secondary" className="rounded-xl py-3 text-base flex items-center justify-center gap-2">
+          <Button
+            asChild
+            variant="secondary"
+            className="rounded-xl py-3 text-base flex items-center justify-center gap-2"
+          >
             <Link href="/search">
               <Search className="w-5 h-5" />
               Search
             </Link>
           </Button>
 
-          <Button asChild variant="ghost" className="rounded-xl py-3 text-base flex items-center justify-center gap-2">
+          <Button
+            asChild
+            variant="ghost"
+            className="rounded-xl py-3 text-base flex items-center justify-center gap-2"
+          >
             <Link href="/templates">
               <BookOpen className="w-5 h-5" />
               Templates

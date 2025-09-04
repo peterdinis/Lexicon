@@ -72,7 +72,6 @@ export const getById = query({
   },
 });
 
-
 export const listPagesByWorkspace = query({
   args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, args) => {
@@ -83,11 +82,11 @@ export const listPagesByWorkspace = query({
 
     const workspace = await ctx.db.get(args.workspaceId);
     if (!workspace) throw new Error("Workspace not found");
-    
+
     if (workspace.userId !== userId) {
       throw new Error("Not authorized to access this workspace");
     }
-    
+
     return await ctx.db
       .query("pages")
       .withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
