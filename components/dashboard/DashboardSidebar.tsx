@@ -270,11 +270,6 @@ const DashboardSidebar: FC = () => {
               onClick={() => setSearchOpen(true)}
             />
             <SidebarButton
-              icon={Plus}
-              label="New Page"
-              onClick={() => console.log("New page")}
-            />
-            <SidebarButton
               icon={Trash}
               label="Trash"
               onClick={() => setTrashOpen(true)}
@@ -282,6 +277,62 @@ const DashboardSidebar: FC = () => {
           </div>
 
           {/* Workspaces section */}
+          <div className="flex-1 space-y-3">
+            <div
+              className={`flex items-center ${collapsed ? "justify-center" : "justify-between"
+                }`}
+            >
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Workspaces
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
+                      } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200`}
+                    onClick={() => setWorkspaceOpen(true)}
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="ml-2">
+                  <p>Add workspace</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <ul className="space-y-1">
+              {workspaces?.map((workspace, i) => (
+                <div key={workspace._id}>
+                  <WorkspaceItem
+                    name={workspace.name}
+                    index={i}
+                    id={workspace._id as unknown as Id<"workspaces">}
+                  />
+                </div>
+              ))}
+
+              {!workspaces && (
+                <p className="text-xs text-muted-foreground px-4">Loading...</p>
+              )}
+              {workspaces?.length === 0 && (
+                <p className="text-xs text-muted-foreground px-4">
+                  No workspaces yet
+                </p>
+              )}
+            </ul>
+          </div>
+
           <div className="flex-1 space-y-3">
             <div
               className={`flex items-center ${collapsed ? "justify-center" : "justify-between"

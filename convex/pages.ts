@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const createPage = mutation({
@@ -27,5 +27,17 @@ export const createPage = mutation({
     });
 
     return pageId;
+  },
+});
+
+export const listByUser = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const pages = await ctx.db
+      .query("pages")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
+
+    return pages;
   },
 });
