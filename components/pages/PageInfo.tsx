@@ -12,6 +12,7 @@ import {
   Upload,
   X,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -36,6 +37,7 @@ const PageDetailForm: FC = () => {
   const page = useQuery(api.pages.getPageById, { id: pageId });
   const updatePage = useMutation(api.pages.updatePage);
   const movePage = useMutation(api.workspaces.movePageToWorkspace);
+  const moveToTrash = useMutation(api.pages.moveToTrash);
 
   const workspaces = useQuery(api.workspaces.list);
 
@@ -106,6 +108,13 @@ const PageDetailForm: FC = () => {
     alert("Page moved to new workspace!");
   };
 
+  const handleMoveToTrash = async () => {
+    if (!confirm("Are you sure you want to move this page to trash?")) return;
+    await moveToTrash({ id: pageId });
+    alert("Page moved to trash!");
+    router.push("/dashboard");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -169,6 +178,17 @@ const PageDetailForm: FC = () => {
                 <Eye className="w-5 h-5" />
               )}
             </button>
+
+            {/* Trash Button */}
+            <Button
+              onClick={handleMoveToTrash}
+              variant="destructive"
+              className="flex items-center space-x-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Move to Trash</span>
+            </Button>
+
             <Button
               onClick={handleSave}
               className="flex items-center space-x-2"

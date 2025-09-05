@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as pages from "../pages.js";
 import type * as search from "../search.js";
+import type * as trash from "../trash.js";
 import type * as workspaces from "../workspaces.js";
 
 /**
@@ -28,6 +29,7 @@ import type * as workspaces from "../workspaces.js";
 declare const fullApi: ApiFromModules<{
   pages: typeof pages;
   search: typeof search;
+  trash: typeof trash;
   workspaces: typeof workspaces;
 }>;
 export declare const api: FilterApi<

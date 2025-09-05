@@ -94,3 +94,29 @@ export const updatePage = mutation({
     return await ctx.db.get(args.id);
   },
 });
+
+export const moveToTrash = mutation({
+  args: { id: v.id("pages") },
+  handler: async (ctx, { id }) => {
+    const page = await ctx.db.get(id);
+    if (!page) throw new Error("Page not found");
+
+    await ctx.db.patch(id, { isDeleted: true, isRestored: false });
+    return { success: true, message: "Page moved to trash" };
+  },
+});
+
+export const restorePage = mutation({
+  args: { id: v.id("pages") },
+  handler: async (ctx, { id }) => {
+    const page = await ctx.db.get(id);
+    if (!page) throw new Error("Page not found");
+
+    if (!page.isDeleted) {
+      throw new Error("Page is not in trash");
+    }
+
+    await ctx.db.patch(id, { isDeleted: false, isRestored: true });
+    return { success: true, message: "Page restored" };
+  },
+});
