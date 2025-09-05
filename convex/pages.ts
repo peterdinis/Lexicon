@@ -120,32 +120,3 @@ export const restorePage = mutation({
     return { success: true, message: "Page restored" };
   },
 });
-
-export const bulkDeleteTrashed = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const trashedPages = await ctx.db
-      .query("pages")
-      .filter((q) => q.eq(q.field("isDeleted"), true))
-      .collect();
-
-    for (const page of trashedPages) {
-      await ctx.db.delete(page._id);
-    }
-
-    return { success: true, count: trashedPages.length };
-  },
-});
-
-export const listTrashed = query({
-  args: { userId: v.string() },
-  handler: async (ctx, { userId }) => {
-    const trashedPages = await ctx.db
-      .query("pages")
-      .filter((q) => q.eq(q.field("userId"), userId))
-      .filter((q) => q.eq(q.field("isDeleted"), true))
-      .collect();
-
-    return trashedPages;
-  },
-});

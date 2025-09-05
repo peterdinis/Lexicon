@@ -23,5 +23,7 @@ export default defineSchema({
     name: v.string(),
     userId: v.string(),
     description: v.optional(v.string()),
+    isDeleted: v.optional(v.boolean()), 
+    isRestored: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
 });
