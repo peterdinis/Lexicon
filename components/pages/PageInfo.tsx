@@ -39,6 +39,7 @@ const PageDetailForm: FC = () => {
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (page) {
@@ -73,7 +74,14 @@ const PageDetailForm: FC = () => {
       isPublished: newPublishState,
     });
     setIsPublished(newPublishState);
-    alert(newPublishState ? "Page published successfully!" : "Page unpublished successfully!");
+
+    if (newPublishState) {
+      // Zobrazíme URL publikovanej stránky
+      setPublishedUrl(`${window.location.origin}/pages/published/${pageId}`);
+    } else {
+      setPublishedUrl(null);
+      alert("Page unpublished successfully!");
+    }
   };
 
   const handleBack = () => {
@@ -225,7 +233,7 @@ const PageDetailForm: FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto mt-4"
+            className="max-w-4xl mx-auto mt-4 flex flex-col gap-2"
           >
             <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg">
               <Globe className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -233,6 +241,16 @@ const PageDetailForm: FC = () => {
                 This page is published and publicly accessible
               </span>
             </div>
+            {publishedUrl && (
+              <a
+                href={publishedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 underline text-sm"
+              >
+                Visit Published Page
+              </a>
+            )}
           </motion.div>
         )}
       </div>
