@@ -1,21 +1,5 @@
-"use client";
+"use client"
 
-import { FC, useEffect, useRef, useState, ChangeEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Save,
-  ArrowLeft,
-  Eye,
-  EyeOff,
-  Image,
-  ChevronDown,
-  Upload,
-  X,
-  Loader2,
-  Trash2,
-} from "lucide-react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +12,11 @@ import {
 import { EmojiPicker } from "../document/EmojiPicker";
 import { backgroundImages } from "../document/background-images";
 import { Id } from "@/convex/_generated/dataModel";
+import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { ArrowLeft, ChevronDown, Eye, EyeOff, Globe, Image, Loader2, Lock, Save, Trash2, Upload, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const PageDetailForm: FC = () => {
   const router = useRouter();
@@ -38,6 +27,7 @@ const PageDetailForm: FC = () => {
   const updatePage = useMutation(api.pages.updatePage);
   const movePage = useMutation(api.workspaces.movePageToWorkspace);
   const moveToTrash = useMutation(api.pages.moveToTrash);
+  const publishPage = useMutation(api.pages.publishPage);
 
   const workspaces = useQuery(api.workspaces.list);
 
@@ -48,6 +38,7 @@ const PageDetailForm: FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
     if (page) {
@@ -55,6 +46,7 @@ const PageDetailForm: FC = () => {
       setSelectedEmoji(page.icon || "📄");
       setBackgroundImage(page.coverImage || "");
       setEditorContent(page.content || "");
+      setIsPublished(page.isPublished || false);
       if (editorRef.current) {
         editorRef.current.innerHTML = page.content || "";
       }
@@ -72,6 +64,16 @@ const PageDetailForm: FC = () => {
       icon: selectedEmoji,
     });
     alert("Page updated successfully!");
+  };
+
+  const handlePublishToggle = async () => {
+    const newPublishState = !isPublished;
+    await publishPage({
+      id: pageId,
+      isPublished: newPublishState,
+    });
+    setIsPublished(newPublishState);
+    alert(newPublishState ? "Page published successfully!" : "Page unpublished successfully!");
   };
 
   const handleBack = () => {
@@ -179,6 +181,25 @@ const PageDetailForm: FC = () => {
               )}
             </button>
 
+            {/* Publish/Unpublish Button */}
+            <Button
+              onClick={handlePublishToggle}
+              variant={isPublished ? "secondary" : "default"}
+              className="flex items-center space-x-2"
+            >
+              {isPublished ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Unpublish</span>
+                </>
+              ) : (
+                <>
+                  <Globe className="w-4 h-4" />
+                  <span>Publish</span>
+                </>
+              )}
+            </Button>
+
             {/* Trash Button */}
             <Button
               onClick={handleMoveToTrash}
@@ -198,13 +219,29 @@ const PageDetailForm: FC = () => {
             </Button>
           </div>
         </div>
+        
+        {/* Publication Status Indicator */}
+        {isPublished && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto mt-4"
+          >
+            <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg">
+              <Globe className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className="text-green-700 dark:text-green-300 text-sm font-medium">
+                This page is published and publicly accessible
+              </span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Document Header */}
       <div className="max-w-4xl mx-auto relative z-10 p-6 bg-background/95 border rounded-xl mb-6">
         <div className="flex items-center space-x-4 mb-6">
           {/* Emoji Picker */}
-          <div className="relative">
+          <div className="relative z-50">
             <motion.button
               whileHover={{ scale: 1.1 }}
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -212,16 +249,18 @@ const PageDetailForm: FC = () => {
             >
               {selectedEmoji}
             </motion.button>
-            <EmojiPicker
-              selectedEmoji={selectedEmoji}
-              onSelect={(emoji) => setSelectedEmoji(emoji)}
-              isOpen={showEmojiPicker}
-              onClose={() => setShowEmojiPicker(false)}
-            />
+            <div className="relative z-[100]">
+              <EmojiPicker
+                selectedEmoji={selectedEmoji}
+                onSelect={(emoji) => setSelectedEmoji(emoji)}
+                isOpen={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+              />
+            </div>
           </div>
 
           {/* Background Picker */}
-          <div className="relative">
+          <div className="relative z-50">
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => setShowBackgroundPicker(!showBackgroundPicker)}
@@ -237,7 +276,7 @@ const PageDetailForm: FC = () => {
                   initial={{ opacity: 0, scale: 0.9, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-20 min-w-[300px]"
+                  className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-[100] min-w-[300px]"
                 >
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     {backgroundImages.map((img, idx) => (
@@ -305,7 +344,13 @@ const PageDetailForm: FC = () => {
           <div
             ref={editorRef}
             contentEditable
-            className="min-h-[400px] outline-none text-foreground leading-relaxed prose prose-lg max-w-none"
+            className="min-h-[400px] outline-none leading-relaxed max-w-none bg-transparent text-foreground"
+            style={{ 
+              fontSize: "16px", 
+              lineHeight: "1.6",
+              color: "inherit",
+              backgroundColor: "transparent"
+            }}
             onInput={handleEditorChange}
             dangerouslySetInnerHTML={{ __html: editorContent }}
             suppressContentEditableWarning
