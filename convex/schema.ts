@@ -26,4 +26,12 @@ export default defineSchema({
     isDeleted: v.optional(v.boolean()),
     isRestored: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
+
+  templates: defineTable({
+    name: v.string(),
+    content: v.string(),
+    userId: v.optional(v.string()),       
+    isGlobal: v.optional(v.boolean()),
+  })
+    .index("by_user", ["userId"])
 });
