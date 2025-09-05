@@ -41,3 +41,44 @@ export const listByUser = query({
     return pages;
   },
 });
+
+
+export const getPageById = query({
+  args: { id: v.id("pages") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const pageInfo = await ctx.db.get(args.id);
+    if (!pageInfo) throw new Error("Page not found");
+
+    return pageInfo;
+  },
+});
+
+export const updatePage = mutation({
+  args: {
+    id: v.id("pages"),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    coverImage: v.optional(v.string()),
+    icon: v.optional(v.string()),
+    isArchived: v.optional(v.boolean()),
+    isPublished: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.get(args.id);
+    if (!page) throw new Error("Page not found");
+
+    await ctx.db.patch(args.id, {
+      title: args.title ?? page.title,
+      content: args.content ?? page.content,
+      coverImage: args.coverImage ?? page.coverImage,
+      icon: args.icon ?? page.icon,
+      isArchived: args.isArchived ?? page.isArchived,
+      isPublished: args.isPublished ?? page.isPublished,
+    });
+
+    return await ctx.db.get(args.id);
+  },
+});

@@ -13,7 +13,6 @@ import {
     AlertCircle,
     FolderOpen,
     Clock,
-    Hash,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,15 +32,11 @@ interface WorkspaceInfoProps {
 const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
     const [isVisible, setIsVisible] = useState(false);
     const params = useParams();
-    console.log("P", params.id)
     const workspaceId = params.id as Id<"workspaces">;
     const workspace = useQuery(
         api.workspaces.getById,
         workspaceId ? { id: workspaceId } : "skip"
     );
-
-    console.log("WI", workspaceId);
-    console.log(workspace)
 
     const workspacePages = useQuery(
         api.workspaces.listPagesByWorkspace,
