@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,20 @@ import { Id } from "@/convex/_generated/dataModel";
 import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ArrowLeft, ChevronDown, Eye, EyeOff, Globe, Image, Loader2, Lock, Save, Trash2, Upload, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Globe,
+  Image,
+  Loader2,
+  Lock,
+  Save,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const PageDetailForm: FC = () => {
@@ -227,7 +240,7 @@ const PageDetailForm: FC = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Publication Status Indicator */}
         {isPublished && (
           <motion.div
@@ -363,11 +376,11 @@ const PageDetailForm: FC = () => {
             ref={editorRef}
             contentEditable
             className="min-h-[400px] outline-none leading-relaxed max-w-none bg-transparent text-foreground"
-            style={{ 
-              fontSize: "16px", 
+            style={{
+              fontSize: "16px",
               lineHeight: "1.6",
               color: "inherit",
-              backgroundColor: "transparent"
+              backgroundColor: "transparent",
             }}
             onInput={handleEditorChange}
             dangerouslySetInnerHTML={{ __html: editorContent }}
