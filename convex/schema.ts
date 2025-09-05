@@ -11,8 +11,8 @@ export default defineSchema({
     coverImage: v.optional(v.string()),
     icon: v.optional(v.string()),
     isPublished: v.boolean(),
-    isDeleted: v.boolean(),
-    isRestored: v.boolean(),
+    isDeleted: v.optional(v.boolean()), 
+    isRestored: v.optional(v.boolean()),
     workspaceId: v.optional(v.id("workspaces")),
   })
     .index("by_user", ["userId"])
