@@ -2,7 +2,7 @@ import PageInfo from "@/components/pages/PageInfo";
 import { NextPage } from "next";
 
 const PageDetailPage: NextPage = () => {
-    return <PageInfo />
-}
+  return <PageInfo />;
+};
 
-export default PageDetailPage
+export default PageDetailPage;

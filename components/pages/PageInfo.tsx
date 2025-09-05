@@ -23,7 +23,7 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@/components/ui/select"; 
+} from "@/components/ui/select";
 import { EmojiPicker } from "../document/EmojiPicker";
 import { backgroundImages } from "../document/background-images";
 import { Id } from "@/convex/_generated/dataModel";
@@ -142,21 +142,22 @@ const PageDetailForm: FC = () => {
             <span>Back</span>
           </motion.button>
           <div className="flex items-center gap-3">
-              <Select
-                defaultValue={page.workspaceId || ""}
-                onValueChange={handleWorkspaceChange}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Move to workspace" />
-                </SelectTrigger>
-                <SelectContent>
-                  {workspaces && workspaces.map((ws) => (
+            <Select
+              defaultValue={page.workspaceId || ""}
+              onValueChange={handleWorkspaceChange}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Move to workspace" />
+              </SelectTrigger>
+              <SelectContent>
+                {workspaces &&
+                  workspaces.map((ws) => (
                     <SelectItem key={ws._id} value={ws._id}>
                       {ws.name}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
+              </SelectContent>
+            </Select>
 
             <button
               onClick={() => setShowToolbar(!showToolbar)}
@@ -168,7 +169,10 @@ const PageDetailForm: FC = () => {
                 <Eye className="w-5 h-5" />
               )}
             </button>
-            <Button onClick={handleSave} className="flex items-center space-x-2">
+            <Button
+              onClick={handleSave}
+              className="flex items-center space-x-2"
+            >
               <Save className="w-4 h-4" />
               <span>Save Changes</span>
             </Button>

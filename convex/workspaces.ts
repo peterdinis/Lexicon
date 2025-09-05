@@ -117,7 +117,7 @@ export const movePageToWorkspace = mutation({
     if (workspace.userId !== userId) {
       throw new Error("Not authorized to move page into this workspace");
     }
-    
+
     await ctx.db.patch(args.pageId, {
       workspaceId: args.targetWorkspaceId,
     });
