@@ -120,3 +120,28 @@ export const restorePage = mutation({
     return { success: true, message: "Page restored" };
   },
 });
+
+export const publishPage = mutation({
+  args: {
+    id: v.id("pages"),
+    isPublished: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const page = await ctx.db.get(args.id);
+    if (!page) throw new Error("Page not found");
+
+    // Check if user owns this page
+    if (page.userId !== identity.subject) {
+      throw new Error("Unauthorized to publish this page");
+    }
+
+    await ctx.db.patch(args.id, {
+      isPublished: args.isPublished,
+    });
+
+    return await ctx.db.get(args.id);
+  },
+});
