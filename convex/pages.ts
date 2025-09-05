@@ -41,3 +41,17 @@ export const listByUser = query({
     return pages;
   },
 });
+
+
+export const getPageById = query({
+  args: { id: v.id("pages") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const pageInfo = await ctx.db.get(args.id);
+    if (!pageInfo) throw new Error("Page not found");
+
+    return pageInfo;
+  },
+});
