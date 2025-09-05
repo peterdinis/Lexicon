@@ -2,7 +2,7 @@ import PublishedPageDetail from "@/components/pages/PublishedPageDetail";
 import { NextPage } from "next";
 
 const PublishedPage: NextPage = () => {
-    return <PublishedPageDetail />
-}
+  return <PublishedPageDetail />;
+};
 
-export default PublishedPage
+export default PublishedPage;

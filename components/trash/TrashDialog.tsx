@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { FC, useEffect, useState } from "react";
 import {
@@ -41,13 +41,15 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
         icon: FileText,
       }));
 
-      const workspaces: TrashItem[] = getAllTrashed.workspaces.map((w: any) => ({
-        _id: w._id,
-        name: w.name,
-        type: "Workspace",
-        deletedDate: w.deletedAt || "unknown",
-        icon: Folder,
-      }));
+      const workspaces: TrashItem[] = getAllTrashed.workspaces.map(
+        (w: any) => ({
+          _id: w._id,
+          name: w.name,
+          type: "Workspace",
+          deletedDate: w.deletedAt || "unknown",
+          icon: Folder,
+        }),
+      );
 
       setItems([...pages, ...workspaces]);
     }
@@ -69,8 +71,12 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                   <Trash className="w-5 h-5 text-red-500" />
                 </div>
                 <div>
-                  <DialogTitle className="text-lg font-semibold">Trash</DialogTitle>
-                  <DialogDescription>Items deleted in the last 30 days</DialogDescription>
+                  <DialogTitle className="text-lg font-semibold">
+                    Trash
+                  </DialogTitle>
+                  <DialogDescription>
+                    Items deleted in the last 30 days
+                  </DialogDescription>
                 </div>
               </div>
               <Button variant="link" size="sm" className="text-xs mt-3" onClick={handleEmptyTrash}>
@@ -92,12 +98,16 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                   <div className="flex items-center space-x-4">
                     <div
                       className={`p-2 rounded-lg ${
-                        item.type === "Workspace" ? "bg-blue-500/10" : "bg-gray-500/10"
+                        item.type === "Workspace"
+                          ? "bg-blue-500/10"
+                          : "bg-gray-500/10"
                       }`}
                     >
                       <item.icon
                         className={`w-5 h-5 ${
-                          item.type === "Workspace" ? "text-blue-500" : "text-gray-500"
+                          item.type === "Workspace"
+                            ? "text-blue-500"
+                            : "text-gray-500"
                         }`}
                       />
                     </div>

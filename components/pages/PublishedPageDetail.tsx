@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useParams } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
@@ -92,11 +92,11 @@ const PublishedPageDetail: FC = () => {
           <div
             ref={editorRef}
             className="min-h-[400px] leading-relaxed max-w-none bg-transparent text-foreground"
-            style={{ 
-              fontSize: "16px", 
+            style={{
+              fontSize: "16px",
               lineHeight: "1.6",
               color: "inherit",
-              backgroundColor: "transparent"
+              backgroundColor: "transparent",
             }}
             dangerouslySetInnerHTML={{ __html: editorContent }}
           />
