@@ -46,6 +46,7 @@ const DashboardSidebar: FC = () => {
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const router = useRouter();
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   // convex queries
   const workspaces = useQuery(api.workspaces.list);
@@ -68,18 +69,15 @@ const DashboardSidebar: FC = () => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center justify-center ${
-          collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
-        } text-sm transition-all duration-200 rounded-lg group relative ${
-          isActive
+        className={`flex items-center justify-center ${collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
+          } text-sm transition-all duration-200 rounded-lg group relative ${isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-        } ${className}`}
+          } ${className}`}
       >
         <Icon
-          className={`${
-            collapsed ? "w-5 h-5" : "w-4 h-4"
-          } flex-shrink-0 transition-all duration-200`}
+          className={`${collapsed ? "w-5 h-5" : "w-4 h-4"
+            } flex-shrink-0 transition-all duration-200`}
         />
         <AnimatePresence>
           {!collapsed && (
@@ -197,9 +195,8 @@ const DashboardSidebar: FC = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            className={`${
-              collapsed ? "w-12 h-12" : "w-6 h-6"
-            } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105`}
+            className={`${collapsed ? "w-12 h-12" : "w-6 h-6"
+              } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105`}
             onClick={onAdd}
           >
             <PlusCircle className="w-4 h-4" />
@@ -263,9 +260,8 @@ const DashboardSidebar: FC = () => {
         >
           {/* User section */}
           <div
-            className={`flex items-center ${
-              collapsed ? "justify-center" : "space-x-3"
-            } text-sm font-semibold`}
+            className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"
+              } text-sm font-semibold`}
           >
             {collapsed ? (
               <Tooltip>
@@ -431,9 +427,7 @@ const DashboardSidebar: FC = () => {
             <SectionHeader
               title="Templates"
               icon={LayoutTemplate}
-              onAdd={() => {
-                // TODO: open template dialog
-              }}
+              onAdd={() => setTemplateDialogOpen(true)} // otvor dialog
               addTooltip="New Template"
               count={templates?.length}
             />
