@@ -39,7 +39,6 @@ export const create = mutation({
   },
 });
 
-// Zoznam všetkých workspace prihláseného používateľa
 export const list = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -54,7 +53,6 @@ export const list = query({
   },
 });
 
-// Detail workspace podľa id
 export const getById = query({
   args: { id: v.id("workspaces") },
   handler: async (ctx, args) => {
@@ -93,5 +91,37 @@ export const listPagesByWorkspace = query({
       .filter((q) => q.eq(q.field("isArchived"), false))
       .order("desc")
       .collect();
+  },
+});
+
+export const movePageToWorkspace = mutation({
+  args: {
+    pageId: v.id("pages"),
+    targetWorkspaceId: v.id("workspaces"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const userId = identity.subject;
+
+    const page = await ctx.db.get(args.pageId);
+    if (!page) throw new Error("Page not found");
+
+    if (page.userId !== userId) {
+      throw new Error("Not authorized to move this page");
+    }
+
+    const workspace = await ctx.db.get(args.targetWorkspaceId);
+    if (!workspace) throw new Error("Workspace not found");
+
+    if (workspace.userId !== userId) {
+      throw new Error("Not authorized to move page into this workspace");
+    }
+    
+    await ctx.db.patch(args.pageId, {
+      workspaceId: args.targetWorkspaceId,
+    });
+
+    return await ctx.db.get(args.pageId);
   },
 });
