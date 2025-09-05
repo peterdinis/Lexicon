@@ -62,6 +62,15 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
+  const handleRandomBackground = () => {
+    const width = 1920;
+    const height = 1080;
+    const randomId = Math.floor(Math.random() * 1000);
+    const url = `https://picsum.photos/id/${randomId}/${width}/${height}`;
+    setBackgroundImage(url);
+    setShowBackgroundPicker(false);
+  };
+
   const handleTemplateSelect = (template: (typeof documentTemplates)[0]) => {
     setDocumentTitle(template.title);
     setSelectedEmoji(template.emoji);
@@ -187,7 +196,6 @@ const CreateDocumentForm: FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="min-h-screen bg-background"
     >
-      {/* Background Image */}
       <AnimatePresence>
         {backgroundImage && (
           <motion.div
@@ -205,7 +213,6 @@ const CreateDocumentForm: FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -250,11 +257,8 @@ const CreateDocumentForm: FC = () => {
             </div>
           </div>
 
-          {/* Document Header */}
           <div className="bg-background/95 backdrop-blur-sm rounded-xl p-6 mb-6 border">
-            {/* Emoji and Background Controls */}
             <div className="flex items-center space-x-4 mb-6">
-              {/* Emoji Picker */}
               <div className="relative z-50">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -275,7 +279,6 @@ const CreateDocumentForm: FC = () => {
                 </div>
               </div>
 
-              {/* Background Image Picker */}
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -328,6 +331,13 @@ const CreateDocumentForm: FC = () => {
                           />
                         </label>
 
+                        <button
+                          onClick={handleRandomBackground}
+                          className="w-full flex items-center justify-center space-x-2 p-2 bg-accent/20 hover:bg-accent/30 rounded-lg transition-colors"
+                        >
+                          <span>Random Lorem Picsum</span>
+                        </button>
+
                         {backgroundImage && (
                           <button
                             onClick={() => {
@@ -347,7 +357,6 @@ const CreateDocumentForm: FC = () => {
               </div>
             </div>
 
-            {/* Document Title */}
             <motion.input
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -362,7 +371,6 @@ const CreateDocumentForm: FC = () => {
         </div>
       </motion.div>
 
-      {/* Editor Section */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -370,7 +378,6 @@ const CreateDocumentForm: FC = () => {
           transition={{ delay: 0.3 }}
           className="bg-background/95 backdrop-blur-sm rounded-xl border overflow-hidden mb-6"
         >
-          {/* Custom Toolbar */}
           <AnimatePresence>
             {showToolbar && (
               <motion.div
@@ -380,7 +387,6 @@ const CreateDocumentForm: FC = () => {
                 className="border-b bg-background/50 backdrop-blur-sm p-4"
               >
                 <div className="flex items-center flex-wrap gap-2">
-                  {/* Text Formatting */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
                       onClick={() => formatText("bold")}
@@ -405,7 +411,6 @@ const CreateDocumentForm: FC = () => {
                     </button>
                   </div>
 
-                  {/* Headings */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
                       onClick={() => insertElement("h1")}
@@ -430,7 +435,6 @@ const CreateDocumentForm: FC = () => {
                     </button>
                   </div>
 
-                  {/* Lists and Blocks */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
                       onClick={() => formatText("insertUnorderedList")}
@@ -462,7 +466,6 @@ const CreateDocumentForm: FC = () => {
                     </button>
                   </div>
 
-                  {/* Alignment */}
                   <div className="flex items-center space-x-1 border-r pr-4">
                     <button
                       onClick={() => formatText("justifyLeft")}
@@ -487,7 +490,6 @@ const CreateDocumentForm: FC = () => {
                     </button>
                   </div>
 
-                  {/* Color Picker */}
                   <div className="relative">
                     <button
                       onClick={() => setShowColorPicker(!showColorPicker)}
@@ -500,25 +502,20 @@ const CreateDocumentForm: FC = () => {
                     <AnimatePresence>
                       {showColorPicker && (
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                          className="absolute top-full left-0 mt-2 p-3 bg-popover border rounded-lg shadow-lg z-30"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50"
                         >
-                          <div className="relative">
-                            <input
-                              type="color"
-                              value={selectedColor}
-                              onChange={(e) => {
-                                const color = e.target.value;
-                                setSelectedColor(color);
-                                formatText("foreColor", color);
-                                setShowColorPicker(false);
-                              }}
-                              className="w-10 h-10 p-0 border-none cursor-pointer rounded"
-                              title="Select text color"
-                            />
-                          </div>
+                          <input
+                            type="color"
+                            value={selectedColor}
+                            onChange={(e) => {
+                              setSelectedColor(e.target.value);
+                              formatText("foreColor", e.target.value);
+                            }}
+                            className="w-full h-8 p-0 border-none cursor-pointer"
+                          />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -528,66 +525,27 @@ const CreateDocumentForm: FC = () => {
             )}
           </AnimatePresence>
 
-          {/* Custom Rich Text Editor */}
-          <div className="p-6">
-            <div
-              ref={editorRef}
-              contentEditable
-              className="min-h-[400px] outline-none leading-relaxed max-w-none bg-transparent text-foreground"
-              style={{ 
-                fontSize: "16px", 
-                lineHeight: "1.6",
-                color: "inherit",
-                backgroundColor: "transparent"
-              }}
-              onInput={handleEditorChange}
-              onPaste={(e) => {
-                e.preventDefault();
-                const text = e.clipboardData.getData("text/plain");
-                document.execCommand("insertText", false, text);
-              }}
-              suppressContentEditableWarning={true}
-            >
-              <p className="text-muted-foreground">
-                Start typing to create your document...
-              </p>
-            </div>
-          </div>
+          <div
+            ref={editorRef}
+            onInput={handleEditorChange}
+            contentEditable
+            className="min-h-[300px] p-6 focus:outline-none bg-transparent"
+          />
         </motion.div>
 
-        {/* Document Templates */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-6"
-        >
-          <h3
-            className={`text-lg font-semibold mb-4 ${backgroundImage ? "text-white" : ""}`}
-          >
-            Quick Templates
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {documentTemplates.map((template, index) => (
-              <motion.button
-                key={index}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleTemplateSelect(template)}
-                className="p-4 bg-background/95 backdrop-blur-sm border rounded-lg hover:border-primary transition-colors text-left"
-              >
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className="text-2xl">{template.emoji}</span>
-                  <template.icon className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <h4 className="font-medium">{template.name}</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Start with a {template.name.toLowerCase()} template
-                </p>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
+        <div className="grid grid-cols-3 gap-4">
+          {documentTemplates.map((template, index) => (
+            <motion.button
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleTemplateSelect(template)}
+              className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
+            >
+              <span className="text-2xl">{template.emoji}</span>
+              <h3 className="font-semibold mt-2">{template.title}</h3>
+            </motion.button>
+          ))}
+        </div>
       </div>
     </motion.div>
   );
