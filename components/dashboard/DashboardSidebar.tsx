@@ -43,7 +43,7 @@ const DashboardSidebar: FC = () => {
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const router = useRouter()
+  const router = useRouter();
   const workspaces = useQuery(api.workspaces.list);
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
 
@@ -331,7 +331,7 @@ const DashboardSidebar: FC = () => {
               icon={ArrowLeft}
               label="Go to Dashboard"
               onClick={() => {
-                router.push("/dashboard")
+                router.push("/dashboard");
               }}
             />
           </div>

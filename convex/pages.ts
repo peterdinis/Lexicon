@@ -42,7 +42,6 @@ export const listByUser = query({
   },
 });
 
-
 export const getPageById = query({
   args: { id: v.id("pages") },
   handler: async (ctx, args) => {
