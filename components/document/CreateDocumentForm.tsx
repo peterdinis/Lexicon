@@ -123,6 +123,7 @@ const CreateDocumentForm: FC = () => {
         element.style.fontSize = "2rem";
         element.style.fontWeight = "bold";
         element.style.margin = "1rem 0";
+        element.style.color = "inherit";
         break;
       case "h2":
         element = document.createElement("h2");
@@ -130,6 +131,7 @@ const CreateDocumentForm: FC = () => {
         element.style.fontSize = "1.5rem";
         element.style.fontWeight = "bold";
         element.style.margin = "0.8rem 0";
+        element.style.color = "inherit";
         break;
       case "h3":
         element = document.createElement("h3");
@@ -137,6 +139,7 @@ const CreateDocumentForm: FC = () => {
         element.style.fontSize = "1.2rem";
         element.style.fontWeight = "bold";
         element.style.margin = "0.6rem 0";
+        element.style.color = "inherit";
         break;
       case "blockquote":
         element = document.createElement("blockquote");
@@ -146,6 +149,7 @@ const CreateDocumentForm: FC = () => {
         element.style.margin = "1rem 0";
         element.style.fontStyle = "italic";
         element.style.color = "#6b7280";
+        element.style.backgroundColor = "transparent";
         break;
       case "code":
         element = document.createElement("code");
@@ -154,6 +158,7 @@ const CreateDocumentForm: FC = () => {
         element.style.padding = "0.2rem 0.4rem";
         element.style.borderRadius = "4px";
         element.style.fontFamily = "monospace";
+        element.style.color = "#1f2937";
         break;
       default:
         return;
@@ -205,7 +210,7 @@ const CreateDocumentForm: FC = () => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className={`relative z-10 p-6 ${backgroundImage ? "text-white" : ""}`}
+        className={`relative z-50 p-6 ${backgroundImage ? "text-white" : ""}`}
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-6">
@@ -250,7 +255,7 @@ const CreateDocumentForm: FC = () => {
             {/* Emoji and Background Controls */}
             <div className="flex items-center space-x-4 mb-6">
               {/* Emoji Picker */}
-              <div className="relative">
+              <div className="relative z-50">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -260,12 +265,14 @@ const CreateDocumentForm: FC = () => {
                   {selectedEmoji}
                 </motion.button>
 
-                <EmojiPicker
-                  selectedEmoji={selectedEmoji}
-                  onSelect={(emoji) => setSelectedEmoji(emoji)}
-                  isOpen={showEmojiPicker}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
+                <div className="relative z-[100]">
+                  <EmojiPicker
+                    selectedEmoji={selectedEmoji}
+                    onSelect={(emoji) => setSelectedEmoji(emoji)}
+                    isOpen={showEmojiPicker}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                </div>
               </div>
 
               {/* Background Image Picker */}
@@ -287,7 +294,7 @@ const CreateDocumentForm: FC = () => {
                       initial={{ opacity: 0, scale: 0.9, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-20 min-w-[300px]"
+                      className="absolute top-full left-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 min-w-[300px]"
                     >
                       <div className="grid grid-cols-2 gap-3 mb-4">
                         {backgroundImages.map((img, index) => (
@@ -526,8 +533,13 @@ const CreateDocumentForm: FC = () => {
             <div
               ref={editorRef}
               contentEditable
-              className="min-h-[400px] outline-none text-foreground leading-relaxed prose prose-lg max-w-none"
-              style={{ fontSize: "16px", lineHeight: "1.6" }}
+              className="min-h-[400px] outline-none leading-relaxed max-w-none bg-transparent text-foreground"
+              style={{ 
+                fontSize: "16px", 
+                lineHeight: "1.6",
+                color: "inherit",
+                backgroundColor: "transparent"
+              }}
               onInput={handleEditorChange}
               onPaste={(e) => {
                 e.preventDefault();
