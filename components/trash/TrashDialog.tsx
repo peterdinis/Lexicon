@@ -73,7 +73,7 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                   <DialogDescription>Items deleted in the last 30 days</DialogDescription>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="text-xs" onClick={handleEmptyTrash}>
+              <Button variant="link" size="sm" className="text-xs mt-3" onClick={handleEmptyTrash}>
                 Empty Trash
               </Button>
             </div>
