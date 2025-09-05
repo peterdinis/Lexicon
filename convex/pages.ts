@@ -12,6 +12,8 @@ export const createPage = mutation({
     icon: v.optional(v.string()),
     isPublished: v.optional(v.boolean()),
     workspaceId: v.optional(v.id("workspaces")),
+    isDeleted: v.optional(v.boolean()),
+    isRestored: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const pageId = await ctx.db.insert("pages", {
@@ -24,6 +26,8 @@ export const createPage = mutation({
       icon: args.icon,
       isPublished: args.isPublished ?? false,
       workspaceId: args.workspaceId,
+      isDeleted: args.isDeleted ?? false,
+      isRestored: args.isRestored ?? false,
     });
 
     return pageId;
@@ -36,6 +40,7 @@ export const listByUser = query({
     const pages = await ctx.db
       .query("pages")
       .filter((q) => q.eq(q.field("userId"), userId))
+      .filter((q) => q.eq(q.field("isDeleted"), false)) // ✅ nezobrazuj vymazané
       .collect();
 
     return pages;
@@ -51,6 +56,10 @@ export const getPageById = query({
     const pageInfo = await ctx.db.get(args.id);
     if (!pageInfo) throw new Error("Page not found");
 
+    if (pageInfo.isDeleted) {
+      throw new Error("Page is deleted");
+    }
+
     return pageInfo;
   },
 });
@@ -64,6 +73,8 @@ export const updatePage = mutation({
     icon: v.optional(v.string()),
     isArchived: v.optional(v.boolean()),
     isPublished: v.optional(v.boolean()),
+    isDeleted: v.optional(v.boolean()),
+    isRestored: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const page = await ctx.db.get(args.id);
@@ -76,6 +87,8 @@ export const updatePage = mutation({
       icon: args.icon ?? page.icon,
       isArchived: args.isArchived ?? page.isArchived,
       isPublished: args.isPublished ?? page.isPublished,
+      isDeleted: args.isDeleted ?? page.isDeleted,
+      isRestored: args.isRestored ?? page.isRestored,
     });
 
     return await ctx.db.get(args.id);
