@@ -95,9 +95,7 @@ const SettingsDialog: FC<SettingsDialogProps> = ({
 
                 {activeTab === "preferences" && <Preferencies />}
 
-                {activeTab === "editor" && (
-                  <EditorSetup />
-                )}
+                {activeTab === "editor" && <EditorSetup />}
 
                 {activeTab === "workspaces" && <Workspaces />}
               </div>

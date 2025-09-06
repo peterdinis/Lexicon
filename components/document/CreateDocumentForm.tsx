@@ -34,6 +34,7 @@ import { EmojiPicker } from "./EmojiPicker";
 import { backgroundImages } from "./background-images";
 import { useRouter } from "next/navigation";
 import PublishPage from "./PublishPage";
+import { useToast } from "@/hooks/use-toast";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -47,6 +48,7 @@ const CreateDocumentForm: FC = () => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const router = useRouter();
   const { user } = useUser();
+  const { toast } = useToast();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -98,10 +100,18 @@ const CreateDocumentForm: FC = () => {
         isPublished: false,
         workspaceId: undefined,
       });
-      alert("Document saved successfully!");
+      toast({
+        title: "New document was created",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold text-base",
+      });
     } catch (err) {
       console.error("Error saving document:", err);
-      alert("Failed to save document!");
+      toast({
+        title: "New document was not created",
+        duration: 2000,
+        className: "bg-red-800 text-white font-bold text-base",
+      });
     }
   };
 
