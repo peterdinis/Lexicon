@@ -26,7 +26,7 @@ import {
   Heading2,
   Heading3,
 } from "lucide-react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@/convex/_generated/api";
 import { documentTemplates } from "../templates/documentTemplates";
@@ -51,6 +51,9 @@ const CreateDocumentForm: FC = () => {
   const { toast } = useToast();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
+  const templates = useQuery(api.templates.listByUser, {
+    userId: user?.id!
+  });
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
