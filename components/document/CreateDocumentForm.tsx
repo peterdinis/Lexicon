@@ -26,7 +26,7 @@ import {
   Heading2,
   Heading3,
 } from "lucide-react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@/convex/_generated/api";
 import { documentTemplates } from "../templates/documentTemplates";
@@ -51,6 +51,9 @@ const CreateDocumentForm: FC = () => {
   const { toast } = useToast();
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
+  const templates = useQuery(api.templates.listByUser, {
+    userId: user?.id!
+  });
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -73,7 +76,8 @@ const CreateDocumentForm: FC = () => {
     setShowBackgroundPicker(false);
   };
 
-  const handleTemplateSelect = (template: (typeof documentTemplates)[0]) => {
+  // TODO: Add custom type later
+  const handleTemplateSelect = (template: any) => {
     setDocumentTitle(template.title);
     setSelectedEmoji(template.emoji);
     setEditorContent(template.content);
@@ -553,6 +557,19 @@ const CreateDocumentForm: FC = () => {
             >
               <span className="text-2xl">{template.emoji}</span>
               <h3 className="font-semibold mt-2">{template.title}</h3>
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          {templates && templates.map((template, index) => (
+            <motion.button
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleTemplateSelect(template)}
+              className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
+            >
+              <h3 className="font-semibold mt-2">{template.name}</h3>
             </motion.button>
           ))}
         </div>
