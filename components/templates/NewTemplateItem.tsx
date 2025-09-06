@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea"; // 👈 pridaj import
 import { useMutation } from "convex/react";
 
 interface NewTemplateItemProps {
@@ -19,14 +20,13 @@ const NewTemplateItem: FC<NewTemplateItemProps> = ({ onCreated }) => {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Použitie Convex useMutation hook
   const createTemplate = useMutation(api.templates.create);
 
   const handleCreate = async () => {
     if (!user || !name.trim() || !content.trim()) return;
     setLoading(true);
     try {
-      await createTemplate({ userId: user.id, name, content }); // <-- useMutation
+      await createTemplate({ userId: user.id, name, content });
       setName("");
       setContent("");
       setOpen(false);
@@ -60,10 +60,11 @@ const NewTemplateItem: FC<NewTemplateItemProps> = ({ onCreated }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <Input
+            <Textarea
               placeholder="Content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              rows={4} // 👈 nastav výšku
             />
             <Button onClick={handleCreate} disabled={loading}>
               {loading ? "Creating..." : "Create"}
