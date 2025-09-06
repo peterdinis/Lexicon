@@ -137,12 +137,12 @@ const CreateDocumentForm: FC = () => {
     if (!selection?.rangeCount || !editorRef.current) return;
 
     const range = selection.getRangeAt(0);
-    let element: HTMLElement;
+    let element: HTMLElement | HTMLAnchorElement | HTMLImageElement | HTMLIFrameElement;
 
     switch (elementType) {
       case "h1":
         element = document.createElement("h1");
-        element.textContent = "Heading 1";
+        element.textContent = prompt("Heading 1 text:", "Heading 1") || "Heading 1";
         element.style.fontSize = "2rem";
         element.style.fontWeight = "bold";
         element.style.margin = "1rem 0";
@@ -150,7 +150,7 @@ const CreateDocumentForm: FC = () => {
         break;
       case "h2":
         element = document.createElement("h2");
-        element.textContent = "Heading 2";
+        element.textContent = prompt("Heading 2 text:", "Heading 2") || "Heading 2";
         element.style.fontSize = "1.5rem";
         element.style.fontWeight = "bold";
         element.style.margin = "0.8rem 0";
@@ -158,7 +158,7 @@ const CreateDocumentForm: FC = () => {
         break;
       case "h3":
         element = document.createElement("h3");
-        element.textContent = "Heading 3";
+        element.textContent = prompt("Heading 3 text:", "Heading 3") || "Heading 3";
         element.style.fontSize = "1.2rem";
         element.style.fontWeight = "bold";
         element.style.margin = "0.6rem 0";
@@ -166,22 +166,53 @@ const CreateDocumentForm: FC = () => {
         break;
       case "blockquote":
         element = document.createElement("blockquote");
-        element.textContent = "Quote text";
+        element.textContent = prompt("Quote text:", "Quote text") || "Quote text";
         element.style.borderLeft = "4px solid #e5e7eb";
         element.style.paddingLeft = "1rem";
         element.style.margin = "1rem 0";
         element.style.fontStyle = "italic";
         element.style.color = "#6b7280";
-        element.style.backgroundColor = "transparent";
         break;
       case "code":
         element = document.createElement("code");
-        element.textContent = "Code block";
+        element.textContent = prompt("Code snippet:", "Code block") || "Code block";
         element.style.background = "#f3f4f6";
         element.style.padding = "0.2rem 0.4rem";
         element.style.borderRadius = "4px";
         element.style.fontFamily = "monospace";
         element.style.color = "#1f2937";
+        break;
+      case "link":
+        const url = prompt("Enter URL:") as any;
+        const linkText = prompt("Link text:", url) || url;
+        if (!url) return;
+        element = document.createElement("a");
+        (element as HTMLAnchorElement).href = url;
+        element.textContent = linkText;
+        (element as HTMLAnchorElement).target = "_blank";
+        element.style.color = "#3b82f6";
+        element.style.textDecoration = "underline";
+        break;
+      case "image":
+        const imgUrl = prompt("Image URL:");
+        if (!imgUrl) return;
+        element = document.createElement("img");
+        (element as HTMLImageElement).src = imgUrl;
+        (element as HTMLImageElement).alt = "Inserted Image";
+        element.style.maxWidth = "100%";
+        element.style.display = "block";
+        element.style.margin = "1rem 0";
+        break;
+      case "video":
+        const videoUrl = prompt("Video URL (YouTube embed link):");
+        if (!videoUrl) return;
+        element = document.createElement("iframe");
+        (element as HTMLIFrameElement).src = videoUrl;
+        (element as HTMLIFrameElement).width = "560";
+        (element as HTMLIFrameElement).height = "315";
+        (element as HTMLIFrameElement).allowFullscreen = true;
+        element.style.display = "block";
+        element.style.margin = "1rem 0";
         break;
       default:
         return;
@@ -394,142 +425,45 @@ const CreateDocumentForm: FC = () => {
         >
           <AnimatePresence>
             {showToolbar && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="border-b bg-background/50 backdrop-blur-sm p-4"
-              >
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-b bg-background/50 backdrop-blur-sm p-4">
                 <div className="flex items-center flex-wrap gap-2">
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button
-                      onClick={() => formatText("bold")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Bold"
-                    >
-                      <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => formatText("italic")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Italic"
-                    >
-                      <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => formatText("underline")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Underline"
-                    >
-                      <Underline className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => formatText("bold")} className="p-2 rounded hover:bg-accent transition-colors" title="Bold"><Bold className="w-4 h-4" /></button>
+                    <button onClick={() => formatText("italic")} className="p-2 rounded hover:bg-accent transition-colors" title="Italic"><Italic className="w-4 h-4" /></button>
+                    <button onClick={() => formatText("underline")} className="p-2 rounded hover:bg-accent transition-colors" title="Underline"><Underline className="w-4 h-4" /></button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button
-                      onClick={() => insertElement("h1")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Heading 1"
-                    >
-                      <Heading1 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => insertElement("h2")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Heading 2"
-                    >
-                      <Heading2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => insertElement("h3")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Heading 3"
-                    >
-                      <Heading3 className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => insertElement("h1")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 1"><Heading1 className="w-4 h-4" /></button>
+                    <button onClick={() => insertElement("h2")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
+                    <button onClick={() => insertElement("h3")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button
-                      onClick={() => formatText("insertUnorderedList")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Bullet List"
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => formatText("insertOrderedList")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Numbered List"
-                    >
-                      <ListOrdered className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => insertElement("blockquote")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Quote"
-                    >
-                      <Quote className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => insertElement("code")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Code"
-                    >
-                      <Code className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => formatText("insertUnorderedList")} className="p-2 rounded hover:bg-accent transition-colors" title="Bullet List"><List className="w-4 h-4" /></button>
+                    <button onClick={() => formatText("insertOrderedList")} className="p-2 rounded hover:bg-accent transition-colors" title="Numbered List"><ListOrdered className="w-4 h-4" /></button>
+                    <button onClick={() => insertElement("blockquote")} className="p-2 rounded hover:bg-accent transition-colors" title="Quote"><Quote className="w-4 h-4" /></button>
+                    <button onClick={() => insertElement("code")} className="p-2 rounded hover:bg-accent transition-colors" title="Code"><Code className="w-4 h-4" /></button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button
-                      onClick={() => formatText("justifyLeft")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Align Left"
-                    >
-                      <AlignLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => formatText("justifyCenter")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Align Center"
-                    >
-                      <AlignCenter className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => formatText("justifyRight")}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Align Right"
-                    >
-                      <AlignRight className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => formatText("justifyLeft")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Left"><AlignLeft className="w-4 h-4" /></button>
+                    <button onClick={() => formatText("justifyCenter")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Center"><AlignCenter className="w-4 h-4" /></button>
+                    <button onClick={() => formatText("justifyRight")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Right"><AlignRight className="w-4 h-4" /></button>
+                  </div>
+
+                  <div className="flex items-center space-x-1 border-r pr-4">
+                    <button onClick={() => insertElement("link")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Link">🔗</button>
+                    <button onClick={() => insertElement("image")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Image">🖼️</button>
+                    <button onClick={() => insertElement("video")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Video">🎬</button>
                   </div>
 
                   <div className="relative">
-                    <button
-                      onClick={() => setShowColorPicker(!showColorPicker)}
-                      className="p-2 rounded hover:bg-accent transition-colors"
-                      title="Text Color"
-                    >
-                      <Palette className="w-4 h-4" />
-                    </button>
-
+                    <button onClick={() => setShowColorPicker(!showColorPicker)} className="p-2 rounded hover:bg-accent transition-colors" title="Text Color"><Palette className="w-4 h-4" /></button>
                     <AnimatePresence>
                       {showColorPicker && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50"
-                        >
-                          <input
-                            type="color"
-                            value={selectedColor}
-                            onChange={(e) => {
-                              setSelectedColor(e.target.value);
-                              formatText("foreColor", e.target.value);
-                            }}
-                            className="w-full h-8 p-0 border-none cursor-pointer"
-                          />
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50">
+                          <input type="color" value={selectedColor} onChange={(e) => { setSelectedColor(e.target.value); formatText("foreColor", e.target.value); }} className="w-full h-8 p-0 border-none cursor-pointer" />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -562,7 +496,7 @@ const CreateDocumentForm: FC = () => {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mt-6">
-          {templates && templates.map((template, index) => (
+          {templates && templates.map((template, index) => (
             <motion.button
               key={index}
               whileHover={{ scale: 1.05 }}
