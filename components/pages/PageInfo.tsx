@@ -168,7 +168,7 @@ const PageDetailForm: FC = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             onClick={handleBack}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-accent/60 border"
+            className="flex items-center bg-stone-400 space-x-2 px-3 py-2 rounded-lg hover:bg-accent/60 border"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
@@ -178,7 +178,7 @@ const PageDetailForm: FC = () => {
               defaultValue={page.workspaceId || ""}
               onValueChange={handleWorkspaceChange}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[200px] bg-stone-300">
                 <SelectValue placeholder="Move to workspace" />
               </SelectTrigger>
               <SelectContent>
@@ -196,9 +196,9 @@ const PageDetailForm: FC = () => {
               className="p-2 rounded-lg hover:bg-accent/60"
             >
               {showToolbar ? (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-5 h-5 text-stone-100" />
               ) : (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-5 h-5 text-stone-100" />
               )}
             </button>
 
