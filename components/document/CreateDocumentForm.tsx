@@ -37,6 +37,7 @@ import PublishPage from "./PublishPage";
 import { useToast } from "@/hooks/use-toast";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
+import { ScrollArea } from "../ui/scroll-area";
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -542,12 +543,14 @@ const CreateDocumentForm: FC = () => {
             )}
           </AnimatePresence>
 
-          <div
-            ref={editorRef}
-            onInput={handleEditorChange}
-            contentEditable
-            className="min-h-[300px] p-6 focus:outline-none bg-transparent"
-          />
+          <ScrollArea>
+            <div
+              ref={editorRef}
+              onInput={handleEditorChange}
+              contentEditable
+              className="min-h-[300px] p-6 focus:outline-none bg-transparent"
+            />
+          </ScrollArea>
         </motion.div>
 
         <div className="grid grid-cols-3 gap-4">
