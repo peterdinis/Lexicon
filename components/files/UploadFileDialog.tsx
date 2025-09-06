@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 type UploadDialogProps = {
   uploadDialogOpen: boolean;
@@ -13,9 +14,9 @@ type UploadDialogProps = {
 
 const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialogOpen }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [, setFileUrl] = useState<string | null>(null);
   const generateUploadUrl = useMutation(api.uploads.generateUploadUrl);
-
+  const {toast} = useToast()
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
@@ -40,6 +41,9 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
     if (response.ok) {
       const { storageId } = await response.json();
       setFileUrl(storageId);
+      toast({
+        title: "File was uploaded",
+      })
       // Optionally, save the storageId to your database here
     } else {
       console.error("File upload failed");
