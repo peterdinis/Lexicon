@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 const PageDetailForm: FC = () => {
   const router = useRouter();
@@ -41,7 +42,7 @@ const PageDetailForm: FC = () => {
   const movePage = useMutation(api.workspaces.movePageToWorkspace);
   const moveToTrash = useMutation(api.pages.moveToTrash);
   const publishPage = useMutation(api.pages.publishPage);
-
+  const { toast } = useToast()
   const workspaces = useQuery(api.workspaces.list);
 
   const [documentTitle, setDocumentTitle] = useState("");
@@ -89,11 +90,19 @@ const PageDetailForm: FC = () => {
     setIsPublished(newPublishState);
 
     if (newPublishState) {
-      // Zobrazíme URL publikovanej stránky
+      toast({
+        title: "Link was created for page",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold"
+      })
       setPublishedUrl(`${window.location.origin}/pages/published/${pageId}`);
     } else {
       setPublishedUrl(null);
-      alert("Page unpublished successfully!");
+      toast({
+        title: "Page was unpuslished",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold"
+      })
     }
   };
 
@@ -128,13 +137,21 @@ const PageDetailForm: FC = () => {
       pageId,
       targetWorkspaceId: workspaceId as Id<"workspaces">,
     });
-    alert("Page moved to new workspace!");
+    toast({
+      title: "Page was moved to woskapce",
+      duration: 2000,
+      className: "bg-green-800 text-white font-bold"
+    })
   };
 
   const handleMoveToTrash = async () => {
     if (!confirm("Are you sure you want to move this page to trash?")) return;
     await moveToTrash({ id: pageId });
-    alert("Page moved to trash!");
+    toast({
+      title: "Page was move to trash",
+      duration: 2000,
+      className: "bg-green-800 text-white font-bold"
+    })
     router.push("/dashboard");
   };
 
