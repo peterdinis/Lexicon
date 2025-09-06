@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const MyFilesPage: NextPage = () => {
-    return (
-        <>ABCD</>
-    )
-}
+  return <>ABCD</>;
+};
 
-export default MyFilesPage
+export default MyFilesPage;

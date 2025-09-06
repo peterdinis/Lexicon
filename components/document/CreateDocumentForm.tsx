@@ -55,7 +55,7 @@ const CreateDocumentForm: FC = () => {
   const createPage = useMutation(api.pages.createPage);
   const editorRef = useRef<HTMLDivElement>(null);
   const templates = useQuery(api.templates.listByUser, {
-    userId: user?.id!
+    userId: user?.id!,
   });
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +148,7 @@ const CreateDocumentForm: FC = () => {
       | "code"
       | "link"
       | "image"
-      | "video"
+      | "video",
   ) => {
     const selection = window.getSelection();
     if (!selection?.rangeCount || !editorRef.current) return;
@@ -252,7 +252,8 @@ const CreateDocumentForm: FC = () => {
 
       case "image":
         element = document.createElement("img");
-        (element as HTMLImageElement).src = "https://via.placeholder.com/400x200";
+        (element as HTMLImageElement).src =
+          "https://via.placeholder.com/400x200";
         (element as HTMLImageElement).alt = "Inserted Image";
         element.style.maxWidth = "100%";
         element.style.display = "block";
@@ -261,7 +262,8 @@ const CreateDocumentForm: FC = () => {
 
       case "video":
         element = document.createElement("iframe");
-        (element as HTMLIFrameElement).src = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+        (element as HTMLIFrameElement).src =
+          "https://www.youtube.com/embed/dQw4w9WgXcQ";
         (element as HTMLIFrameElement).width = "560";
         (element as HTMLIFrameElement).height = "315";
         (element as HTMLIFrameElement).allowFullscreen = true;
@@ -488,49 +490,183 @@ const CreateDocumentForm: FC = () => {
               >
                 <div className="flex items-center flex-wrap gap-2">
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button onClick={() => formatText("bold")} className="p-2 rounded hover:bg-accent transition-colors" title="Bold"><Bold className="w-4 h-4" /></button>
-                    <button onClick={() => formatText("italic")} className="p-2 rounded hover:bg-accent transition-colors" title="Italic"><Italic className="w-4 h-4" /></button>
-                    <button onClick={() => formatText("underline")} className="p-2 rounded hover:bg-accent transition-colors" title="Underline"><Underline className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => formatText("bold")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Bold"
+                    >
+                      <Bold className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => formatText("italic")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Italic"
+                    >
+                      <Italic className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => formatText("underline")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Underline"
+                    >
+                      <Underline className="w-4 h-4" />
+                    </button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button onClick={() => insertElement("p")} className="p-2 rounded hover:bg-accent transition-colors" title="Paragraph">P</button>
-                    <button onClick={() => insertElement("h1")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 1"><Heading1 className="w-4 h-4" /></button>
-                    <button onClick={() => insertElement("h2")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
-                    <button onClick={() => insertElement("h3")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
-                    <button onClick={() => insertElement("h4")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 4">H4</button>
-                    <button onClick={() => insertElement("h5")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 5">H5</button>
-                    <button onClick={() => insertElement("h6")} className="p-2 rounded hover:bg-accent transition-colors" title="Heading 6">H6</button>
+                    <button
+                      onClick={() => insertElement("p")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Paragraph"
+                    >
+                      P
+                    </button>
+                    <button
+                      onClick={() => insertElement("h1")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 1"
+                    >
+                      <Heading1 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => insertElement("h2")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 2"
+                    >
+                      <Heading2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => insertElement("h3")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 3"
+                    >
+                      <Heading3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => insertElement("h4")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 4"
+                    >
+                      H4
+                    </button>
+                    <button
+                      onClick={() => insertElement("h5")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 5"
+                    >
+                      H5
+                    </button>
+                    <button
+                      onClick={() => insertElement("h6")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Heading 6"
+                    >
+                      H6
+                    </button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button onClick={() => formatText("insertUnorderedList")} className="p-2 rounded hover:bg-accent transition-colors" title="Bullet List"><List className="w-4 h-4" /></button>
-                    <button onClick={() => formatText("insertOrderedList")} className="p-2 rounded hover:bg-accent transition-colors" title="Numbered List"><ListOrdered className="w-4 h-4" /></button>
-                    <button onClick={() => insertElement("blockquote")} className="p-2 rounded hover:bg-accent transition-colors" title="Quote"><Quote className="w-4 h-4" /></button>
-                    <button onClick={() => insertElement("code")} className="p-2 rounded hover:bg-accent transition-colors" title="Code"><Code className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => formatText("insertUnorderedList")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Bullet List"
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => formatText("insertOrderedList")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Numbered List"
+                    >
+                      <ListOrdered className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => insertElement("blockquote")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Quote"
+                    >
+                      <Quote className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => insertElement("code")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Code"
+                    >
+                      <Code className="w-4 h-4" />
+                    </button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button onClick={() => formatText("justifyLeft")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Left"><AlignLeft className="w-4 h-4" /></button>
-                    <button onClick={() => formatText("justifyCenter")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Center"><AlignCenter className="w-4 h-4" /></button>
-                    <button onClick={() => formatText("justifyRight")} className="p-2 rounded hover:bg-accent transition-colors" title="Align Right"><AlignRight className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => formatText("justifyLeft")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Align Left"
+                    >
+                      <AlignLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => formatText("justifyCenter")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Align Center"
+                    >
+                      <AlignCenter className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => formatText("justifyRight")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Align Right"
+                    >
+                      <AlignRight className="w-4 h-4" />
+                    </button>
                   </div>
 
                   <div className="flex items-center space-x-1 border-r pr-4">
-                    <button onClick={() => insertElement("link")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Link">🔗</button>
-                    <button onClick={() => insertElement("image")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Image">🖼️</button>
-                    <button onClick={() => insertElement("video")} className="p-2 rounded hover:bg-accent transition-colors" title="Insert Video">🎬</button>
+                    <button
+                      onClick={() => insertElement("link")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Insert Link"
+                    >
+                      🔗
+                    </button>
+                    <button
+                      onClick={() => insertElement("image")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Insert Image"
+                    >
+                      🖼️
+                    </button>
+                    <button
+                      onClick={() => insertElement("video")}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Insert Video"
+                    >
+                      🎬
+                    </button>
                   </div>
 
                   <div className="relative">
-                    <button onClick={() => setShowColorPicker(!showColorPicker)} className="p-2 rounded hover:bg-accent transition-colors" title="Text Color"><Palette className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => setShowColorPicker(!showColorPicker)}
+                      className="p-2 rounded hover:bg-accent transition-colors"
+                      title="Text Color"
+                    >
+                      <Palette className="w-4 h-4" />
+                    </button>
                     <AnimatePresence>
                       {showColorPicker && (
-                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50">
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50"
+                        >
                           <input
                             type="color"
                             value={selectedColor}
-                            onChange={(e) => { setSelectedColor(e.target.value); formatText("foreColor", e.target.value); }}
+                            onChange={(e) => {
+                              setSelectedColor(e.target.value);
+                              formatText("foreColor", e.target.value);
+                            }}
                             className="w-full h-8 p-0 border-none cursor-pointer"
                           />
                         </motion.div>
@@ -539,7 +675,6 @@ const CreateDocumentForm: FC = () => {
                   </div>
                 </div>
               </motion.div>
-
             )}
           </AnimatePresence>
 
@@ -568,16 +703,17 @@ const CreateDocumentForm: FC = () => {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mt-6">
-          {templates && templates.map((template, index) => (
-            <motion.button
-              key={index}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleTemplateSelect(template)}
-              className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
-            >
-              <h3 className="font-semibold mt-2">{template.name}</h3>
-            </motion.button>
-          ))}
+          {templates &&
+            templates.map((template, index) => (
+              <motion.button
+                key={index}
+                whileHover={{ scale: 1.05 }}
+                onClick={() => handleTemplateSelect(template)}
+                className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
+              >
+                <h3 className="font-semibold mt-2">{template.name}</h3>
+              </motion.button>
+            ))}
         </div>
       </div>
     </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { FC, useState } from "react";
-import { Dialog, DialogContent} from "../ui/dialog";
+import { Dialog, DialogContent } from "../ui/dialog";
 
 type UploadDialogProps = {
   uploadDialogOpen: boolean;

@@ -49,7 +49,7 @@ const DashboardSidebar: FC = () => {
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const router = useRouter();
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
@@ -236,7 +236,7 @@ const DashboardSidebar: FC = () => {
         setOpen={setTemplateDialogOpen}
       />
 
-      <UploadDialog 
+      <UploadDialog
         uploadDialogOpen={uploadDialogOpen}
         setUploadDialogOpen={setUploadDialogOpen}
       />
@@ -347,7 +347,7 @@ const DashboardSidebar: FC = () => {
               icon={FileX2}
               label="My Uploaded Files"
               onClick={() => {
-                router.push("/files")
+                router.push("/files");
               }}
             />
             <SidebarButton
