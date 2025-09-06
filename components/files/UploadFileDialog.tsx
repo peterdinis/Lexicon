@@ -25,11 +25,9 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-
-    // Step 1: Get a short-lived upload URL
+    
     const uploadUrl = await generateUploadUrl();
 
-    // Step 2: Upload the file to the URL
     const response = await fetch(uploadUrl, {
       method: "POST",
       headers: {
@@ -43,10 +41,15 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
       setFileUrl(storageId);
       toast({
         title: "File was uploaded",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold text-base"
       })
-      // Optionally, save the storageId to your database here
     } else {
-      console.error("File upload failed");
+       toast({
+        title: "File was not uploaded",
+        duration: 2000,
+        className: "bg-red-800 text-white font-bold text-base"
+      })
     }
   };
 

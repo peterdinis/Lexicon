@@ -3,6 +3,8 @@
 import { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, X } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface FileItem {
   id: string;
@@ -20,6 +22,8 @@ const mockFiles: FileItem[] = [
 ];
 
 const FilesWrapper: FC = () => {
+    const files = useQuery(api.uploads.getFiles);
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <AnimatePresence>
@@ -27,9 +31,9 @@ const FilesWrapper: FC = () => {
           layout
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
         >
-          {mockFiles.map((file) => (
+          {files && files.map((file) => (
             <motion.div
-              key={file.id}
+              key={file._id}
               layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
