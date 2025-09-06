@@ -86,7 +86,12 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                   </DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="text-xs mt-3" onClick={handleEmptyTrash}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs mt-3"
+                onClick={handleEmptyTrash}
+              >
                 Empty Trash
               </Button>
             </div>

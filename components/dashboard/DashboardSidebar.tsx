@@ -14,6 +14,8 @@ import {
   Loader2,
   ArrowLeft,
   LayoutTemplate,
+  File,
+  FileX2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -36,6 +38,7 @@ import PagesItem from "../pages/PagesItem";
 import { useRouter } from "next/navigation";
 import TemplatesItem from "../templates/TemplateItem";
 import TemplateDialog from "../templates/TemplateDialog";
+import UploadDialog from "../files/UploadFileDialog";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -46,6 +49,7 @@ const DashboardSidebar: FC = () => {
   const [trashOpen, setTrashOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const router = useRouter();
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
@@ -232,6 +236,11 @@ const DashboardSidebar: FC = () => {
         setOpen={setTemplateDialogOpen}
       />
 
+      <UploadDialog
+        uploadDialogOpen={uploadDialogOpen}
+        setUploadDialogOpen={setUploadDialogOpen}
+      />
+
       {/* ---- Sidebar ---- */}
       <motion.aside
         initial={{ width: 240 }}
@@ -333,6 +342,18 @@ const DashboardSidebar: FC = () => {
               icon={Trash}
               label="Trash"
               onClick={() => setTrashOpen(true)}
+            />
+            <SidebarButton
+              icon={FileX2}
+              label="My Uploaded Files"
+              onClick={() => {
+                router.push("/files");
+              }}
+            />
+            <SidebarButton
+              icon={File}
+              label="Upload new file"
+              onClick={() => setUploadDialogOpen(true)}
             />
             <SidebarButton
               icon={ArrowLeft}
