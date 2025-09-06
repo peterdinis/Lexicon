@@ -1,3 +1,5 @@
+"use client";
+
 import { FC } from "react";
 import {
   DropdownMenu,
@@ -7,12 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import { Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PublishPageProps {
   onSaveDraft: () => void;
 }
 
 const PublishPage: FC<PublishPageProps> = ({ onSaveDraft }) => {
+  const { toast } = useToast();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -27,7 +31,15 @@ const PublishPage: FC<PublishPageProps> = ({ onSaveDraft }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={onSaveDraft}>Save Draft</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => alert("Publishing...")}>
+        <DropdownMenuItem
+          onClick={() => {
+            toast({
+              title: "Publishing page",
+              duration: 2000,
+              className: "bg-green-800 text-white font-bold text-xl",
+            });
+          }}
+        >
           Publish Now
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => alert("Schedule publishing")}>

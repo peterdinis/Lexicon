@@ -30,8 +30,7 @@ export default defineSchema({
   templates: defineTable({
     name: v.string(),
     content: v.string(),
-    userId: v.optional(v.string()),       
+    userId: v.optional(v.string()),
     isGlobal: v.optional(v.boolean()),
-  })
-    .index("by_user", ["userId"])
+  }).index("by_user", ["userId"]),
 });

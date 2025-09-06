@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
+import { useToast } from "@/hooks/use-toast";
 
 type TrashItem = {
   _id: string;
@@ -30,6 +31,7 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
   const [items, setItems] = useState<TrashItem[]>([]);
   const getAllTrashed = useQuery(api.trash.getAllTrashed);
   const bulkDelete = useMutation(api.trash.bulkDeleteTrashed);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (getAllTrashed) {
@@ -58,6 +60,11 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
   const handleEmptyTrash = async () => {
     await bulkDelete({});
     setItems([]);
+    toast({
+      title: "Trash was cleaned",
+      duration: 2000,
+      className: "bg-green-800 text-white font-bold",
+    });
   };
 
   return (
