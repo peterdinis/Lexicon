@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { toast } from "sonner"; // or your preferred toast library
+import { useToast } from "@/hooks/use-toast";
 
 type WorkspaceDialogProps = {
   workspaceOpen: boolean;
@@ -26,14 +26,18 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const { toast } = useToast();
   const createWorkspace = useMutation(api.workspaces.create);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("Workspace name is required");
+      toast({
+        title: "Name is required",
+        duration: 2000,
+        className: "bg-red-800 text-white font-bold text-base",
+      });
       return;
     }
 
@@ -45,19 +49,22 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
         description: description.trim() || undefined,
       });
 
-      toast.success("Workspace created successfully!");
+      toast({
+        title: "Workspace was created",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold text-base",
+      });
 
-      // Reset form and close dialog
       setName("");
       setDescription("");
       setWorkspaceOpen(false);
     } catch (error) {
       console.error("Failed to create workspace:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to create workspace. Please try again.",
-      );
+      toast({
+        title: "Failed to create workspace",
+        duration: 2000,
+        className: "bg-red-800 text-white font-bold text-base",
+      });
     } finally {
       setIsLoading(false);
     }
