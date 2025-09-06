@@ -76,7 +76,8 @@ const CreateDocumentForm: FC = () => {
     setShowBackgroundPicker(false);
   };
 
-  const handleTemplateSelect = (template: (typeof documentTemplates)[0]) => {
+  // TODO: Add custom type later
+  const handleTemplateSelect = (template: any) => {
     setDocumentTitle(template.title);
     setSelectedEmoji(template.emoji);
     setEditorContent(template.content);
@@ -556,6 +557,19 @@ const CreateDocumentForm: FC = () => {
             >
               <span className="text-2xl">{template.emoji}</span>
               <h3 className="font-semibold mt-2">{template.title}</h3>
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          {templates && templates.map((template, index) => (
+            <motion.button
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleTemplateSelect(template)}
+              className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
+            >
+              <h3 className="font-semibold mt-2">{template.name}</h3>
             </motion.button>
           ))}
         </div>
