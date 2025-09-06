@@ -17,6 +17,7 @@ import type * as pages from "../pages.js";
 import type * as search from "../search.js";
 import type * as templates from "../templates.js";
 import type * as trash from "../trash.js";
+import type * as uploads from "../uploads.js";
 import type * as workspaces from "../workspaces.js";
 
 /**
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   search: typeof search;
   templates: typeof templates;
   trash: typeof trash;
+  uploads: typeof uploads;
   workspaces: typeof workspaces;
 }>;
 export declare const api: FilterApi<
