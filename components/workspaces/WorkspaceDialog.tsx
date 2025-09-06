@@ -26,7 +26,7 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const {toast} = useToast()
+  const { toast } = useToast();
   const createWorkspace = useMutation(api.workspaces.create);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -36,8 +36,8 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
       toast({
         title: "Name is required",
         duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base"
-      })
+        className: "bg-red-800 text-white font-bold text-base",
+      });
       return;
     }
 
@@ -49,12 +49,12 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
         description: description.trim() || undefined,
       });
 
-     toast({
+      toast({
         title: "Workspace was created",
         duration: 2000,
-        className: "bg-green-800 text-white font-bold text-base"
-      })
-      
+        className: "bg-green-800 text-white font-bold text-base",
+      });
+
       setName("");
       setDescription("");
       setWorkspaceOpen(false);
@@ -63,8 +63,8 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
       toast({
         title: "Failed to create workspace",
         duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base"
-      })
+        className: "bg-red-800 text-white font-bold text-base",
+      });
     } finally {
       setIsLoading(false);
     }

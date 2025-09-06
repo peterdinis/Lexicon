@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { FC } from "react";
 import {
@@ -16,7 +16,7 @@ interface PublishPageProps {
 }
 
 const PublishPage: FC<PublishPageProps> = ({ onSaveDraft }) => {
-  const {toast} = useToast()
+  const { toast } = useToast();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,13 +31,15 @@ const PublishPage: FC<PublishPageProps> = ({ onSaveDraft }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={onSaveDraft}>Save Draft</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => {
-          toast({
-            title: "Publishing page", 
-            duration: 2000,
-            className: "bg-green-800 text-white font-bold text-xl"
-          })
-        }}>
+        <DropdownMenuItem
+          onClick={() => {
+            toast({
+              title: "Publishing page",
+              duration: 2000,
+              className: "bg-green-800 text-white font-bold text-xl",
+            });
+          }}
+        >
           Publish Now
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => alert("Schedule publishing")}>
