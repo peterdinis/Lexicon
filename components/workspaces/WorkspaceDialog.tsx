@@ -54,8 +54,7 @@ const WorkspaceDialog: FC<WorkspaceDialogProps> = ({
         duration: 2000,
         className: "bg-green-800 text-white font-bold text-base"
       })
-
-      // Reset form and close dialog
+      
       setName("");
       setDescription("");
       setWorkspaceOpen(false);
