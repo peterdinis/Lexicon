@@ -35,6 +35,7 @@ import SettingsDialog from "../settings/SettingsDialog";
 import PagesItem from "../pages/PagesItem";
 import { useRouter } from "next/navigation";
 import TemplatesItem from "../templates/TemplateItem";
+import TemplateDialog from "../templates/TemplateDialog";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -226,7 +227,10 @@ const DashboardSidebar: FC = () => {
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
       />
-      {/* template dialog môžeš doplniť tu */}
+      <TemplateDialog
+        open={templateDialogOpen}
+        setOpen={setTemplateDialogOpen}
+      />
 
       {/* ---- Sidebar ---- */}
       <motion.aside
