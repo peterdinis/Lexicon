@@ -2,20 +2,24 @@
 
 import { FC, useState } from "react";
 import {
-  ChevronsLeft,
-  ChevronsRight,
   PlusCircle,
   Search,
   Settings,
   Trash,
   User,
-  FileText,
-  Folder,
   Loader2,
-  ArrowLeft,
-  LayoutTemplate,
   File,
   FileX2,
+  Home,
+  BookOpen,
+  FileStack,
+  Sparkles,
+  Box,
+  Database,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,15 +39,23 @@ import SearchDialog from "../search/SearchDialog";
 import TrashDialog from "../trash/TrashDialog";
 import SettingsDialog from "../settings/SettingsDialog";
 import PagesItem from "../pages/PagesItem";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import TemplatesItem from "../templates/TemplateItem";
 import TemplateDialog from "../templates/TemplateDialog";
 import UploadDialog from "../files/UploadFileDialog";
+import { cn } from "@/lib/utils";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    workspaces: true,
+    pages: true,
+    templates: true,
+    files: true,
+  });
   const { user } = useUser();
   const { signOut } = useClerk();
+  const pathname = usePathname();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
@@ -58,43 +70,54 @@ const DashboardSidebar: FC = () => {
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
 
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const SidebarButton = ({
     icon: Icon,
     label,
     onClick,
     className = "",
     isActive = false,
+    showLabel = true,
   }: {
     icon: any;
     label: string;
     onClick?: () => void;
     className?: string;
     isActive?: boolean;
+    showLabel?: boolean;
   }) => {
     const button = (
       <button
         onClick={onClick}
-        className={`flex items-center justify-center ${
-          collapsed ? "w-12 h-12" : "justify-start space-x-3 px-3 py-2"
-        } text-sm transition-all duration-200 rounded-lg group relative ${
+        className={cn(
+          "flex items-center text-sm transition-all duration-200 rounded-lg group relative",
+          collapsed ? "w-12 h-10 justify-center" : "justify-start space-x-3 px-3 py-2 w-full",
           isActive
-            ? "bg-primary/10 text-primary border border-primary/20"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-        } ${className}`}
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+          className
+        )}
       >
         <Icon
-          className={`${
+          className={cn(
+            "flex-shrink-0 transition-all duration-200",
             collapsed ? "w-5 h-5" : "w-4 h-4"
-          } flex-shrink-0 transition-all duration-200`}
+          )}
         />
         <AnimatePresence>
-          {!collapsed && (
+          {!collapsed && showLabel && (
             <motion.span
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.15 }}
-              className="font-medium"
+              className="font-medium truncate text-sm"
             >
               {label}
             </motion.span>
@@ -119,7 +142,10 @@ const DashboardSidebar: FC = () => {
 
   const LoadingState = ({ message }: { message: string }) => (
     <div
-      className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}
+      className={cn(
+        "flex items-center gap-2 py-1",
+        collapsed ? "justify-center" : "px-3"
+      )}
     >
       <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
       <AnimatePresence>
@@ -145,7 +171,10 @@ const DashboardSidebar: FC = () => {
     icon: any;
   }) => (
     <div
-      className={`flex items-center gap-2 ${collapsed ? "justify-center" : "px-3"}`}
+      className={cn(
+        "flex items-center gap-2 py-2",
+        collapsed ? "justify-center" : "px-3"
+      )}
     >
       <Icon className="w-4 h-4 text-muted-foreground/60" />
       <AnimatePresence>
@@ -169,26 +198,40 @@ const DashboardSidebar: FC = () => {
     addTooltip,
     icon: Icon,
     count,
+    sectionKey,
   }: {
     title: string;
     onAdd?: () => void;
     addTooltip: string;
     icon: any;
     count?: number;
+    sectionKey: keyof typeof expandedSections;
   }) => (
     <div
-      className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}
+      className={cn(
+        "flex items-center py-2 group",
+        collapsed ? "justify-center" : "justify-between"
+      )}
     >
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.15 }}
-            className="flex items-center gap-2"
+      {collapsed ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center w-full">
+              <Icon className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="ml-2">
+            <p>{title}</p>
+            {count !== undefined && <p className="text-xs">{count} items</p>}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <>
+          <button 
+            className="flex items-center gap-2 flex-1"
+            onClick={() => toggleSection(sectionKey)}
           >
-            <Icon className="w-3 h-3 text-muted-foreground" />
+            <Icon className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
               {title}
             </span>
@@ -197,24 +240,31 @@ const DashboardSidebar: FC = () => {
                 {count}
               </span>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className={`${
-              collapsed ? "w-12 h-12" : "w-6 h-6"
-            } rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105`}
-            onClick={onAdd}
-          >
-            <PlusCircle className="w-4 h-4" />
+            <div className="ml-auto">
+              {expandedSections[sectionKey] ? (
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/60" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+              )}
+            </div>
           </button>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="ml-2">
-          <p>{addTooltip}</p>
-        </TooltipContent>
-      </Tooltip>
+          {onAdd && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
+                  onClick={onAdd}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>{addTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -235,7 +285,6 @@ const DashboardSidebar: FC = () => {
         open={templateDialogOpen}
         setOpen={setTemplateDialogOpen}
       />
-
       <UploadDialog
         uploadDialogOpen={uploadDialogOpen}
         setUploadDialogOpen={setUploadDialogOpen}
@@ -243,24 +292,24 @@ const DashboardSidebar: FC = () => {
 
       {/* ---- Sidebar ---- */}
       <motion.aside
-        initial={{ width: 240 }}
-        animate={{ width: collapsed ? 88 : 240 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="group/sidebar h-full bg-background/60 backdrop-blur-sm border-r border-border/60 sticky flex flex-col z-[99999] min-h-screen left-0 top-0 shadow-sm"
+        initial={{ width: 280 }}
+        animate={{ width: collapsed ? 64 : 280 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className="group/sidebar h-full bg-background/95 backdrop-blur-sm border-r border-border/40 flex flex-col z-[99999] min-h-screen left-0 top-0 shadow-sm sticky"
         style={{ overflow: "visible" }}
       >
         {/* Collapse toggle button */}
-        <div className="flex justify-end p-3">
+        <div className="flex justify-end p-3 pb-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setCollapsed(!collapsed)}
-                className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200 hover:scale-105"
+                className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200"
               >
                 {collapsed ? (
-                  <ChevronsRight className="w-5 h-5" />
+                  <PanelLeftOpen className="w-4 h-4" />
                 ) : (
-                  <ChevronsLeft className="w-5 h-5" />
+                  <PanelLeftClose className="w-4 h-4" />
                 )}
               </button>
             </TooltipTrigger>
@@ -271,21 +320,19 @@ const DashboardSidebar: FC = () => {
         </div>
 
         {/* Sidebar content */}
-        <div
-          className="flex flex-col flex-1 px-3 space-y-6 pb-3"
-          style={{ overflow: "visible" }}
-        >
+        <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
           {/* User section */}
           <div
-            className={`flex items-center ${
+            className={cn(
+              "flex items-center py-2",
               collapsed ? "justify-center" : "space-x-3"
-            } text-sm font-semibold`}
+            )}
           >
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center cursor-pointer">
-                    <User className="w-6 h-6 text-primary flex-shrink-0" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center cursor-pointer">
+                    <User className="w-5 h-5 text-primary flex-shrink-0" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="ml-2">
@@ -301,8 +348,8 @@ const DashboardSidebar: FC = () => {
               </Tooltip>
             ) : (
               <>
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-primary" />
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-primary" />
                 </div>
                 <AnimatePresence>
                   <motion.div
@@ -310,9 +357,9 @@ const DashboardSidebar: FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="truncate flex flex-col justify-center min-h-[40px]"
+                    className="truncate flex flex-col justify-center min-h-[36px]"
                   >
-                    <div className="text-foreground font-medium leading-tight">
+                    <div className="text-foreground font-medium leading-tight text-sm">
                       {user?.firstName + " " + user?.lastName}
                     </div>
                     <div className="text-xs text-muted-foreground leading-tight truncate">
@@ -332,171 +379,233 @@ const DashboardSidebar: FC = () => {
           </div>
 
           {/* Quick actions */}
-          <div className="space-y-2">
+          <div className="space-y-1">
+            <SidebarButton
+              icon={Home}
+              label="Home"
+              onClick={() => router.push("/")}
+              isActive={pathname === "/"}
+            />
             <SidebarButton
               icon={Search}
               label="Search"
               onClick={() => setSearchOpen(true)}
             />
             <SidebarButton
+              icon={BookOpen}
+              label="All Pages"
+              onClick={() => router.push("/pages")}
+              isActive={pathname === "/pages"}
+            />
+            <SidebarButton
               icon={Trash}
               label="Trash"
               onClick={() => setTrashOpen(true)}
             />
-            <SidebarButton
-              icon={FileX2}
-              label="My Uploaded Files"
-              onClick={() => {
-                router.push("/files");
-              }}
-            />
-            <SidebarButton
-              icon={File}
-              label="Upload new file"
-              onClick={() => setUploadDialogOpen(true)}
-            />
-            <SidebarButton
-              icon={ArrowLeft}
-              label="Go to Dashboard"
-              onClick={() => {
-                router.push("/dashboard");
-              }}
-            />
           </div>
 
           {/* Workspaces section */}
-          <div className="flex-1 space-y-3">
+          <div className="space-y-1">
             <SectionHeader
               title="Workspaces"
-              icon={Folder}
+              icon={Database}
               onAdd={() => setWorkspaceOpen(true)}
               addTooltip="Add workspace"
               count={workspaces?.length}
+              sectionKey="workspaces"
             />
-            <div className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-              {workspaces === undefined ? (
-                <LoadingState message="Loading workspaces..." />
-              ) : workspaces.length === 0 ? (
-                <EmptyState message="No workspaces yet" icon={Folder} />
-              ) : (
-                <motion.ul
-                  className="space-y-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+            <AnimatePresence>
+              {(!collapsed && expandedSections.workspaces) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="space-y-1 overflow-hidden"
                 >
-                  <AnimatePresence>
-                    {workspaces.map((workspace, i) => (
-                      <motion.div
-                        key={workspace._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ delay: i * 0.05, duration: 0.2 }}
-                      >
-                        <WorkspaceItem
-                          name={workspace.name}
-                          index={i}
-                          id={workspace._id as unknown as Id<"workspaces">}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.ul>
+                  {workspaces === undefined ? (
+                    <LoadingState message="Loading workspaces..." />
+                  ) : workspaces.length === 0 ? (
+                    <EmptyState message="No workspaces yet" icon={Database} />
+                  ) : (
+                    <motion.ul
+                      className="space-y-1"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AnimatePresence>
+                        {workspaces.map((workspace, i) => (
+                          <motion.div
+                            key={workspace._id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ delay: i * 0.05, duration: 0.2 }}
+                          >
+                            <WorkspaceItem
+                              name={workspace.name}
+                              index={i}
+                              id={workspace._id as unknown as Id<"workspaces">}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </motion.ul>
+                  )}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
 
           {/* Pages section */}
-          <div className="flex-1 space-y-3">
+          <div className="space-y-1">
             <SectionHeader
-              title="Pages"
-              icon={FileText}
+              title="Recent Pages"
+              icon={FileStack}
               onAdd={() => {
                 // TODO: Add new page action
               }}
               addTooltip="New Page"
               count={pages?.length}
+              sectionKey="pages"
             />
-            <div className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-              {pages === undefined ? (
-                <LoadingState message="Loading pages..." />
-              ) : pages.length === 0 ? (
-                <EmptyState message="No pages yet" icon={FileText} />
-              ) : (
-                <motion.ul
-                  className="space-y-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+            <AnimatePresence>
+              {(!collapsed && expandedSections.pages) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="space-y-1 overflow-hidden"
                 >
-                  <AnimatePresence>
-                    {pages.map((page, i) => (
-                      <motion.div
-                        key={page._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ delay: i * 0.05, duration: 0.2 }}
-                      >
-                        <PagesItem
-                          name={page.title}
-                          index={i}
-                          id={page._id as unknown as Id<"pages">}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.ul>
+                  {pages === undefined ? (
+                    <LoadingState message="Loading pages..." />
+                  ) : pages.length === 0 ? (
+                    <EmptyState message="No pages yet" icon={FileStack} />
+                  ) : (
+                    <motion.ul
+                      className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AnimatePresence>
+                        {pages.map((page, i) => (
+                          <motion.div
+                            key={page._id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ delay: i * 0.05, duration: 0.2 }}
+                          >
+                            <PagesItem
+                              name={page.title}
+                              index={i}
+                              id={page._id as unknown as Id<"pages">}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </motion.ul>
+                  )}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
 
           {/* Templates section */}
-          <div className="flex-1 space-y-3">
+          <div className="space-y-1">
             <SectionHeader
               title="Templates"
-              icon={LayoutTemplate}
-              onAdd={() => setTemplateDialogOpen(true)} // otvor dialog
+              icon={Sparkles}
+              onAdd={() => setTemplateDialogOpen(true)}
               addTooltip="New Template"
               count={templates?.length}
+              sectionKey="templates"
             />
-            <div className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-              {templates === undefined ? (
-                <LoadingState message="Loading templates..." />
-              ) : templates.length === 0 ? (
-                <EmptyState message="No templates yet" icon={LayoutTemplate} />
-              ) : (
-                <motion.ul
-                  className="space-y-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+            <AnimatePresence>
+              {(!collapsed && expandedSections.templates) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="space-y-1 overflow-hidden"
                 >
-                  <AnimatePresence>
-                    {templates.map((template, i) => (
-                      <motion.div
-                        key={template._id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ delay: i * 0.05, duration: 0.2 }}
-                      >
-                        <TemplatesItem
-                          name={template.name}
-                          index={i}
-                          id={template._id as unknown as Id<"templates">}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.ul>
+                  {templates === undefined ? (
+                    <LoadingState message="Loading templates..." />
+                  ) : templates.length === 0 ? (
+                    <EmptyState message="No templates yet" icon={Sparkles} />
+                  ) : (
+                    <motion.ul
+                      className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AnimatePresence>
+                        {templates.map((template, i) => (
+                          <motion.div
+                            key={template._id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ delay: i * 0.05, duration: 0.2 }}
+                          >
+                            <TemplatesItem
+                              name={template.name}
+                              index={i}
+                              id={template._id as unknown as Id<"templates">}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </motion.ul>
+                  )}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
+          </div>
+
+          {/* Files section */}
+          <div className="space-y-1">
+            <SectionHeader
+              title="Files"
+              icon={Box}
+              onAdd={() => setUploadDialogOpen(true)}
+              addTooltip="Upload File"
+              sectionKey="files"
+            />
+            <AnimatePresence>
+              {(!collapsed && expandedSections.files) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  <SidebarButton
+                    icon={FileX2}
+                    label="My Files"
+                    onClick={() => router.push("/files")}
+                    isActive={pathname === "/files"}
+                    showLabel={!collapsed}
+                  />
+                  <SidebarButton
+                    icon={File}
+                    label="Upload File"
+                    onClick={() => setUploadDialogOpen(true)}
+                    showLabel={!collapsed}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Footer actions */}
-          <div className="mt-auto pt-4 border-t border-border/60">
+          <div className="mt-auto pt-4 border-t border-border/40">
             <SidebarButton
               icon={Settings}
               label="Settings"
