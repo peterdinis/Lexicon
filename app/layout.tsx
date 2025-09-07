@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import {  Ubuntu } from "next/font/google";
+import { Ubuntu } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 
 const geistSans = Ubuntu({
-   subsets: ["latin-ext"],
-   weight: "500"
+  subsets: ["latin-ext"],
+  weight: "500",
 });
 
 export const metadata: Metadata = {
@@ -87,9 +87,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans} antialiased h-full dark:bg-[#1f1f1f]`}
-      >
+      <body className={`${geistSans} antialiased h-full dark:bg-[#1f1f1f]`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
