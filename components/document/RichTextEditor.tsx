@@ -45,7 +45,13 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
@@ -78,7 +84,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
       StarterKit,
       UnderlineExtension,
       TextAlign.configure({
-        types: ['heading', 'paragraph'],
+        types: ["heading", "paragraph"],
       }),
       SuperscriptExtension,
       SubscriptExtension,
@@ -86,20 +92,20 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-primary underline',
+          class: "text-primary underline",
         },
       }),
       ImageExtension.configure({
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full',
+          class: "rounded-lg max-w-full",
         },
       }),
       Color.configure({
-        types: ['textStyle'],
+        types: ["textStyle"],
       }),
       YoutubeExtension.configure({
         HTMLAttributes: {
-          class: 'rounded-lg',
+          class: "rounded-lg",
         },
       }),
       Placeholder.configure({
@@ -113,7 +119,8 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none dark:prose-invert max-w-none',
+        class:
+          "prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none dark:prose-invert max-w-none",
       },
     },
     immediatelyRender: false, // Explicitly set to false to avoid SSR issues
@@ -138,9 +145,11 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
   const addYoutubeVideo = () => {
     if (youtubeUrl && editor) {
       // Extract YouTube video ID from URL
-      const match = youtubeUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+      const match = youtubeUrl.match(
+        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+      );
       const videoId = match ? match[1] : null;
-      
+
       if (videoId) {
         editor.commands.setYoutubeVideo({
           src: `https://www.youtube.com/embed/${videoId}`,
@@ -176,13 +185,13 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
     return null;
   }
 
-  const ToolbarButton = ({ 
-    onClick, 
-    isActive = false, 
-    disabled = false, 
-    children, 
+  const ToolbarButton = ({
+    onClick,
+    isActive = false,
+    disabled = false,
+    children,
     title,
-    className 
+    className,
   }: {
     onClick: () => void;
     isActive?: boolean;
@@ -198,7 +207,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
         "p-2 rounded hover:bg-accent transition-colors",
         isActive && "bg-accent text-accent-foreground",
         disabled && "opacity-50 cursor-not-allowed",
-        className
+        className,
       )}
       title={title}
       type="button"
@@ -234,7 +243,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           <div className="flex items-center space-x-1 border-r pr-3 mr-2">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBold().run()}
-              isActive={editor.isActive('bold')}
+              isActive={editor.isActive("bold")}
               disabled={!editor.can().chain().focus().toggleBold().run()}
               title="Bold"
             >
@@ -242,7 +251,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              isActive={editor.isActive('italic')}
+              isActive={editor.isActive("italic")}
               disabled={!editor.can().chain().focus().toggleItalic().run()}
               title="Italic"
             >
@@ -250,14 +259,14 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleUnderline().run()}
-              isActive={editor.isActive('underline')}
+              isActive={editor.isActive("underline")}
               title="Underline"
             >
               <Underline className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleStrike().run()}
-              isActive={editor.isActive('strike')}
+              isActive={editor.isActive("strike")}
               disabled={!editor.can().chain().focus().toggleStrike().run()}
               title="Strikethrough"
             >
@@ -265,7 +274,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleHighlight().run()}
-              isActive={editor.isActive('highlight')}
+              isActive={editor.isActive("highlight")}
               title="Highlight"
             >
               <Highlighter className="w-4 h-4" />
@@ -276,28 +285,34 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           <div className="flex items-center space-x-1 border-r pr-3 mr-2">
             <ToolbarButton
               onClick={() => editor.chain().focus().setParagraph().run()}
-              isActive={editor.isActive('paragraph')}
+              isActive={editor.isActive("paragraph")}
               title="Paragraph"
             >
               <Type className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              isActive={editor.isActive('heading', { level: 1 })}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 1 })}
               title="Heading 1"
             >
               <Heading1 className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              isActive={editor.isActive('heading', { level: 2 })}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 2 })}
               title="Heading 2"
             >
               <Heading2 className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              isActive={editor.isActive('heading', { level: 3 })}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 3 })}
               title="Heading 3"
             >
               <Heading3 className="w-4 h-4" />
@@ -308,21 +323,21 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           <div className="flex items-center space-x-1 border-r pr-3 mr-2">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              isActive={editor.isActive('bulletList')}
+              isActive={editor.isActive("bulletList")}
               title="Bullet List"
             >
               <List className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              isActive={editor.isActive('orderedList')}
+              isActive={editor.isActive("orderedList")}
               title="Numbered List"
             >
               <ListOrdered className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              isActive={editor.isActive('blockquote')}
+              isActive={editor.isActive("blockquote")}
               title="Quote"
             >
               <Quote className="w-4 h-4" />
@@ -335,7 +350,7 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().setCodeBlock().run()}
-              isActive={editor.isActive('codeBlock')}
+              isActive={editor.isActive("codeBlock")}
               title="Code Block"
             >
               <Code className="w-4 h-4" />
@@ -345,29 +360,33 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           {/* Alignment */}
           <div className="flex items-center space-x-1 border-r pr-3 mr-2">
             <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('left').run()}
-              isActive={editor.isActive({ textAlign: 'left' })}
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              isActive={editor.isActive({ textAlign: "left" })}
               title="Align Left"
             >
               <AlignLeft className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('center').run()}
-              isActive={editor.isActive({ textAlign: 'center' })}
+              onClick={() =>
+                editor.chain().focus().setTextAlign("center").run()
+              }
+              isActive={editor.isActive({ textAlign: "center" })}
               title="Align Center"
             >
               <AlignCenter className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('right').run()}
-              isActive={editor.isActive({ textAlign: 'right' })}
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              isActive={editor.isActive({ textAlign: "right" })}
               title="Align Right"
             >
               <AlignRight className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-              isActive={editor.isActive({ textAlign: 'justify' })}
+              onClick={() =>
+                editor.chain().focus().setTextAlign("justify").run()
+              }
+              isActive={editor.isActive({ textAlign: "justify" })}
               title="Align Justify"
             >
               <AlignJustify className="w-4 h-4" />
@@ -378,14 +397,14 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           <div className="flex items-center space-x-1 border-r pr-3 mr-2">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleSuperscript().run()}
-              isActive={editor.isActive('superscript')}
+              isActive={editor.isActive("superscript")}
               title="Superscript"
             >
               <Superscript className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleSubscript().run()}
-              isActive={editor.isActive('subscript')}
+              isActive={editor.isActive("subscript")}
               title="Subscript"
             >
               <Subscript className="w-4 h-4" />
@@ -442,7 +461,10 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
               </DialogContent>
             </Dialog>
 
-            <Dialog open={showYoutubeDialog} onOpenChange={setShowYoutubeDialog}>
+            <Dialog
+              open={showYoutubeDialog}
+              onOpenChange={setShowYoutubeDialog}
+            >
               <DialogTrigger asChild>
                 <ToolbarButton
                   onClick={() => setShowYoutubeDialog(true)}
@@ -486,7 +508,9 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
                   >
                     <input
                       type="color"
-                      onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+                      onChange={(e) =>
+                        editor.chain().focus().setColor(e.target.value).run()
+                      }
                       className="w-full h-8 p-0 border-none cursor-pointer"
                     />
                     <Button

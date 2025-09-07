@@ -175,8 +175,8 @@
   }
 }
 
-
-html, body {
+html,
+body {
   overflow: auto; /* alebo scroll */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */

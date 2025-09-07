@@ -2,36 +2,36 @@
 
 import { FC, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  PlusCircle, 
-  FolderPlus, 
-  Search, 
-  BookOpen, 
+import {
+  PlusCircle,
+  FolderPlus,
+  Search,
+  BookOpen,
   Lightbulb,
   Brain,
   Notebook,
   ArrowRight,
   Star,
-  Zap
+  Zap,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
 
 const DashboardWrapper: FC = () => {
   const [currentTip, setCurrentTip] = useState(0);
-  
+
   const tips = [
     "Tip: Use templates to quickly create structured documents",
     "Tip: Organize related pages into workspaces for better productivity",
     "Tip: Use the search feature to quickly find your notes",
-    "Tip: Try different page formats for different types of content"
+    "Tip: Try different page formats for different types of content",
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTip((prev) => (prev + 1) % tips.length);
     }, 5000);
-    
+
     return () => clearInterval(interval);
   }, [tips.length]);
 
@@ -61,7 +61,7 @@ const DashboardWrapper: FC = () => {
             }}
           />
         ))}
-        
+
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
@@ -119,19 +119,19 @@ const DashboardWrapper: FC = () => {
           <div className="absolute top-2 left-8 w-1 h-1 bg-pink-500 rounded-full" />
           <div className="absolute top-8 left-2 w-1 h-1 bg-blue-500 rounded-full" />
         </div>
-        
+
         <div className="absolute top-0 right-0 w-16 h-16">
           <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full" />
           <div className="absolute top-2 right-8 w-1 h-1 bg-pink-500 rounded-full animate-pulse" />
           <div className="absolute top-8 right-2 w-1 h-1 bg-blue-500 rounded-full" />
         </div>
-        
+
         <div className="absolute bottom-0 left-0 w-16 h-16">
           <div className="absolute bottom-2 left-2 w-2 h-2 bg-primary rounded-full" />
           <div className="absolute bottom-2 left-8 w-1 h-1 bg-pink-500 rounded-full" />
           <div className="absolute bottom-8 left-2 w-1 h-1 bg-blue-500 rounded-full animate-pulse" />
         </div>
-        
+
         <div className="absolute bottom-0 right-0 w-16 h-16">
           <div className="absolute bottom-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping opacity-75" />
           <div className="absolute bottom-2 right-8 w-1 h-1 bg-pink-500 rounded-full" />
@@ -155,7 +155,7 @@ const DashboardWrapper: FC = () => {
               <Notebook className="w-8 h-8 text-white" />
             </motion.div>
           </div>
-          
+
           {/* Floating stars around icon */}
           {[...Array(3)].map((_, i) => (
             <div
@@ -195,7 +195,7 @@ const DashboardWrapper: FC = () => {
         </motion.p>
 
         {/* Animated tip */}
-        <motion.div 
+        <motion.div
           className="w-full bg-primary/5 rounded-xl p-3 border border-primary/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -285,7 +285,7 @@ const DashboardWrapper: FC = () => {
         </motion.div>
 
         {/* Footer with decorative element */}
-        <motion.div 
+        <motion.div
           className="pt-4 border-t border-border/40 w-full mt-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

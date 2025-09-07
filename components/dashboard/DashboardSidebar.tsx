@@ -71,9 +71,9 @@ const DashboardSidebar: FC = () => {
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
@@ -97,17 +97,19 @@ const DashboardSidebar: FC = () => {
         onClick={onClick}
         className={cn(
           "flex items-center text-sm transition-all duration-200 rounded-lg group relative",
-          collapsed ? "w-12 h-10 justify-center" : "justify-start space-x-3 px-3 py-2 w-full",
+          collapsed
+            ? "w-12 h-10 justify-center"
+            : "justify-start space-x-3 px-3 py-2 w-full",
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
-          className
+          className,
         )}
       >
         <Icon
           className={cn(
             "flex-shrink-0 transition-all duration-200",
-            collapsed ? "w-5 h-5" : "w-4 h-4"
+            collapsed ? "w-5 h-5" : "w-4 h-4",
           )}
         />
         <AnimatePresence>
@@ -144,7 +146,7 @@ const DashboardSidebar: FC = () => {
     <div
       className={cn(
         "flex items-center gap-2 py-1",
-        collapsed ? "justify-center" : "px-3"
+        collapsed ? "justify-center" : "px-3",
       )}
     >
       <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -173,7 +175,7 @@ const DashboardSidebar: FC = () => {
     <div
       className={cn(
         "flex items-center gap-2 py-2",
-        collapsed ? "justify-center" : "px-3"
+        collapsed ? "justify-center" : "px-3",
       )}
     >
       <Icon className="w-4 h-4 text-muted-foreground/60" />
@@ -210,7 +212,7 @@ const DashboardSidebar: FC = () => {
     <div
       className={cn(
         "flex items-center py-2 group",
-        collapsed ? "justify-center" : "justify-between"
+        collapsed ? "justify-center" : "justify-between",
       )}
     >
       {collapsed ? (
@@ -227,7 +229,7 @@ const DashboardSidebar: FC = () => {
         </Tooltip>
       ) : (
         <>
-          <button 
+          <button
             className="flex items-center gap-2 flex-1"
             onClick={() => toggleSection(sectionKey)}
           >
@@ -325,7 +327,7 @@ const DashboardSidebar: FC = () => {
           <div
             className={cn(
               "flex items-center py-2",
-              collapsed ? "justify-center" : "space-x-3"
+              collapsed ? "justify-center" : "space-x-3",
             )}
           >
             {collapsed ? (
@@ -415,7 +417,7 @@ const DashboardSidebar: FC = () => {
               sectionKey="workspaces"
             />
             <AnimatePresence>
-              {(!collapsed && expandedSections.workspaces) && (
+              {!collapsed && expandedSections.workspaces && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -471,7 +473,7 @@ const DashboardSidebar: FC = () => {
               sectionKey="pages"
             />
             <AnimatePresence>
-              {(!collapsed && expandedSections.pages) && (
+              {!collapsed && expandedSections.pages && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -525,7 +527,7 @@ const DashboardSidebar: FC = () => {
               sectionKey="templates"
             />
             <AnimatePresence>
-              {(!collapsed && expandedSections.templates) && (
+              {!collapsed && expandedSections.templates && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -578,7 +580,7 @@ const DashboardSidebar: FC = () => {
               sectionKey="files"
             />
             <AnimatePresence>
-              {(!collapsed && expandedSections.files) && (
+              {!collapsed && expandedSections.files && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
