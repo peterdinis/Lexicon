@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { formatISO } from "date-fns";
 
 export const createPage = mutation({
   args: {
@@ -16,6 +17,8 @@ export const createPage = mutation({
     isRestored: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const now = formatISO(new Date());
+
     const pageId = await ctx.db.insert("pages", {
       title: args.title,
       userId: args.userId,
@@ -28,6 +31,7 @@ export const createPage = mutation({
       workspaceId: args.workspaceId,
       isDeleted: args.isDeleted ?? false,
       isRestored: args.isRestored ?? false,
+      updatedAt: now,
     });
 
     return pageId;
@@ -89,6 +93,7 @@ export const updatePage = mutation({
       isPublished: args.isPublished ?? page.isPublished,
       isDeleted: args.isDeleted ?? page.isDeleted,
       isRestored: args.isRestored ?? page.isRestored,
+      updatedAt: formatISO(new Date()),
     });
 
     return await ctx.db.get(args.id);
@@ -101,7 +106,12 @@ export const moveToTrash = mutation({
     const page = await ctx.db.get(id);
     if (!page) throw new Error("Page not found");
 
-    await ctx.db.patch(id, { isDeleted: true, isRestored: false });
+    await ctx.db.patch(id, {
+      isDeleted: true,
+      isRestored: false,
+      updatedAt: formatISO(new Date()),
+    });
+
     return { success: true, message: "Page moved to trash" };
   },
 });
@@ -116,7 +126,12 @@ export const restorePage = mutation({
       throw new Error("Page is not in trash");
     }
 
-    await ctx.db.patch(id, { isDeleted: false, isRestored: true });
+    await ctx.db.patch(id, {
+      isDeleted: false,
+      isRestored: true,
+      updatedAt: formatISO(new Date()),
+    });
+
     return { success: true, message: "Page restored" };
   },
 });
@@ -140,6 +155,31 @@ export const publishPage = mutation({
 
     await ctx.db.patch(args.id, {
       isPublished: args.isPublished,
+      updatedAt: formatISO(new Date()),
+    });
+
+    return await ctx.db.get(args.id);
+  },
+});
+
+export const autoSavePage = mutation({
+  args: {
+    id: v.id("pages"),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    coverImage: v.optional(v.string()),
+    icon: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.get(args.id);
+    if (!page) throw new Error("Page not found");
+
+    await ctx.db.patch(args.id, {
+      title: args.title ?? page.title,
+      content: args.content ?? page.content,
+      coverImage: args.coverImage ?? page.coverImage,
+      icon: args.icon ?? page.icon,
+      updatedAt: formatISO(new Date()),
     });
 
     return await ctx.db.get(args.id);

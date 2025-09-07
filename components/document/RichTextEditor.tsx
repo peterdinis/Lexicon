@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useRef, useState } from "react";
+import { FC, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bold,
@@ -22,22 +22,47 @@ import { ScrollArea } from "../ui/scroll-area";
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
+  onAutoSave: (html: string) => void; // callback pre autoSave
+  autoSaveDelay?: number; // voliteľná dĺžka oneskorenia pred autoSave
 }
 
 export const RichTextEditor: FC<RichTextEditorProps> = ({
   content,
   onChange,
+  onAutoSave,
+  autoSaveDelay = 2000,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(true);
   const [selectedColor, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleEditorChange = () => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      onChange(html);
+
+      // AutoSave po prestaní písania
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => {
+        onAutoSave(html);
+      }, autoSaveDelay);
     }
   };
+
+  // AutoSave pri odchode zo stránky
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (editorRef.current) {
+        onAutoSave(editorRef.current.innerHTML);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [onAutoSave]);
 
   const formatText = (command: string, value?: string) => {
     document.execCommand(command, false, value);
