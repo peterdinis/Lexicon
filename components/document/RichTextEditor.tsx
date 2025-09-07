@@ -33,38 +33,38 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
   const [selectedColor, setSelectedColor] = useState("#000000");
   const [showColorPicker, setShowColorPicker] = useState(false);
 
-    // Sledovanie zmeny contentu zvonku
-    useEffect(() => {
-        if (editorRef.current && content !== editorRef.current.innerHTML) {
-            editorRef.current.innerHTML = content;
-        }
-    }, [content]);
+  // Sledovanie zmeny contentu zvonku
+  useEffect(() => {
+    if (editorRef.current && content !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = content;
+    }
+  }, [content]);
 
-    const handleEditorChange = () => {
-        if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-        }
-    };
+  const handleEditorChange = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
 
-    const formatText = (command: string, value?: string) => {
-        // Získanie aktuálnej pozície kurzora
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        const savedSelection = saveSelection(editorRef.current!);
-        
-        // Vykonanie príkazu
-        document.execCommand(command, false, value);
-        
-        // Obnovenie pozície kurzora
-        if (savedSelection) {
-            restoreSelection(editorRef.current!, savedSelection);
-        }
-        
-        editorRef.current?.focus();
-        handleEditorChange();
-    };
+  const formatText = (command: string, value?: string) => {
+    // Získanie aktuálnej pozície kurzora
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const savedSelection = saveSelection(editorRef.current!);
+    
+    // Vykonanie príkazu
+    document.execCommand(command, false, value);
+    
+    // Obnovenie pozície kurzora
+    if (savedSelection) {
+      restoreSelection(editorRef.current!, savedSelection);
+    }
+    
+    editorRef.current?.focus();
+    handleEditorChange();
+  };
 
   const insertElement = (
     elementType:
@@ -84,181 +84,183 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
     const selection = window.getSelection();
     if (!selection?.rangeCount || !editorRef.current) return;
 
-        const range = selection.getRangeAt(0);
-        let element: HTMLElement;
+    const range = selection.getRangeAt(0);
+    let element: HTMLElement;
 
-        // Uloženie aktuálnej pozície kurzora
-        const savedSelection = saveSelection(editorRef.current);
+    // Uloženie aktuálnej pozície kurzora
+    const savedSelection = saveSelection(editorRef.current);
 
-        switch (elementType) {
-            case "p":
-                element = document.createElement("p");
-                element.textContent = "Your paragraph text";
-                element.style.margin = "0.5rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h1":
-                element = document.createElement("h1");
-                element.textContent = "Heading 1";
-                element.style.fontSize = "2rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "1rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h2":
-                element = document.createElement("h2");
-                element.textContent = "Heading 2";
-                element.style.fontSize = "1.5rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "0.8rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h3":
-                element = document.createElement("h3");
-                element.textContent = "Heading 3";
-                element.style.fontSize = "1.2rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "0.6rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h4":
-                element = document.createElement("h4");
-                element.textContent = "Heading 4";
-                element.style.fontSize = "1rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "0.5rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h5":
-                element = document.createElement("h5");
-                element.textContent = "Heading 5";
-                element.style.fontSize = "0.875rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "0.4rem 0";
-                element.style.color = "inherit";
-                break;
-            case "h6":
-                element = document.createElement("h6");
-                element.textContent = "Heading 6";
-                element.style.fontSize = "0.75rem";
-                element.style.fontWeight = "bold";
-                element.style.margin = "0.3rem 0";
-                element.style.color = "inherit";
-                break;
-            case "blockquote":
-                element = document.createElement("blockquote");
-                element.textContent = "Quote text";
-                element.style.borderLeft = "4px solid #e5e7eb";
-                element.style.paddingLeft = "1rem";
-                element.style.margin = "1rem 0";
-                element.style.fontStyle = "italic";
-                element.style.color = "#6b7280";
-                break;
-            case "code":
-                element = document.createElement("pre");
-                const codeEl = document.createElement("code");
-                codeEl.textContent = "// your code here";
-                element.appendChild(codeEl);
-                element.style.margin = "1rem 0";
-                element.style.borderRadius = "4px";
-                element.style.background = "#1e1e1e";
-                element.style.padding = "1rem";
-                element.style.display = "block";
-                hljs.highlightElement(codeEl);
-                break;
-            case "link":
-                element = document.createElement("a");
-                element.setAttribute("href", "#");
-                element.textContent = "Link text";
-                element.setAttribute("target", "_blank");
-                element.style.color = "#3b82f6";
-                element.style.textDecoration = "underline";
-                break;
-            case "image":
-                element = document.createElement("img");
-                element.setAttribute("src", "https://via.placeholder.com/400x200");
-                element.setAttribute("alt", "Inserted Image");
-                element.style.maxWidth = "100%";
-                element.style.display = "block";
-                element.style.margin = "1rem 0";
-                break;
-            case "video":
-                element = document.createElement("iframe");
-                element.setAttribute("src", "https://www.youtube.com/embed/dQw4w9WgXcQ");
-                element.setAttribute("width", "560");
-                element.setAttribute("height", "315");
-                element.setAttribute("allowfullscreen", "true");
-                element.style.display = "block";
-                element.style.margin = "1rem 0";
-                break;
-            default:
-                return;
-        }
+    switch (elementType) {
+      case "p":
+        element = document.createElement("p");
+        element.textContent = "Your paragraph text";
+        element.style.margin = "0.5rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h1":
+        element = document.createElement("h1");
+        element.textContent = "Heading 1";
+        element.style.fontSize = "2rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "1rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h2":
+        element = document.createElement("h2");
+        element.textContent = "Heading 2";
+        element.style.fontSize = "1.5rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.8rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h3":
+        element = document.createElement("h3");
+        element.textContent = "Heading 3";
+        element.style.fontSize = "1.2rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.6rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h4":
+        element = document.createElement("h4");
+        element.textContent = "Heading 4";
+        element.style.fontSize = "1rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.5rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h5":
+        element = document.createElement("h5");
+        element.textContent = "Heading 5";
+        element.style.fontSize = "0.875rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.4rem 0";
+        element.style.color = "inherit";
+        break;
+      case "h6":
+        element = document.createElement("h6");
+        element.textContent = "Heading 6";
+        element.style.fontSize = "0.75rem";
+        element.style.fontWeight = "bold";
+        element.style.margin = "0.3rem 0";
+        element.style.color = "inherit";
+        break;
+      case "blockquote":
+        element = document.createElement("blockquote");
+        element.textContent = "Quote text";
+        element.style.borderLeft = "4px solid #e5e7eb";
+        element.style.paddingLeft = "1rem";
+        element.style.margin = "1rem 0";
+        element.style.fontStyle = "italic";
+        element.style.color = "#6b7280";
+        break;
+      case "code":
+        element = document.createElement("pre");
+        const codeEl = document.createElement("code");
+        codeEl.textContent = "// your code here";
+        element.appendChild(codeEl);
+        element.style.margin = "1rem 0";
+        element.style.borderRadius = "4px";
+        element.style.background = "#1e1e1e";
+        element.style.padding = "1rem";
+        element.style.display = "block";
+        hljs.highlightElement(codeEl);
+        break;
+      case "link":
+        element = document.createElement("a");
+        element.setAttribute("href", "#");
+        element.textContent = "Link text";
+        element.setAttribute("target", "_blank");
+        element.style.color = "#3b82f6";
+        element.style.textDecoration = "underline";
+        break;
+      case "image":
+        element = document.createElement("img");
+        element.setAttribute("src", "https://via.placeholder.com/400x200");
+        element.setAttribute("alt", "Inserted Image");
+        element.style.maxWidth = "100%";
+        element.style.display = "block";
+        element.style.margin = "1rem 0";
+        break;
+      case "video":
+        element = document.createElement("iframe");
+        element.setAttribute("src", "https://www.youtube.com/embed/dQw4w9WgXcQ");
+        element.setAttribute("width", "560");
+        element.setAttribute("height", "315");
+        element.setAttribute("allowfullscreen", "true");
+        element.style.display = "block";
+        element.style.margin = "1rem 0";
+        break;
+      default:
+        return;
+    }
 
-        range.deleteContents();
-        range.insertNode(element);
-        
-        // Obnovenie pozície kurzora
-        if (savedSelection) {
-            restoreSelection(editorRef.current, savedSelection);
-        }
-        
-        handleEditorChange();
+    range.deleteContents();
+    range.insertNode(element);
+    
+    // Obnovenie pozície kurzora
+    if (savedSelection) {
+      restoreSelection(editorRef.current, savedSelection);
+    }
+    
+    handleEditorChange();
+  };
+
+  console.log("C", content)
+
+  // Funkcie pre ukladanie a obnovovanie pozície kurzora
+  const saveSelection = (containerEl: HTMLElement) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    
+    const range = selection.getRangeAt(0);
+    const preSelectionRange = range.cloneRange();
+    preSelectionRange.selectNodeContents(containerEl);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
+    
+    return {
+      start: preSelectionRange.toString().length,
+      end: preSelectionRange.toString().length + range.toString().length
     };
+  };
 
-    // Funkcie pre ukladanie a obnovovanie pozície kurzora
-    const saveSelection = (containerEl: HTMLElement) => {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return null;
-        
-        const range = selection.getRangeAt(0);
-        const preSelectionRange = range.cloneRange();
-        preSelectionRange.selectNodeContents(containerEl);
-        preSelectionRange.setEnd(range.startContainer, range.startOffset);
-        
-        return {
-            start: preSelectionRange.toString().length,
-            end: preSelectionRange.toString().length + range.toString().length
-        };
-    };
-
-    const restoreSelection = (containerEl: HTMLElement, savedSel: { start: number; end: number }) => {
-        const selection = window.getSelection();
-        if (!selection) return;
-        
-        let charIndex = 0;
-        const range = document.createRange();
-        range.setStart(containerEl, 0);
-        range.collapse(true);
-        
-        const nodeStack: [Node, boolean][] = [[containerEl, false]];
-        let node: Node | undefined;
-        let foundStart = false;
-        let stop = false;
-        
-        while (!stop && (node = nodeStack.pop()?.[0])) {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const nextCharIndex = charIndex + (node.textContent?.length || 0);
-                if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
-                    range.setStart(node, savedSel.start - charIndex);
-                    foundStart = true;
-                }
-                if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
-                    range.setEnd(node, savedSel.end - charIndex);
-                    stop = true;
-                }
-                charIndex = nextCharIndex;
-            } else {
-                const children = node.childNodes;
-                for (let i = children.length - 1; i >= 0; i--) {
-                    nodeStack.push([children[i], false]);
-                }
-            }
+  const restoreSelection = (containerEl: HTMLElement, savedSel: { start: number; end: number }) => {
+    const selection = window.getSelection();
+    if (!selection) return;
+    
+    let charIndex = 0;
+    const range = document.createRange();
+    range.setStart(containerEl, 0);
+    range.collapse(true);
+    
+    const nodeStack: [Node, boolean][] = [[containerEl, false]];
+    let node: Node | undefined;
+    let foundStart = false;
+    let stop = false;
+    
+    while (!stop && (node = nodeStack.pop()?.[0])) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const nextCharIndex = charIndex + (node.textContent?.length || 0);
+        if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
+          range.setStart(node, savedSel.start - charIndex);
+          foundStart = true;
         }
-        
-        selection.removeAllRanges();
-        selection.addRange(range);
-    };
+        if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
+          range.setEnd(node, savedSel.end - charIndex);
+          stop = true;
+        }
+        charIndex = nextCharIndex;
+      } else {
+        const children = node.childNodes;
+        for (let i = children.length - 1; i >= 0; i--) {
+          nodeStack.push([children[i], false]);
+        }
+      }
+    }
+    
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
 
   return (
     <div>
@@ -412,18 +414,17 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
         )}
       </AnimatePresence>
 
-            <ScrollArea>
-                <div
-                    ref={editorRef}
-                    onInput={handleEditorChange}
-                    onBlur={handleEditorChange}
-                    contentEditable
-                    dangerouslySetInnerHTML={{ __html: content }}
-                    className="min-h-[300px] p-6 focus:outline-none bg-transparent"
-                    suppressContentEditableWarning={true}
-                    style={{ direction: "revert" }}
-                />
-            </ScrollArea>
-        </div>
-    );
+      <ScrollArea>
+        <div
+          ref={editorRef}
+          onInput={handleEditorChange}
+          onBlur={handleEditorChange}
+          contentEditable
+          dangerouslySetInnerHTML={{ __html: content }}
+          className="min-h-[300px] p-6 focus:outline-none bg-transparent"
+          suppressContentEditableWarning={true}
+        />
+      </ScrollArea>
+    </div>
+  );
 };
