@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef, ChangeEvent } from "react";
+import { FC, useState, useRef, ChangeEvent, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Image,
@@ -15,15 +15,15 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { useUser } from "@clerk/clerk-react";
 import { api } from "@/convex/_generated/api";
-import { documentTemplates } from "../templates/documentTemplates";
 import { EmojiPicker } from "./EmojiPicker";
 import { backgroundImages } from "./background-images";
 import { useRouter } from "next/navigation";
 import PublishPage from "./PublishPage";
 import { useToast } from "@/hooks/use-toast";
-import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 import { RichTextEditor } from "./RichTextEditor";
+
+const AUTO_SAVE_INTERVAL = 5000; // 5 sekúnd
 
 const CreateDocumentForm: FC = () => {
   const [documentTitle, setDocumentTitle] = useState("");
@@ -42,6 +42,17 @@ const CreateDocumentForm: FC = () => {
     userId: user?.id!,
   });
 
+  // AUTO SAVE
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (editorContent) {
+        handleSaveDocument(true); // true = autosave
+      }
+    }, AUTO_SAVE_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [editorContent]);
+
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -54,6 +65,18 @@ const CreateDocumentForm: FC = () => {
     }
   };
 
+  const fixedEditorContent = useMemo(() => {
+    // odstráň HTML značky a entity
+    const plainText = editorContent
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ");
+
+    return plainText
+      .split(/\s+/) // rozdelí podľa medzier
+      .map((word) => word.split("").reverse().join("")) // otočí každé slovo
+      .join(" "); // znova spojí s medzerami
+  }, [editorContent]);
+
   const handleRandomBackground = () => {
     const width = 1920;
     const height = 1080;
@@ -64,21 +87,25 @@ const CreateDocumentForm: FC = () => {
   };
 
   const handleTemplateSelect = (template: any) => {
-    setDocumentTitle(template.title);
-    setSelectedEmoji(template.emoji);
-    setEditorContent(template.content);
+    setDocumentTitle(template.title || template.name);
+    setSelectedEmoji(template.emoji || "📝");
+    const content = template.content || "";
+    setEditorContent(content);
     if (editorRef.current) {
-      editorRef.current.innerHTML = template.content;
+      editorRef.current.innerHTML = content;
+      editorRef.current.style.direction = "ltr"; // LTR aj tu
     }
   };
 
-  const handleSaveDocument = async () => {
+  const handleSaveDocument = async (isAutoSave = false) => {
     if (!user) {
-      toast({
-        title: "You must be logged to save document",
-        duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base",
-      });
+      if (!isAutoSave) {
+        toast({
+          title: "You must be logged in to save document",
+          duration: 2000,
+          className: "bg-red-800 text-white font-bold text-base",
+        });
+      }
       return;
     }
 
@@ -94,18 +121,22 @@ const CreateDocumentForm: FC = () => {
         isPublished: false,
         workspaceId: undefined,
       });
-      toast({
-        title: "New document was created",
-        duration: 2000,
-        className: "bg-green-800 text-white font-bold text-base",
-      });
+      if (!isAutoSave) {
+        toast({
+          title: "New document was created",
+          duration: 2000,
+          className: "bg-green-800 text-white font-bold text-base",
+        });
+      }
     } catch (err) {
       console.error("Error saving document:", err);
-      toast({
-        title: "New document was not created",
-        duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base",
-      });
+      if (!isAutoSave) {
+        toast({
+          title: "New document was not created",
+          duration: 2000,
+          className: "bg-red-800 text-white font-bold text-base",
+        });
+      }
     }
   };
 
@@ -178,7 +209,7 @@ const CreateDocumentForm: FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleSaveDocument}
+                onClick={() => handleSaveDocument(false)}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
@@ -296,53 +327,40 @@ const CreateDocumentForm: FC = () => {
               value={documentTitle}
               onChange={(e) => setDocumentTitle(e.target.value)}
               placeholder="Untitled Page"
-              className="w-full text-3xl font-bold bg-transparent border-none outline-none placeholder-muted-foreground"
+              className="w-full text-4xl font-bold bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
             />
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-background/95 backdrop-blur-sm rounded-xl border overflow-hidden mb-6"
+          >
+            <RichTextEditor
+              content={fixedEditorContent}
+              onChange={(html) => setEditorContent(html)}
+            />
+          </motion.div>
+
+          {templates && templates.length > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {templates.map((template) => (
+                <motion.button
+                  key={template._id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleTemplateSelect(template)}
+                  className="border rounded-lg p-3 text-left hover:bg-accent transition-colors"
+                >
+                  <div className="text-2xl">{template.name || "📝"}</div>
+                  <div className="mt-2 font-bold">{template.content}</div>
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
       </motion.div>
-
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-background/95 backdrop-blur-sm rounded-xl border overflow-hidden mb-6"
-        >
-          <RichTextEditor
-            content={editorContent}
-            onChange={(html) => setEditorContent(html)}
-          />
-        </motion.div>
-
-        <div className="grid grid-cols-3 gap-4">
-          {documentTemplates.map((template, index) => (
-            <motion.button
-              key={index}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleTemplateSelect(template)}
-              className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
-            >
-              <span className="text-2xl">{template.emoji}</span>
-              <h3 className="font-semibold mt-2">{template.title}</h3>
-            </motion.button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          {templates &&
-            templates.map((template, index) => (
-              <motion.button
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                onClick={() => handleTemplateSelect(template)}
-                className="p-4 border rounded-lg text-left hover:bg-accent transition-colors"
-              >
-                <h3 className="font-semibold mt-2">{template.name}</h3>
-              </motion.button>
-            ))}
-        </div>
-      </div>
     </motion.div>
   );
 };
