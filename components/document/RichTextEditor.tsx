@@ -3,32 +3,35 @@
 import { FC, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Bold,
-    Italic,
-    Underline,
-    List,
-    ListOrdered,
-    Quote,
-    Code,
-    Palette,
-    Heading1,
-    Heading2,
-    Heading3,
+  Bold,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Palette,
+  Heading1,
+  Heading2,
+  Heading3,
 } from "lucide-react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface RichTextEditorProps {
-    content: string;
-    onChange: (html: string) => void;
+  content: string;
+  onChange: (html: string) => void;
 }
 
-export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) => {
-    const editorRef = useRef<HTMLDivElement>(null);
-    const [showToolbar, setShowToolbar] = useState(true);
-    const [selectedColor, setSelectedColor] = useState("#000000");
-    const [showColorPicker, setShowColorPicker] = useState(false);
+export const RichTextEditor: FC<RichTextEditorProps> = ({
+  content,
+  onChange,
+}) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [showToolbar, setShowToolbar] = useState(true);
+  const [selectedColor, setSelectedColor] = useState("#000000");
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
     // Sledovanie zmeny contentu zvonku
     useEffect(() => {
@@ -63,23 +66,23 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
         handleEditorChange();
     };
 
-    const insertElement = (
-        elementType:
-            | "p"
-            | "h1"
-            | "h2"
-            | "h3"
-            | "h4"
-            | "h5"
-            | "h6"
-            | "blockquote"
-            | "code"
-            | "link"
-            | "image"
-            | "video",
-    ) => {
-        const selection = window.getSelection();
-        if (!selection?.rangeCount || !editorRef.current) return;
+  const insertElement = (
+    elementType:
+      | "p"
+      | "h1"
+      | "h2"
+      | "h3"
+      | "h4"
+      | "h5"
+      | "h6"
+      | "blockquote"
+      | "code"
+      | "link"
+      | "image"
+      | "video",
+  ) => {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount || !editorRef.current) return;
 
         const range = selection.getRangeAt(0);
         let element: HTMLElement;
@@ -257,73 +260,157 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
         selection.addRange(range);
     };
 
-    return (
-        <div>
-            <AnimatePresence>
-                {showToolbar && (
+  return (
+    <div>
+      <AnimatePresence>
+        {showToolbar && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b bg-background/50 backdrop-blur-sm p-4"
+          >
+            <div className="flex items-center flex-wrap gap-2">
+              <div className="flex items-center space-x-1 border-r pr-4">
+                <button
+                  onClick={() => formatText("bold")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => formatText("italic")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => formatText("underline")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Underline"
+                >
+                  <Underline className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-1 border-r pr-4">
+                <button
+                  onClick={() => insertElement("p")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Paragraph"
+                >
+                  P
+                </button>
+                <button
+                  onClick={() => insertElement("h1")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 1"
+                >
+                  <Heading1 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertElement("h2")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 2"
+                >
+                  <Heading2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertElement("h3")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 3"
+                >
+                  <Heading3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertElement("h4")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 4"
+                >
+                  H4
+                </button>
+                <button
+                  onClick={() => insertElement("h5")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 5"
+                >
+                  H5
+                </button>
+                <button
+                  onClick={() => insertElement("h6")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Heading 6"
+                >
+                  H6
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-1 border-r pr-4">
+                <button
+                  onClick={() => formatText("insertUnorderedList")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Bullet List"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => formatText("insertOrderedList")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Numbered List"
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertElement("blockquote")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Quote"
+                >
+                  <Quote className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => insertElement("code")}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Code"
+                >
+                  <Code className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="p-2 rounded hover:bg-accent"
+                  title="Text Color"
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
+                <AnimatePresence>
+                  {showColorPicker && (
                     <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="border-b bg-background/50 backdrop-blur-sm p-4"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50"
                     >
-                        <div className="flex items-center flex-wrap gap-2">
-                            <div className="flex items-center space-x-1 border-r pr-4">
-                                <button onClick={() => formatText("bold")} className="p-2 rounded hover:bg-accent" title="Bold">
-                                    <Bold className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => formatText("italic")} className="p-2 rounded hover:bg-accent" title="Italic">
-                                    <Italic className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => formatText("underline")} className="p-2 rounded hover:bg-accent" title="Underline">
-                                    <Underline className="w-4 h-4" />
-                                </button>
-                            </div>
-
-                            <div className="flex items-center space-x-1 border-r pr-4">
-                                <button onClick={() => insertElement("p")} className="p-2 rounded hover:bg-accent" title="Paragraph">P</button>
-                                <button onClick={() => insertElement("h1")} className="p-2 rounded hover:bg-accent" title="Heading 1"><Heading1 className="w-4 h-4" /></button>
-                                <button onClick={() => insertElement("h2")} className="p-2 rounded hover:bg-accent" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
-                                <button onClick={() => insertElement("h3")} className="p-2 rounded hover:bg-accent" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
-                                <button onClick={() => insertElement("h4")} className="p-2 rounded hover:bg-accent" title="Heading 4">H4</button>
-                                <button onClick={() => insertElement("h5")} className="p-2 rounded hover:bg-accent" title="Heading 5">H5</button>
-                                <button onClick={() => insertElement("h6")} className="p-2 rounded hover:bg-accent" title="Heading 6">H6</button>
-                            </div>
-
-                            <div className="flex items-center space-x-1 border-r pr-4">
-                                <button onClick={() => formatText("insertUnorderedList")} className="p-2 rounded hover:bg-accent" title="Bullet List"><List className="w-4 h-4" /></button>
-                                <button onClick={() => formatText("insertOrderedList")} className="p-2 rounded hover:bg-accent" title="Numbered List"><ListOrdered className="w-4 h-4" /></button>
-                                <button onClick={() => insertElement("blockquote")} className="p-2 rounded hover:bg-accent" title="Quote"><Quote className="w-4 h-4" /></button>
-                                <button onClick={() => insertElement("code")} className="p-2 rounded hover:bg-accent" title="Code"><Code className="w-4 h-4" /></button>
-                            </div>
-
-                            <div className="relative">
-                                <button onClick={() => setShowColorPicker(!showColorPicker)} className="p-2 rounded hover:bg-accent" title="Text Color"><Palette className="w-4 h-4" /></button>
-                                <AnimatePresence>
-                                    {showColorPicker && (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.9 }}
-                                            className="absolute top-full mt-2 w-40 p-2 bg-popover border rounded-lg shadow-lg z-50"
-                                        >
-                                            <input
-                                                type="color"
-                                                value={selectedColor}
-                                                onChange={(e) => {
-                                                    setSelectedColor(e.target.value);
-                                                    formatText("foreColor", e.target.value);
-                                                }}
-                                                className="w-full h-8 p-0 border-none cursor-pointer"
-                                            />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
+                      <input
+                        type="color"
+                        value={selectedColor}
+                        onChange={(e) => {
+                          setSelectedColor(e.target.value);
+                          formatText("foreColor", e.target.value);
+                        }}
+                        className="w-full h-8 p-0 border-none cursor-pointer"
+                      />
                     </motion.div>
-                )}
-            </AnimatePresence>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
             <ScrollArea>
                 <div
