@@ -22,15 +22,11 @@ import { ScrollArea } from "../ui/scroll-area";
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
-  onAutoSave: (html: string) => void; // callback pre autoSave
-  autoSaveDelay?: number; // voliteľná dĺžka oneskorenia pred autoSave
 }
 
 export const RichTextEditor: FC<RichTextEditorProps> = ({
   content,
   onChange,
-  onAutoSave,
-  autoSaveDelay = 2000,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(true);
@@ -42,27 +38,8 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
       onChange(html);
-
-      // AutoSave po prestaní písania
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-      saveTimeout.current = setTimeout(() => {
-        onAutoSave(html);
-      }, autoSaveDelay);
     }
   };
-
-  // AutoSave pri odchode zo stránky
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (editorRef.current) {
-        onAutoSave(editorRef.current.innerHTML);
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [onAutoSave]);
 
   const formatText = (command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -82,88 +59,49 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
       | "code"
       | "link"
       | "image"
-      | "video",
+      | "video"
   ) => {
     const selection = window.getSelection();
     if (!selection?.rangeCount || !editorRef.current) return;
 
     const range = selection.getRangeAt(0);
-    let element: any;
+    let element: any
 
     switch (elementType) {
       case "p":
         element = document.createElement("p");
         element.textContent = "Your paragraph text";
-        element.style.margin = "0.5rem 0";
-        element.style.color = "inherit";
         break;
       case "h1":
         element = document.createElement("h1");
         element.textContent = "Heading 1";
         element.style.fontSize = "2rem";
         element.style.fontWeight = "bold";
-        element.style.margin = "1rem 0";
-        element.style.color = "inherit";
         break;
       case "h2":
         element = document.createElement("h2");
         element.textContent = "Heading 2";
         element.style.fontSize = "1.5rem";
         element.style.fontWeight = "bold";
-        element.style.margin = "0.8rem 0";
-        element.style.color = "inherit";
         break;
       case "h3":
         element = document.createElement("h3");
         element.textContent = "Heading 3";
         element.style.fontSize = "1.2rem";
         element.style.fontWeight = "bold";
-        element.style.margin = "0.6rem 0";
-        element.style.color = "inherit";
-        break;
-      case "h4":
-        element = document.createElement("h4");
-        element.textContent = "Heading 4";
-        element.style.fontSize = "1rem";
-        element.style.fontWeight = "bold";
-        element.style.margin = "0.5rem 0";
-        element.style.color = "inherit";
-        break;
-      case "h5":
-        element = document.createElement("h5");
-        element.textContent = "Heading 5";
-        element.style.fontSize = "0.875rem";
-        element.style.fontWeight = "bold";
-        element.style.margin = "0.4rem 0";
-        element.style.color = "inherit";
-        break;
-      case "h6":
-        element = document.createElement("h6");
-        element.textContent = "Heading 6";
-        element.style.fontSize = "0.75rem";
-        element.style.fontWeight = "bold";
-        element.style.margin = "0.3rem 0";
-        element.style.color = "inherit";
         break;
       case "blockquote":
         element = document.createElement("blockquote");
         element.textContent = "Quote text";
         element.style.borderLeft = "4px solid #e5e7eb";
         element.style.paddingLeft = "1rem";
-        element.style.margin = "1rem 0";
         element.style.fontStyle = "italic";
-        element.style.color = "#6b7280";
         break;
       case "code":
         element = document.createElement("pre");
         const codeEl = document.createElement("code");
         codeEl.textContent = "// your code here";
         element.appendChild(codeEl);
-        element.style.margin = "1rem 0";
-        element.style.borderRadius = "4px";
-        element.style.background = "#1e1e1e";
-        element.style.padding = "1rem";
-        element.style.display = "block";
         hljs.highlightElement(codeEl);
         break;
       case "link":
@@ -171,8 +109,6 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
         element.href = "#";
         element.textContent = "Link text";
         (element as HTMLAnchorElement).target = "_blank";
-        element.style.color = "#3b82f6";
-        element.style.textDecoration = "underline";
         break;
       case "image":
         element = document.createElement("img");
@@ -180,8 +116,6 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           "https://via.placeholder.com/400x200";
         (element as HTMLImageElement).alt = "Inserted Image";
         element.style.maxWidth = "100%";
-        element.style.display = "block";
-        element.style.margin = "1rem 0";
         break;
       case "video":
         element = document.createElement("iframe");
@@ -190,18 +124,18 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
         (element as HTMLIFrameElement).width = "560";
         (element as HTMLIFrameElement).height = "315";
         (element as HTMLIFrameElement).allowFullscreen = true;
-        element.style.display = "block";
-        element.style.margin = "1rem 0";
         break;
       default:
         return;
     }
 
-    range.deleteContents();
-    range.insertNode(element);
-    range.selectNodeContents(element);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    if (element) {
+      range.deleteContents();
+      range.insertNode(element);
+      range.selectNodeContents(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   };
 
   return (
@@ -267,27 +201,6 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
                   title="Heading 3"
                 >
                   <Heading3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => insertElement("h4")}
-                  className="p-2 rounded hover:bg-accent"
-                  title="Heading 4"
-                >
-                  H4
-                </button>
-                <button
-                  onClick={() => insertElement("h5")}
-                  className="p-2 rounded hover:bg-accent"
-                  title="Heading 5"
-                >
-                  H5
-                </button>
-                <button
-                  onClick={() => insertElement("h6")}
-                  className="p-2 rounded hover:bg-accent"
-                  title="Heading 6"
-                >
-                  H6
                 </button>
               </div>
 
@@ -361,9 +274,16 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           ref={editorRef}
           onInput={handleEditorChange}
           contentEditable
-          dangerouslySetInnerHTML={{ __html: content }}
           className="min-h-[300px] p-6 focus:outline-none bg-transparent"
-        />
+          style={{
+            textAlign: "left",
+            direction: "ltr",
+            unicodeBidi: "normal",
+            writingMode: "horizontal-tb",
+          }}
+        >
+          {content}
+        </div>
       </ScrollArea>
     </div>
   );
