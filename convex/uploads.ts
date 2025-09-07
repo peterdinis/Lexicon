@@ -9,11 +9,16 @@ export const generateUploadUrl = mutation({
 export const getFiles = query({
   handler: async (ctx) => {
     const files = await ctx.db.system.query("_storage").collect();
-    return files.map(async (file) => ({
-      id: file._id,
-      size: file.size,
-      contentType: file.contentType,
-      url: await ctx.storage.getUrl(file._id),
-    }));
+
+    const result = await Promise.all(
+      files.map(async (file) => ({
+        id: file._id,
+        size: file.size,
+        contentType: file.contentType,
+        url: await ctx.storage.getUrl(file._id),
+      })),
+    );
+
+    return result;
   },
 });
