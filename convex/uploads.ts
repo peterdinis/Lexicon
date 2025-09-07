@@ -82,10 +82,10 @@ export const deleteFile = mutation({
 
     // Odstránenie metadát súboru
     await ctx.db.delete(args.fileId);
-    
+
     // Odstránenie súboru z úložiska
     await ctx.storage.delete(args.storageId);
-    
+
     return { success: true };
   },
 });

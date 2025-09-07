@@ -14,7 +14,11 @@ const FilesWrapper: FC = () => {
   const deleteFile = useMutation(api.uploads.deleteFile);
   const { toast } = useToast();
 
-  const handleDeleteFile = async (fileId: any, storageId: any, fileName: string) => {
+  const handleDeleteFile = async (
+    fileId: any,
+    storageId: any,
+    fileName: string,
+  ) => {
     try {
       await deleteFile({ fileId, storageId });
       toast({
@@ -62,7 +66,7 @@ const FilesWrapper: FC = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <h2 className="text-2xl font-bold mb-6">Your Files</h2>
-      
+
       <AnimatePresence>
         {files && files.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
@@ -94,14 +98,21 @@ const FilesWrapper: FC = () => {
                   </div>
 
                   {/* File Name */}
-                  <div className="text-sm font-medium mb-2 text-center truncate w-full" title={file.name}>
+                  <div
+                    className="text-sm font-medium mb-2 text-center truncate w-full"
+                    title={file.name}
+                  >
                     {file.name}
                   </div>
 
                   {/* File Details */}
                   <div className="text-xs text-muted-foreground text-center mb-3">
                     <div>{prettyBytes(file.size)}</div>
-                    <div>{formatDistanceToNow(file.uploadedAt, { addSuffix: true })}</div>
+                    <div>
+                      {formatDistanceToNow(file.uploadedAt, {
+                        addSuffix: true,
+                      })}
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
@@ -113,9 +124,11 @@ const FilesWrapper: FC = () => {
                     >
                       <Download className="w-4 h-4 text-primary" />
                     </button>
-                    
+
                     <button
-                      onClick={() => handleDeleteFile(file.fileId, file.id, file.name)}
+                      onClick={() =>
+                        handleDeleteFile(file.fileId, file.id, file.name)
+                      }
                       className="p-1 rounded-full hover:bg-destructive/20 transition-colors"
                       title="Delete file"
                     >

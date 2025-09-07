@@ -394,10 +394,7 @@ const PageDetailForm: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-background/95 border rounded-xl p-6"
         >
-          <RichTextEditor
-            content={editorContent}
-            onChange={setEditorContent}
-          />
+          <RichTextEditor content={editorContent} onChange={setEditorContent} />
         </motion.div>
       </div>
     </motion.div>
