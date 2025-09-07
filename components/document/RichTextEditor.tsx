@@ -59,13 +59,13 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
       | "code"
       | "link"
       | "image"
-      | "video"
+      | "video",
   ) => {
     const selection = window.getSelection();
     if (!selection?.rangeCount || !editorRef.current) return;
 
     const range = selection.getRangeAt(0);
-    let element: any
+    let element: any;
 
     switch (elementType) {
       case "p":

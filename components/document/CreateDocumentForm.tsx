@@ -66,16 +66,16 @@ const CreateDocumentForm: FC = () => {
   };
 
   const fixedEditorContent = useMemo(() => {
-  // odstráň HTML značky a entity
-  const plainText = editorContent
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ");
+    // odstráň HTML značky a entity
+    const plainText = editorContent
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ");
 
-  return plainText
-    .split(/\s+/) // rozdelí podľa medzier
-    .map((word) => word.split("").reverse().join("")) // otočí každé slovo
-    .join(" "); // znova spojí s medzerami
-}, [editorContent]);
+    return plainText
+      .split(/\s+/) // rozdelí podľa medzier
+      .map((word) => word.split("").reverse().join("")) // otočí každé slovo
+      .join(" "); // znova spojí s medzerami
+  }, [editorContent]);
 
   const handleRandomBackground = () => {
     const width = 1920;
@@ -245,9 +245,7 @@ const CreateDocumentForm: FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() =>
-                    setShowBackgroundPicker(!showBackgroundPicker)
-                  }
+                  onClick={() => setShowBackgroundPicker(!showBackgroundPicker)}
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg border hover:bg-accent transition-colors"
                 >
                   <Image className="w-4 h-4" />
