@@ -14,6 +14,7 @@ export default defineSchema({
     isDeleted: v.optional(v.boolean()),
     isRestored: v.optional(v.boolean()),
     workspaceId: v.optional(v.id("workspaces")),
+    updatedAt: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentPage"])
