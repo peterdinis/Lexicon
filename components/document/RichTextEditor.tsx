@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useRef, useState } from "react";
+import { FC, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Bold,
@@ -30,6 +30,13 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
     const [selectedColor, setSelectedColor] = useState("#000000");
     const [showColorPicker, setShowColorPicker] = useState(false);
 
+    // Sledovanie zmeny contentu zvonku
+    useEffect(() => {
+        if (editorRef.current && content !== editorRef.current.innerHTML) {
+            editorRef.current.innerHTML = content;
+        }
+    }, [content]);
+
     const handleEditorChange = () => {
         if (editorRef.current) {
             onChange(editorRef.current.innerHTML);
@@ -37,8 +44,23 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
     };
 
     const formatText = (command: string, value?: string) => {
+        // Získanie aktuálnej pozície kurzora
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
+        const savedSelection = saveSelection(editorRef.current!);
+        
+        // Vykonanie príkazu
         document.execCommand(command, false, value);
+        
+        // Obnovenie pozície kurzora
+        if (savedSelection) {
+            restoreSelection(editorRef.current!, savedSelection);
+        }
+        
         editorRef.current?.focus();
+        handleEditorChange();
     };
 
     const insertElement = (
@@ -60,7 +82,10 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
         if (!selection?.rangeCount || !editorRef.current) return;
 
         const range = selection.getRangeAt(0);
-        let element: any;
+        let element: HTMLElement;
+
+        // Uloženie aktuálnej pozície kurzora
+        const savedSelection = saveSelection(editorRef.current);
 
         switch (elementType) {
             case "p":
@@ -140,26 +165,26 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
                 break;
             case "link":
                 element = document.createElement("a");
-                element.href = "#";
+                element.setAttribute("href", "#");
                 element.textContent = "Link text";
-                (element as HTMLAnchorElement).target = "_blank";
+                element.setAttribute("target", "_blank");
                 element.style.color = "#3b82f6";
                 element.style.textDecoration = "underline";
                 break;
             case "image":
                 element = document.createElement("img");
-                (element as HTMLImageElement).src = "https://via.placeholder.com/400x200";
-                (element as HTMLImageElement).alt = "Inserted Image";
+                element.setAttribute("src", "https://via.placeholder.com/400x200");
+                element.setAttribute("alt", "Inserted Image");
                 element.style.maxWidth = "100%";
                 element.style.display = "block";
                 element.style.margin = "1rem 0";
                 break;
             case "video":
                 element = document.createElement("iframe");
-                (element as HTMLIFrameElement).src = "https://www.youtube.com/embed/dQw4w9WgXcQ";
-                (element as HTMLIFrameElement).width = "560";
-                (element as HTMLIFrameElement).height = "315";
-                (element as HTMLIFrameElement).allowFullscreen = true;
+                element.setAttribute("src", "https://www.youtube.com/embed/dQw4w9WgXcQ");
+                element.setAttribute("width", "560");
+                element.setAttribute("height", "315");
+                element.setAttribute("allowfullscreen", "true");
                 element.style.display = "block";
                 element.style.margin = "1rem 0";
                 break;
@@ -169,7 +194,65 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
 
         range.deleteContents();
         range.insertNode(element);
-        range.selectNodeContents(element);
+        
+        // Obnovenie pozície kurzora
+        if (savedSelection) {
+            restoreSelection(editorRef.current, savedSelection);
+        }
+        
+        handleEditorChange();
+    };
+
+    // Funkcie pre ukladanie a obnovovanie pozície kurzora
+    const saveSelection = (containerEl: HTMLElement) => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return null;
+        
+        const range = selection.getRangeAt(0);
+        const preSelectionRange = range.cloneRange();
+        preSelectionRange.selectNodeContents(containerEl);
+        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+        
+        return {
+            start: preSelectionRange.toString().length,
+            end: preSelectionRange.toString().length + range.toString().length
+        };
+    };
+
+    const restoreSelection = (containerEl: HTMLElement, savedSel: { start: number; end: number }) => {
+        const selection = window.getSelection();
+        if (!selection) return;
+        
+        let charIndex = 0;
+        const range = document.createRange();
+        range.setStart(containerEl, 0);
+        range.collapse(true);
+        
+        const nodeStack: [Node, boolean][] = [[containerEl, false]];
+        let node: Node | undefined;
+        let foundStart = false;
+        let stop = false;
+        
+        while (!stop && (node = nodeStack.pop()?.[0])) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const nextCharIndex = charIndex + (node.textContent?.length || 0);
+                if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
+                    range.setStart(node, savedSel.start - charIndex);
+                    foundStart = true;
+                }
+                if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
+                    range.setEnd(node, savedSel.end - charIndex);
+                    stop = true;
+                }
+                charIndex = nextCharIndex;
+            } else {
+                const children = node.childNodes;
+                for (let i = children.length - 1; i >= 0; i--) {
+                    nodeStack.push([children[i], false]);
+                }
+            }
+        }
+        
         selection.removeAllRanges();
         selection.addRange(range);
     };
@@ -246,11 +329,13 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({ content, onChange }) =
                 <div
                     ref={editorRef}
                     onInput={handleEditorChange}
+                    onBlur={handleEditorChange}
                     contentEditable
                     dangerouslySetInnerHTML={{ __html: content }}
                     className="min-h-[300px] p-6 focus:outline-none bg-transparent"
+                    suppressContentEditableWarning={true}
+                    style={{ direction: "revert" }}
                 />
-
             </ScrollArea>
         </div>
     );
