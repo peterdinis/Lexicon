@@ -47,17 +47,6 @@ export const getFiles = query({
       .collect();
 
     const result = await Promise.all(
-<<<<<<< HEAD
-      files.map(async (file) => {
-        const url = await ctx.storage.getUrl(file._id);
-        return {
-          id: file._id,
-          size: file.size,
-          contentType: file.contentType,
-          url,
-        };
-      })
-=======
       files.map(async (file) => ({
         id: file.storageId,
         fileId: file._id,
@@ -67,7 +56,6 @@ export const getFiles = query({
         uploadedAt: file.uploadedAt,
         url: await ctx.storage.getUrl(file.storageId),
       })),
->>>>>>> main
     );
 
     return result;
