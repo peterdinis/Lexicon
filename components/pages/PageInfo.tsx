@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { RichTextEditor } from "../document/RichTextEditor";
 
 const PageDetailForm: FC = () => {
   const router = useRouter();
@@ -78,7 +79,11 @@ const PageDetailForm: FC = () => {
       coverImage: backgroundImage || undefined,
       icon: selectedEmoji,
     });
-    alert("Page updated successfully!");
+    toast({
+      title: "Page was updated",
+      duration: 2000,
+      className: "bg-green-800 text-white font-bold",
+    });
   };
 
   const handlePublishToggle = async () => {
@@ -389,19 +394,9 @@ const PageDetailForm: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-background/95 border rounded-xl p-6"
         >
-          <div
-            ref={editorRef}
-            contentEditable
-            className="min-h-[400px] outline-none leading-relaxed max-w-none bg-transparent text-foreground"
-            style={{
-              fontSize: "16px",
-              lineHeight: "1.6",
-              color: "inherit",
-              backgroundColor: "transparent",
-            }}
-            onInput={handleEditorChange}
-            dangerouslySetInnerHTML={{ __html: editorContent }}
-            suppressContentEditableWarning
+          <RichTextEditor
+            content={editorContent}
+            onChange={setEditorContent}
           />
         </motion.div>
       </div>
