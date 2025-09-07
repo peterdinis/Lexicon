@@ -11,12 +11,15 @@ export const getFiles = query({
     const files = await ctx.db.system.query("_storage").collect();
 
     const result = await Promise.all(
-      files.map(async (file) => ({
-        id: file._id,
-        size: file.size,
-        contentType: file.contentType,
-        url: await ctx.storage.getUrl(file._id),
-      })),
+      files.map(async (file) => {
+        const url = await ctx.storage.getUrl(file._id);
+        return {
+          id: file._id,
+          size: file.size,
+          contentType: file.contentType,
+          url,
+        };
+      })
     );
 
     return result;
