@@ -44,7 +44,7 @@ export const listByUser = query({
     const pages = await ctx.db
       .query("pages")
       .filter((q) => q.eq(q.field("userId"), userId))
-      .filter((q) => q.eq(q.field("isDeleted"), false)) // ✅ nezobrazuj vymazané
+      .filter((q) => q.eq(q.field("isDeleted"), false))
       .collect();
 
     return pages;
