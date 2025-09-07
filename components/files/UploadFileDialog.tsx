@@ -1,7 +1,13 @@
 "use client";
 
 import { FC, useState, ChangeEvent } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../ui/dialog";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
@@ -12,11 +18,14 @@ type UploadDialogProps = {
   setUploadDialogOpen: (uploadDialogOpen: boolean) => void;
 };
 
-const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialogOpen }) => {
+const UploadDialog: FC<UploadDialogProps> = ({
+  uploadDialogOpen,
+  setUploadDialogOpen,
+}) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [, setFileUrl] = useState<string | null>(null);
   const generateUploadUrl = useMutation(api.uploads.generateUploadUrl);
-  const {toast} = useToast()
+  const { toast } = useToast();
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
@@ -25,7 +34,7 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-    
+
     const uploadUrl = await generateUploadUrl();
 
     const response = await fetch(uploadUrl, {
@@ -42,14 +51,14 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
       toast({
         title: "File was uploaded",
         duration: 2000,
-        className: "bg-green-800 text-white font-bold text-base"
-      })
+        className: "bg-green-800 text-white font-bold text-base",
+      });
     } else {
-       toast({
+      toast({
         title: "File was not uploaded",
         duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base"
-      })
+        className: "bg-red-800 text-white font-bold text-base",
+      });
     }
   };
 
@@ -66,7 +75,9 @@ const UploadDialog: FC<UploadDialogProps> = ({ uploadDialogOpen, setUploadDialog
             onChange={handleFileChange}
             className="absolute opacity-0 w-full h-full cursor-pointer"
           />
-          <p className="text-muted-foreground">Drag & drop files here or click to select</p>
+          <p className="text-muted-foreground">
+            Drag & drop files here or click to select
+          </p>
         </div>
 
         {selectedFile && (
