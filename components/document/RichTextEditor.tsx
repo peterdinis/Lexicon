@@ -37,13 +37,38 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
   useEffect(() => {
     if (editorRef.current && content !== editorRef.current.innerHTML) {
       editorRef.current.innerHTML = content;
+      // Explicitne nastavíme smer textu na LTR
+      forceLTRDirection(editorRef.current);
     }
   }, [content]);
 
+  const reverseWords = (html: string) => {
+    return html.split(/\b/).map(word => word.split('').reverse().join('')).join('');
+  };
+
+  const reversedContent = reverseWords(content);
+
   const handleEditorChange = () => {
     if (editorRef.current) {
+      // Vždy zabezpečíme, že smer textu je LTR
+      forceLTRDirection(editorRef.current);
       onChange(editorRef.current.innerHTML);
     }
+  };
+
+  // Funkcia na vynútenie LTR smeru pre celý editor
+  const forceLTRDirection = (element: HTMLElement) => {
+    element.style.direction = "ltr";
+    element.style.unicodeBidi = "isolate";
+    
+    // Pre istotu nastavíme LTR aj pre všetky vnútorné elementy
+    const allElements = element.querySelectorAll('*');
+    allElements.forEach((el: any) => {
+      if (el.style) {
+        el.style.direction = "ltr";
+        el.style.unicodeBidi = "isolate";
+      }
+    });
   };
 
   const formatText = (command: string, value?: string) => {
@@ -195,6 +220,10 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
         return;
     }
 
+    // Explicitne nastavíme LTR smer pre nový element
+    element.style.direction = "ltr";
+    element.style.unicodeBidi = "isolate";
+
     range.deleteContents();
     range.insertNode(element);
     
@@ -205,8 +234,6 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
     
     handleEditorChange();
   };
-
-  console.log("C", content)
 
   // Funkcie pre ukladanie a obnovovanie pozície kurzora
   const saveSelection = (containerEl: HTMLElement) => {
@@ -420,9 +447,21 @@ export const RichTextEditor: FC<RichTextEditorProps> = ({
           onInput={handleEditorChange}
           onBlur={handleEditorChange}
           contentEditable
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: reversedContent }}
           className="min-h-[300px] p-6 focus:outline-none bg-transparent"
           suppressContentEditableWarning={true}
+          style={{ 
+            direction: "ltr", 
+            unicodeBidi: "isolate",
+            textAlign: "left" // Explicitne nastaviť zarovnanie textu
+          }}
+          onKeyDown={(e) => {
+            // Zabrániť automatickej zmene smeru textu
+            if (e.key === "Enter") {
+              e.preventDefault();
+              document.execCommand("insertLineBreak");
+            }
+          }}
         />
       </ScrollArea>
     </div>
