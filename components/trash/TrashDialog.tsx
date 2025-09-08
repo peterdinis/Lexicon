@@ -87,7 +87,7 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
       }
 
       // Remove restored item from local state
-      setItems(items.filter(i => i._id !== item._id));
+      setItems(items.filter((i) => i._id !== item._id));
 
       toast({
         title: `${item.type} restored`,
@@ -184,7 +184,7 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"

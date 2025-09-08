@@ -150,15 +150,15 @@ const PageDetailForm: FC = () => {
   };
 
   const handleMoveToTrash = async () => {
-  if (!confirm("Are you sure you want to move this page to trash?")) return;
-  await moveToTrash({ id: pageId });
-  toast({
-    title: "Page was move to trash",
-    duration: 2000,
-    className: "bg-green-800 text-white font-bold",
-  });
-  router.push("/dashboard");
-};
+    if (!confirm("Are you sure you want to move this page to trash?")) return;
+    await moveToTrash({ id: pageId });
+    toast({
+      title: "Page was move to trash",
+      duration: 2000,
+      className: "bg-green-800 text-white font-bold",
+    });
+    router.push("/dashboard");
+  };
 
   return (
     <motion.div
