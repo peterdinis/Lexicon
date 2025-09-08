@@ -1,122 +1,120 @@
 # Lexicon 📝
 
-A modern, Notion-inspired note-taking and workspace management application built with Next.js. Create, organize, and manage your notes and workspaces with ease.
+Lexicon is a modern, Notion-inspired note-taking and workspace management application built with Next.js.
 
-![Lexicon Banner](https://via.placeholder.com/800x200/2D3748/FFFFFF?text=Lexicon+-+Your+Digital+Workspace)
+Create, organize, and collaborate on your notes and workspaces with ease.
+
+---
 
 ## ✨ Features
 
-- **📋 Rich Note Editor**: Create and edit notes with a powerful, intuitive editor
-- **🏢 Workspace Management**: Organize your content into separate workspaces
-- **📁 Hierarchical Organization**: Structure your notes with folders and categories
-- **🔍 Search & Filter**: Quickly find your content with advanced search capabilities
-- **🎨 Clean Interface**: Modern, responsive design for optimal user experience
-- **⚡ Real-time Updates**: Instant synchronization across all your devices
-- **🔒 Secure**: Your data is protected with modern security practices
+- 📋 **Rich Note Editor** – Powerful, intuitive editor for creating and formatting notes
+- 🏢 **Workspace Management** – Organize content into multiple workspaces
+- 📁 **Hierarchical Organization** – Structure notes with folders and categories
+- 🔍 **Search & Filter** – Quickly find your content with advanced search
+- 🎨 **Clean Interface** – Minimal and responsive UI for optimal user experience
+- ⚡ **Real-time Updates** – Automatic synchronization across all devices
+- 🔒 **Secure by Default** – Authentication and data protection with modern practices
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm, yarn, pnpm, or bun
+- Node.js 18+
+- Package manager: npm, yarn, pnpm, or bun
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/peterdinis/Lexicon.git
-   cd Lexicon
-   ```
+Clone the repository:
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   # or
-   bun install
-   ```
+```bash
+git clone https://github.com/peterdinis/Lexicon.git
+cd Lexicon
 
-3. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   # or
-   bun dev
-   ```
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
 
-4. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 
-## 🛠️ Tech Stack
+🛠️ Tech Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) - React framework for production
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- **Typography**: Ubuntu
-- **Database**: Clerk
-- **Authentication**: Clerk
+Framework: Next.js 14 – React framework for production
 
-## 🔧 Development
+Styling: Tailwind CSS – Utility-first styling
 
-### Available Scripts
+Typography: Ubuntu font
 
-- `pnpm run dev` - Start development server (runs both Next.js and Convex)
-- `pnpm run convex` - Start Convex development environment
-- `pnpm run build` - Build for production
-- `pnpm run start` - Start production server
-- `pnpm run lint` - Run ESLint
+Backend & Database: Convex – Serverless backend and real-time database for storing notes, folders, and workspaces
 
-### Environment Variables
+Authentication: Clerk – Complete user management (sign-in, sign-up, sessions, profiles)
 
-Create a `.env.local` file in the root directory:
+🔧 Development
+Available Scripts
 
-```env
-# Database
-DATABASE_URL="your_database_url"
+pnpm run dev – Start development server (Next.js + Convex)
 
-# Authentication
-NEXTAUTH_SECRET="your_nextauth_secret"
-NEXTAUTH_URL="http://localhost:3000"
+pnpm run convex – Run Convex backend locally
 
-# Additional environment variables...
-```
+pnpm run build – Build for production
 
-## 🚢 Deployment
+pnpm run start – Start production server
 
-The easiest way to deploy Lexicon is using the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme):
+pnpm run lint – Run ESLint
 
-1. Push your code to GitHub
-2. Import your repository to Vercel
-3. Configure environment variables
-4. Deploy!
+Environment Variables
 
-For other deployment options, check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
+Create a .env.local file in the project root:
+
+# Convex (Backend & Database)
+CONVEX_DEPLOYMENT="your_convex_deployment_url"
+
+# Clerk (Authentication)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your_clerk_publishable_key"
+CLERK_SECRET_KEY="your_clerk_secret_key"
+
+Running Convex locally
+
+Install the Convex CLI:
+
+npm install -g convex
 
 
-## 🙏 Acknowledgments
+Log in and link your project:
 
-- [Next.js](https://nextjs.org/) for the amazing React framework
-- [Vercel](https://vercel.com/) for hosting and font optimization
-- [Notion](https://notion.so/) for the inspiration
-- All contributors who help improve this project
+npx convex dev
 
-## 📞 Support
 
-If you have any questions or need help, please:
+The Convex dev server will run alongside Next.js and automatically sync schema + functions.
 
-- 🐛 [Open an issue](https://github.com/peterdinis/Lexicon/issues) for bug reports
-- 💡 [Start a discussion](https://github.com/peterdinis/Lexicon/discussions) for feature requests
-- 📧 Contact the maintainer: [your-email@example.com]
+Setting up Clerk
 
----
+Create a Clerk project at clerk.com
 
-<div align="center">
-  <strong>Built with ❤️ by <a href="https://github.com/peterdinis">Peter Dinis</a></strong>
-</div>
+Copy your Publishable Key and Secret Key into .env.local
+
+Wrap your app in <ClerkProvider> (already configured in Lexicon)
+
+🚢 Deployment
+
+The easiest way to deploy Lexicon is via Vercel:
+
+Push your code to GitHub
+
+Import the repository into Vercel
+
+Add your Convex + Clerk environment variables
+
+Deploy 🎉
