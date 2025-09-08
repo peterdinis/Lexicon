@@ -44,6 +44,7 @@ import TemplatesItem from "../templates/TemplateItem";
 import TemplateDialog from "../templates/TemplateDialog";
 import UploadDialog from "../files/UploadFileDialog";
 import { cn } from "@/lib/utils";
+import { useModalStore } from "@/store/modalsStore";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -56,16 +57,9 @@ const DashboardSidebar: FC = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const pathname = usePathname();
-
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [trashOpen, setTrashOpen] = useState(false);
-  const [workspaceOpen, setWorkspaceOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const router = useRouter();
-  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const { openModal, setOpenModal, isOpen } = useModalStore();
 
-  // convex queries
   const workspaces = useQuery(api.workspaces.list);
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
@@ -272,27 +266,31 @@ const DashboardSidebar: FC = () => {
 
   return (
     <TooltipProvider>
-      {/* ---- Dialogs ---- */}
-      <SearchDialog searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
-      <TrashDialog trashOpen={trashOpen} setTrashOpen={setTrashOpen} />
+      <SearchDialog
+        searchOpen={isOpen("search")}
+        setSearchOpen={(open) => setOpenModal(open ? "search" : null)}
+      />
+      <TrashDialog
+        trashOpen={isOpen("trash")}
+        setTrashOpen={(open) => setOpenModal(open ? "trash" : null)}
+      />
       <WorkspaceDialog
-        workspaceOpen={workspaceOpen}
-        setWorkspaceOpen={setWorkspaceOpen}
+        workspaceOpen={isOpen("workspace")}
+        setWorkspaceOpen={(open) => setOpenModal(open ? "workspace" : null)}
       />
       <SettingsDialog
-        settingsOpen={settingsOpen}
-        setSettingsOpen={setSettingsOpen}
+        settingsOpen={isOpen("settings")}
+        setSettingsOpen={(open) => setOpenModal(open ? "settings" : null)}
       />
       <TemplateDialog
-        open={templateDialogOpen}
-        setOpen={setTemplateDialogOpen}
+        open={isOpen("template")}
+        setOpen={(open) => setOpenModal(open ? "template" : null)}
       />
       <UploadDialog
-        uploadDialogOpen={uploadDialogOpen}
-        setUploadDialogOpen={setUploadDialogOpen}
+        uploadDialogOpen={isOpen("upload")}
+        setUploadDialogOpen={(open) => setOpenModal(open ? "upload" : null)}
       />
 
-      {/* ---- Sidebar ---- */}
       <motion.aside
         initial={{ width: 280 }}
         animate={{ width: collapsed ? 64 : 280 }}
@@ -300,7 +298,6 @@ const DashboardSidebar: FC = () => {
         className="group/sidebar h-full bg-background/95 backdrop-blur-sm border-r border-border/40 flex flex-col z-[99999] min-h-screen left-0 top-0 shadow-sm sticky"
         style={{ overflow: "visible" }}
       >
-        {/* Collapse toggle button */}
         <div className="flex justify-end p-3 pb-0">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -321,9 +318,7 @@ const DashboardSidebar: FC = () => {
           </Tooltip>
         </div>
 
-        {/* Sidebar content */}
         <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
-          {/* User section */}
           <div
             className={cn(
               "flex items-center py-2",
@@ -380,7 +375,6 @@ const DashboardSidebar: FC = () => {
             )}
           </div>
 
-          {/* Quick actions */}
           <div className="space-y-1">
             <SidebarButton
               icon={Home}
@@ -391,7 +385,7 @@ const DashboardSidebar: FC = () => {
             <SidebarButton
               icon={Search}
               label="Search"
-              onClick={() => setSearchOpen(true)}
+              onClick={() => setOpenModal("search")}
             />
             <SidebarButton
               icon={BookOpen}
@@ -402,16 +396,15 @@ const DashboardSidebar: FC = () => {
             <SidebarButton
               icon={Trash}
               label="Trash"
-              onClick={() => setTrashOpen(true)}
+              onClick={() => setOpenModal("trash")}
             />
           </div>
 
-          {/* Workspaces section */}
           <div className="space-y-1">
             <SectionHeader
               title="Workspaces"
               icon={Database}
-              onAdd={() => setWorkspaceOpen(true)}
+              onAdd={() => setOpenModal("workspace")}
               addTooltip="Add workspace"
               count={workspaces?.length}
               sectionKey="workspaces"
@@ -460,17 +453,14 @@ const DashboardSidebar: FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Pages section */}
           <div className="space-y-1">
             <SectionHeader
               title="Recent Pages"
               icon={FileStack}
-              onAdd={() => {
-                // TODO: Add new page action
-              }}
               addTooltip="New Page"
-              count={pages?.length}
               sectionKey="pages"
+              onAdd={() => {}}
+              count={pages?.length}
             />
             <AnimatePresence>
               {!collapsed && expandedSections.pages && (
@@ -516,12 +506,11 @@ const DashboardSidebar: FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Templates section */}
           <div className="space-y-1">
             <SectionHeader
               title="Templates"
               icon={Sparkles}
-              onAdd={() => setTemplateDialogOpen(true)}
+              onAdd={() => setOpenModal("template")}
               addTooltip="New Template"
               count={templates?.length}
               sectionKey="templates"
@@ -570,12 +559,11 @@ const DashboardSidebar: FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Files section */}
           <div className="space-y-1">
             <SectionHeader
               title="Files"
               icon={Box}
-              onAdd={() => setUploadDialogOpen(true)}
+              onAdd={() => setOpenModal("upload")}
               addTooltip="Upload File"
               sectionKey="files"
             />
@@ -598,7 +586,7 @@ const DashboardSidebar: FC = () => {
                   <SidebarButton
                     icon={File}
                     label="Upload File"
-                    onClick={() => setUploadDialogOpen(true)}
+                    onClick={() => setOpenModal("upload")}
                     showLabel={!collapsed}
                   />
                 </motion.div>
@@ -606,12 +594,11 @@ const DashboardSidebar: FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Footer actions */}
           <div className="mt-auto pt-4 border-t border-border/40">
             <SidebarButton
               icon={Settings}
               label="Settings"
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => setOpenModal("settings")}
             />
           </div>
         </div>
