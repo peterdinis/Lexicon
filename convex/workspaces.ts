@@ -126,7 +126,6 @@ export const movePageToWorkspace = mutation({
   },
 });
 
-
 export const deleteWorkspace = mutation({
   args: { id: v.id("workspaces") },
   handler: async (ctx, args) => {

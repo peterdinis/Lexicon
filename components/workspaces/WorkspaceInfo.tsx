@@ -58,7 +58,7 @@ const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
     }
     try {
       await deleteWorkspace({ id: workspaceId });
-      router.push<"/workspaces">
+      router.push<"/workspaces">;
     } catch (err: any) {
       alert(err.message);
     }
