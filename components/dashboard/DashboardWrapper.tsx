@@ -50,7 +50,11 @@ const DashboardWrapper: FC = () => {
               left: `${i * 20}%`,
             }}
             animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
-            transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear" }}
+            transition={{
+              duration: 15 + i * 5,
+              repeat: Infinity,
+              ease: "linear",
+            }}
           />
         ))}
 
@@ -66,7 +70,11 @@ const DashboardWrapper: FC = () => {
               right: `${i * 15}%`,
             }}
             animate={{ scale: [1, 1.1, 1], rotate: [0, -180, -360] }}
-            transition={{ duration: 20 + i * 5, repeat: Infinity, ease: "linear" }}
+            transition={{
+              duration: 20 + i * 5,
+              repeat: Infinity,
+              ease: "linear",
+            }}
           />
         ))}
       </div>
