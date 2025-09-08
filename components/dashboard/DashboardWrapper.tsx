@@ -211,7 +211,6 @@ const DashboardWrapper: FC = () => {
         >
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              onClick={() => setOpenModal("workspace")}
               className="rounded-xl py-5 text-base shadow-md flex items-center justify-center gap-2 w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 transition-all duration-300 hover:shadow-lg"
               size="lg"
             >
