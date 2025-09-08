@@ -6,11 +6,9 @@ import {
   PlusCircle,
   FolderPlus,
   Search,
-  BookOpen,
   Lightbulb,
   Brain,
   Notebook,
-  ArrowRight,
   Star,
   Zap,
 } from "lucide-react";
@@ -240,18 +238,6 @@ const DashboardWrapper: FC = () => {
               </Button>
             </motion.div>
           </div>
-
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              onClick={() => setOpenModal("template")}
-              variant="ghost"
-              className="rounded-xl py-4 text-base flex items-center justify-center gap-2 w-full border border-dashed transition-all duration-300 hover:border-solid hover:shadow-sm"
-            >
-              <BookOpen className="w-5 h-5" />
-              Browse Templates
-              <ArrowRight className="w-4 h-4 ml-auto opacity-70" />
-            </Button>
-          </motion.div>
         </motion.div>
 
         <motion.div
