@@ -11,7 +11,6 @@ import {
   File,
   FileX2,
   Home,
-  BookOpen,
   FileStack,
   Sparkles,
   Box,
@@ -58,7 +57,7 @@ const DashboardSidebar: FC = () => {
   const { signOut } = useClerk();
   const pathname = usePathname();
   const router = useRouter();
-  const { openModal, setOpenModal, isOpen } = useModalStore();
+  const { setOpenModal, isOpen } = useModalStore();
 
   const workspaces = useQuery(api.workspaces.list);
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });

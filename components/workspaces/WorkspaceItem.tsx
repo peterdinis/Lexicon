@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Folder } from "lucide-react";
+import { Folder, Workflow } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import Link from "next/link";
 import { Id } from "@/convex/_generated/dataModel";
@@ -34,7 +34,7 @@ const WorkspaceItem = ({
         <Folder className="w-5 h-5 flex-shrink-0" />
       ) : (
         <>
-          <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+          <Workflow className="w-4 h-4" />
           <AnimatePresence>
             <motion.span
               initial={{ opacity: 0, x: -10 }}
