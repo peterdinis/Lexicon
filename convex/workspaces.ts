@@ -139,18 +139,24 @@ export const deleteWorkspace = mutation({
       throw new Error("Not authorized to delete this workspace");
     }
 
-    // Optionally also delete pages inside the workspace
+    // Patch workspace, don't delete
+    await ctx.db.patch(args.id, {
+      isDeleted: true,
+    });
+
+    // Optionally mark pages inside the workspace as deleted
     const pages = await ctx.db
       .query("pages")
       .withIndex("by_workspace", (q) => q.eq("workspaceId", args.id))
       .collect();
 
     for (const page of pages) {
-      await ctx.db.delete(page._id);
+      await ctx.db.patch(page._id, {
+        isDeleted: true,
+        updatedAt: new Date().toISOString(),
+      });
     }
 
-    await ctx.db.delete(args.id);
-
-    return { success: true };
+    return { success: true, message: "Workspace moved to trash" };
   },
 });
