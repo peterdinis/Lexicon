@@ -6,8 +6,6 @@ import { FileText, Folder, Settings, User } from "lucide-react";
 import { Button } from "../ui/button";
 import AccountInfo from "./AccountInfo";
 import Preferencies from "./Preferencies";
-import Workspaces from "./Workspaces";
-import EditorSetup from "./EditorSetup";
 
 type SettingsDialogProps = {
   settingsOpen: boolean;
@@ -61,28 +59,6 @@ const SettingsDialog: FC<SettingsDialogProps> = ({
                   <Settings className="w-4 h-4" />
                   <span>Preferences</span>
                 </button>
-                <button
-                  onClick={() => setActiveTab("editor")}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === "editor"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "hover:bg-accent/50"
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Editor</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("workspaces")}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === "workspaces"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "hover:bg-accent/50"
-                  }`}
-                >
-                  <Folder className="w-4 h-4" />
-                  <span>Workspaces</span>
-                </button>
               </div>
             </div>
           </div>
@@ -94,10 +70,6 @@ const SettingsDialog: FC<SettingsDialogProps> = ({
                 {activeTab === "account" && <AccountInfo />}
 
                 {activeTab === "preferences" && <Preferencies />}
-
-                {activeTab === "editor" && <EditorSetup />}
-
-                {activeTab === "workspaces" && <Workspaces />}
               </div>
 
               <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border/60">

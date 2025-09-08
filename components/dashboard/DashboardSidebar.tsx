@@ -388,12 +388,6 @@ const DashboardSidebar: FC = () => {
               onClick={() => setOpenModal("search")}
             />
             <SidebarButton
-              icon={BookOpen}
-              label="All Pages"
-              onClick={() => router.push("/pages")}
-              isActive={pathname === "/pages"}
-            />
-            <SidebarButton
               icon={Trash}
               label="Trash"
               onClick={() => setOpenModal("trash")}
