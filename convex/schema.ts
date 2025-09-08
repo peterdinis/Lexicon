@@ -34,8 +34,7 @@ export default defineSchema({
     userId: v.optional(v.string()),
     isGlobal: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
-
-  // Pridaná tabuľka pre ukladanie informácií o súboroch
+  
   files: defineTable({
     name: v.string(),
     storageId: v.id("_storage"),
