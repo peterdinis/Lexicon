@@ -2,7 +2,7 @@
 
 import { FC, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
-import { FileText, Folder, Settings, User } from "lucide-react";
+import {  Settings, User } from "lucide-react";
 import { Button } from "../ui/button";
 import AccountInfo from "./AccountInfo";
 import Preferencies from "./Preferencies";
@@ -79,7 +79,6 @@ const SettingsDialog: FC<SettingsDialogProps> = ({
                 >
                   Cancel
                 </Button>
-                <Button>Save Changes</Button>
               </div>
             </div>
           </div>

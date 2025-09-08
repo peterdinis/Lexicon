@@ -30,30 +30,6 @@ export const metadata: Metadata = {
   publisher: "Lexicon",
   metadataBase: new URL("https://lexicon.app"),
 
-  openGraph: {
-    title: "Lexicon – Knowledge at your fingertips",
-    description:
-      "Organize, search, and collaborate with Lexicon – the modern workspace for teams and individuals.",
-    url: "https://lexicon.app",
-    siteName: "Lexicon",
-    images: [
-      {
-        url: "/og-image.png", // put your OG image in /public
-        width: 1200,
-        height: 630,
-        alt: "Lexicon OpenGraph Image",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
-  },
-
   category: "productivity",
 
   robots: {
