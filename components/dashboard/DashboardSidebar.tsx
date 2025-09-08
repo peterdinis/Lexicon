@@ -245,24 +245,63 @@ const DashboardSidebar: FC = () => {
             </div>
           </button>
           {onAdd && (
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <>
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
+                      onClick={onAdd}
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>{addTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
                 <button
                   className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
                   onClick={onAdd}
                 >
                   <PlusCircle className="w-4 h-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p>{addTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
+              )}
+            </>
           )}
         </>
       )}
     </div>
   );
+
+  const CollapseButton = () => {
+    const button = (
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200"
+      >
+        {collapsed ? (
+          <PanelLeftOpen className="w-4 h-4" />
+        ) : (
+          <PanelLeftClose className="w-4 h-4" />
+        )}
+      </button>
+    );
+
+    return collapsed ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {button}
+        </TooltipTrigger>
+        <TooltipContent side="right" className="ml-2">
+          <p>{collapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      button
+    );
+  };
 
   return (
     <TooltipProvider>
@@ -299,23 +338,7 @@ const DashboardSidebar: FC = () => {
         style={{ overflow: "visible" }}
       >
         <div className="flex justify-end p-3 pb-0">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200"
-              >
-                {collapsed ? (
-                  <PanelLeftOpen className="w-4 h-4" />
-                ) : (
-                  <PanelLeftClose className="w-4 h-4" />
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="ml-2">
-              <p>{collapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
-            </TooltipContent>
-          </Tooltip>
+          <CollapseButton />
         </div>
 
         <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
