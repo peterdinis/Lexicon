@@ -2,9 +2,10 @@
 
 import { FC, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useParams, useRouter } from "next/navigation";
 import {
   Calendar,
   FileText,
@@ -23,7 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useParams } from "next/navigation";
 
 interface WorkspaceInfoProps {
   onEdit?: () => void;
@@ -32,6 +32,8 @@ interface WorkspaceInfoProps {
 const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
   const [isVisible, setIsVisible] = useState(false);
   const params = useParams();
+  const router = useRouter();
+
   const workspaceId = params.id as Id<"workspaces">;
   const workspace = useQuery(
     api.workspaces.getById,
@@ -42,6 +44,26 @@ const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
     api.workspaces.listPagesByWorkspace,
     workspaceId ? { workspaceId } : "skip",
   );
+
+  const deleteWorkspace = useMutation(api.workspaces.deleteWorkspace);
+
+  const handleDelete = async () => {
+    if (!workspaceId) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this workspace? This will also remove all its pages.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteWorkspace({ id: workspaceId });
+      router.push<"/workspaces">;
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   // Animate in on mount
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -123,23 +145,40 @@ const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
                     </CardDescription>
                   </div>
                 </div>
-                {onEdit && (
+                <div className="flex gap-2">
+                  {onEdit && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4, duration: 0.2 }}
+                    >
+                      <Button
+                        onClick={onEdit}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 hover:scale-105 transition-transform"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        Edit
+                      </Button>
+                    </motion.div>
+                  )}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4, duration: 0.2 }}
+                    transition={{ delay: 0.5, duration: 0.2 }}
                   >
                     <Button
-                      onClick={onEdit}
-                      variant="outline"
+                      onClick={handleDelete}
+                      variant="destructive"
                       size="sm"
                       className="gap-2 hover:scale-105 transition-transform"
                     >
-                      <Edit3 className="w-4 h-4" />
-                      Edit
+                      <AlertCircle className="w-4 h-4" />
+                      Delete
                     </Button>
                   </motion.div>
-                )}
+                </div>
               </motion.div>
             </CardHeader>
           </Card>

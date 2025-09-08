@@ -73,7 +73,7 @@ const PageDetailForm: FC = () => {
 
   const handleSave = async () => {
     await updatePage({
-      id: pageId as any,
+      id: pageId,
       title: documentTitle,
       content: editorContent,
       coverImage: backgroundImage || undefined,
@@ -185,7 +185,7 @@ const PageDetailForm: FC = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="relative z-10 p-6">
+      <div className="relative z-50 p-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <motion.button
             whileHover={{ scale: 1.05 }}

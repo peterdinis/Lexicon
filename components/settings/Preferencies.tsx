@@ -31,28 +31,6 @@ const Preferencies: FC = () => {
             {theme === "dark" ? "Disable" : "Enable"}
           </Button>
         </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-sm">Email Notifications</div>
-            <div className="text-xs text-muted-foreground">
-              Receive updates via email
-            </div>
-          </div>
-          <Button variant="link" size="sm">
-            Enabled
-          </Button>
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-sm">Auto Save</div>
-            <div className="text-xs text-muted-foreground">
-              Automatically save your work
-            </div>
-          </div>
-          <Button variant="link" size="sm">
-            On
-          </Button>
-        </div>
       </div>
     </motion.div>
   );

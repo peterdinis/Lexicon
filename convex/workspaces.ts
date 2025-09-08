@@ -125,3 +125,32 @@ export const movePageToWorkspace = mutation({
     return await ctx.db.get(args.pageId);
   },
 });
+
+export const deleteWorkspace = mutation({
+  args: { id: v.id("workspaces") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const workspace = await ctx.db.get(args.id);
+    if (!workspace) throw new Error("Workspace not found");
+
+    if (workspace.userId !== identity.subject) {
+      throw new Error("Not authorized to delete this workspace");
+    }
+
+    // Optionally also delete pages inside the workspace
+    const pages = await ctx.db
+      .query("pages")
+      .withIndex("by_workspace", (q) => q.eq("workspaceId", args.id))
+      .collect();
+
+    for (const page of pages) {
+      await ctx.db.delete(page._id);
+    }
+
+    await ctx.db.delete(args.id);
+
+    return { success: true };
+  },
+});
