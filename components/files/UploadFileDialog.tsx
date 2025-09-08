@@ -23,9 +23,11 @@ const UploadDialog: FC<UploadDialogProps> = ({
   setUploadDialogOpen,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [, setFileUrl] = useState<string | null>(null);
+
   const generateUploadUrl = useMutation(api.uploads.generateUploadUrl);
+  const saveFileMetadata = useMutation(api.uploads.saveFileMetadata);
   const { toast } = useToast();
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
@@ -35,29 +37,42 @@ const UploadDialog: FC<UploadDialogProps> = ({
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    const uploadUrl = await generateUploadUrl();
+    try {
+      const uploadUrl = await generateUploadUrl();
 
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": selectedFile.type,
-      },
-      body: selectedFile,
-    });
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": selectedFile.type,
+        },
+        body: selectedFile,
+      });
 
-    if (response.ok) {
+      if (!response.ok) {
+        toast({
+          title: "File was not uploaded",
+        });
+        return;
+      }
+
       const { storageId } = await response.json();
-      setFileUrl(storageId);
+
+      await saveFileMetadata({
+        storageId,
+        name: selectedFile.name,
+        size: selectedFile.size,
+        contentType: selectedFile.type,
+      });
+
       toast({
         title: "File was uploaded",
-        duration: 2000,
-        className: "bg-green-800 text-white font-bold text-base",
       });
-    } else {
+
+      setSelectedFile(null);
+      setUploadDialogOpen(false);
+    } catch (error) {
       toast({
-        title: "File was not uploaded",
-        duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base",
+        title: "Upload failed",
       });
     }
   };
@@ -69,7 +84,7 @@ const UploadDialog: FC<UploadDialogProps> = ({
           <DialogTitle>Upload File</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-accent/10 transition-colors">
+        <div className="flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-accent/10 transition-colors relative">
           <input
             type="file"
             onChange={handleFileChange}
