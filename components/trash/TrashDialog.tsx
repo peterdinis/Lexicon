@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "../ui/dialog";
-import { FileText, Folder, Trash } from "lucide-react";
+import { FileText, Folder, Trash, RotateCcw } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
@@ -15,7 +15,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useToast } from "@/hooks/use-toast";
 
 type TrashItem = {
-  _id: string;
+  _id: any;
   name: string;
   type: "Page" | "Workspace";
   deletedDate: string;
@@ -31,6 +31,8 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
   const [items, setItems] = useState<TrashItem[]>([]);
   const getAllTrashed = useQuery(api.trash.getAllTrashed);
   const bulkDelete = useMutation(api.trash.bulkDeleteTrashed);
+  const restorePage = useMutation(api.trash.restorePage);
+  const restoreWorkspace = useMutation(api.trash.restoreWorkspace);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,13 +60,49 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
   }, [getAllTrashed]);
 
   const handleEmptyTrash = async () => {
-    await bulkDelete({});
-    setItems([]);
-    toast({
-      title: "Trash was cleaned",
-      duration: 2000,
-      className: "bg-green-800 text-white font-bold",
-    });
+    try {
+      await bulkDelete({});
+      setItems([]);
+      toast({
+        title: "Trash was cleaned",
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold",
+      });
+    } catch (error) {
+      toast({
+        title: "Error cleaning trash",
+        description: "Something went wrong",
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleRestore = async (item: TrashItem) => {
+    try {
+      if (item.type === "Page") {
+        await restorePage({ pageId: item._id });
+      } else {
+        await restoreWorkspace({ workspaceId: item._id });
+      }
+
+      // Remove restored item from local state
+      setItems(items.filter(i => i._id !== item._id));
+
+      toast({
+        title: `${item.type} restored`,
+        description: `${item.name} has been restored successfully`,
+        duration: 2000,
+        className: "bg-green-800 text-white font-bold",
+      });
+    } catch (error) {
+      toast({
+        title: "Error restoring item",
+        description: "Something went wrong while restoring the item",
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
   };
 
   return (
@@ -91,6 +129,7 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
                 size="sm"
                 className="text-xs mt-3"
                 onClick={handleEmptyTrash}
+                disabled={items.length === 0}
               >
                 Empty Trash
               </Button>
@@ -98,43 +137,67 @@ const TrashDialog: FC<TrashDialogProps> = ({ setTrashOpen, trashOpen }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 max-h-96">
-            <div className="space-y-3">
-              {items.map((item, i) => (
-                <motion.div
-                  key={item._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border/60 hover:bg-accent/30 group transition-all duration-200"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        item.type === "Workspace"
-                          ? "bg-blue-500/10"
-                          : "bg-gray-500/10"
-                      }`}
-                    >
-                      <item.icon
-                        className={`w-5 h-5 ${
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="p-4 bg-gray-100 rounded-full mb-4">
+                  <Trash className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Trash is empty
+                </h3>
+                <p className="text-sm text-gray-500">
+                  No deleted items to display
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((item, i) => (
+                  <motion.div
+                    key={item._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center justify-between p-4 rounded-xl border border-border/60 hover:bg-accent/30 group transition-all duration-200"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className={`p-2 rounded-lg ${
                           item.type === "Workspace"
-                            ? "text-blue-500"
-                            : "text-gray-500"
+                            ? "bg-blue-500/10"
+                            : "bg-gray-500/10"
                         }`}
-                      />
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                        {item.name}
+                      >
+                        <item.icon
+                          className={`w-5 h-5 ${
+                            item.type === "Workspace"
+                              ? "text-blue-500"
+                              : "text-gray-500"
+                          }`}
+                        />
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {item.type} • Deleted {item.deletedDate}
+                      <div>
+                        <div className="font-medium text-foreground group-hover:text-primary transition-colors">
+                          {item.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.type} • Deleted {item.deletedDate}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      onClick={() => handleRestore(item)}
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Restore
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
