@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  typedRoutes: true,
+  experimental: {
+    browserDebugInfoInTerminal: true,
+    devtoolSegmentExplorer: true,
+  },
 };
 
 export default nextConfig;

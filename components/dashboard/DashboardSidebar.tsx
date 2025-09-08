@@ -291,9 +291,7 @@ const DashboardSidebar: FC = () => {
 
     return collapsed ? (
       <Tooltip>
-        <TooltipTrigger asChild>
-          {button}
-        </TooltipTrigger>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent side="right" className="ml-2">
           <p>{collapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
         </TooltipContent>
