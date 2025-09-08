@@ -48,21 +48,23 @@ const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
   const deleteWorkspace = useMutation(api.workspaces.deleteWorkspace);
 
   const handleDelete = async () => {
-    if (!workspaceId) return;
-    if (
-      !confirm(
-        "Are you sure you want to delete this workspace? This will also remove all its pages.",
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteWorkspace({ id: workspaceId });
-      router.push<"/workspaces">;
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
+  if (!workspaceId) return;
+
+  if (
+    !confirm(
+      "Are you sure you want to delete this workspace? This will also remove all its pages."
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteWorkspace({ id: workspaceId });
+    router.push("/workspaces"); // ← správne presmerovanie
+  } catch (err: any) {
+    alert(err.message);
+  }
+};
 
   // Animate in on mount
   useEffect(() => {

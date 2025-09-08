@@ -60,10 +60,6 @@ export const getPageById = query({
     const pageInfo = await ctx.db.get(args.id);
     if (!pageInfo) throw new Error("Page not found");
 
-    if (pageInfo.isDeleted) {
-      throw new Error("Page is deleted");
-    }
-
     return pageInfo;
   },
 });
@@ -104,7 +100,9 @@ export const moveToTrash = mutation({
   args: { id: v.id("pages") },
   handler: async (ctx, { id }) => {
     const page = await ctx.db.get(id);
-    if (!page) throw new Error("Page not found");
+    if (!page) {
+      return { success: true, message: "Page already in trash or not found" };
+    }
 
     await ctx.db.patch(id, {
       isDeleted: true,
