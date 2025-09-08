@@ -73,7 +73,7 @@ const PageDetailForm: FC = () => {
 
   const handleSave = async () => {
     await updatePage({
-      id: pageId as any,
+      id: pageId,
       title: documentTitle,
       content: editorContent,
       coverImage: backgroundImage || undefined,
