@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef } from "react";
+import { FC, useState, useRef, useMemo, useCallback } from "react";
 import {
   PlusCircle,
   Search,
@@ -65,37 +65,47 @@ const DashboardSidebar: FC = () => {
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
+  const toggleSection = useCallback((section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
   /*** VIRTUALIZERS ***/
   const workspacesRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const templatesRef = useRef<HTMLDivElement>(null);
 
+  // Memoizované counts pre stabilitu
+  const workspacesCount = useMemo(() => workspaces?.length || 0, [workspaces?.length]);
+  const pagesCount = useMemo(() => pages?.length || 0, [pages?.length]);
+  const templatesCount = useMemo(() => templates?.length || 0, [templates?.length]);
+
+  // Optimalizované virtualizery s memoizáciou
   const workspacesVirtualizer = useVirtualizer({
-    count: workspaces?.length || 0,
+    count: workspacesCount,
     getScrollElement: () => workspacesRef.current,
     estimateSize: () => 40,
     overscan: 5,
+    // Pridané pre lepšiu stabilitu
+    getItemKey: (index) => workspaces?.[index]?._id || `workspace-${index}`,
   });
 
   const pagesVirtualizer = useVirtualizer({
-    count: pages?.length || 0,
+    count: pagesCount,
     getScrollElement: () => pagesRef.current,
     estimateSize: () => 40,
     overscan: 5,
+    getItemKey: (index) => pages?.[index]?._id || `page-${index}`,
   });
 
   const templatesVirtualizer = useVirtualizer({
-    count: templates?.length || 0,
+    count: templatesCount,
     getScrollElement: () => templatesRef.current,
     estimateSize: () => 40,
     overscan: 5,
+    getItemKey: (index) => templates?.[index]?._id || `template-${index}`,
   });
 
   /*** COMMON COMPONENTS ***/
@@ -307,6 +317,80 @@ const DashboardSidebar: FC = () => {
     );
   };
 
+  // Memoizované virtuálne item renderery
+  const renderWorkspaceItem = useCallback((virtualRow: any) => {
+    const workspace = workspaces?.[virtualRow.index];
+    if (!workspace) return null;
+    
+    return (
+      <div
+        key={workspace._id}
+        style={{
+          position: "absolute",
+          top: virtualRow.start,
+          left: 0,
+          width: "100%",
+          height: virtualRow.size,
+        }}
+      >
+        <WorkspaceItem
+          name={workspace.name}
+          index={virtualRow.index}
+          id={workspace._id as unknown as Id<"workspaces">}
+        />
+      </div>
+    );
+  }, [workspaces]);
+
+  const renderPageItem = useCallback((virtualRow: any) => {
+    const page = pages?.[virtualRow.index];
+    if (!page) return null;
+    
+    return (
+      <div
+        key={page._id}
+        style={{
+          position: "absolute",
+          top: virtualRow.start,
+          left: 0,
+          width: "100%",
+          height: virtualRow.size,
+        }}
+      >
+        <PagesItem
+          name={page.title}
+          index={virtualRow.index}
+          id={page._id as unknown as Id<"pages">}
+        />
+      </div>
+    );
+  }, [pages]);
+
+  const renderTemplateItem = useCallback((virtualRow: any) => {
+    const template = templates?.[virtualRow.index];
+    if (!template) return null;
+    
+    return (
+      <div
+        key={template._id}
+        style={{
+          position: "absolute",
+          top: virtualRow.start,
+          left: 0,
+          width: "100%",
+          height: virtualRow.size,
+        }}
+      >
+        <TemplatesItem
+          name={template.name}
+          content={template.content}
+          index={virtualRow.index}
+          id={template._id as unknown as Id<"templates">}
+        />
+      </div>
+    );
+  }, [templates]);
+
   /*** RENDER SIDEBAR ***/
   return (
     <TooltipProvider>
@@ -368,7 +452,7 @@ const DashboardSidebar: FC = () => {
               icon={Database}
               onAdd={() => setOpenModal("workspace")}
               addTooltip="Add workspace"
-              count={workspaces?.length}
+              count={workspacesCount}
               sectionKey="workspaces"
             />
             <AnimatePresence>
@@ -382,34 +466,20 @@ const DashboardSidebar: FC = () => {
                 >
                   {workspaces === undefined ? (
                     <LoadingState message="Loading workspaces..." />
-                  ) : workspaces.length === 0 ? (
+                  ) : workspacesCount === 0 ? (
                     <EmptyState message="No workspaces yet" icon={Database} />
                   ) : (
                     <div
                       ref={workspacesRef}
                       className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <div style={{ height: workspacesVirtualizer.getTotalSize(), position: "relative" }}>
-                        {workspacesVirtualizer.getVirtualItems().map((virtualRow) => {
-                          const workspace = workspaces[virtualRow.index];
-                          return (
-                            <div
-                              key={workspace._id}
-                              style={{
-                                position: "absolute",
-                                top: virtualRow.start,
-                                left: 0,
-                                width: "100%",
-                              }}
-                            >
-                              <WorkspaceItem
-                                name={workspace.name}
-                                index={virtualRow.index}
-                                id={workspace._id as unknown as Id<"workspaces">}
-                              />
-                            </div>
-                          );
-                        })}
+                      <div 
+                        style={{ 
+                          height: workspacesVirtualizer.getTotalSize(), 
+                          position: "relative" 
+                        }}
+                      >
+                        {workspacesVirtualizer.getVirtualItems().map(renderWorkspaceItem)}
                       </div>
                     </div>
                   )}
@@ -426,7 +496,7 @@ const DashboardSidebar: FC = () => {
               onAdd={() => {}}
               addTooltip="New Page"
               sectionKey="pages"
-              count={pages?.length}
+              count={pagesCount}
             />
             <AnimatePresence>
               {!collapsed && expandedSections.pages && (
@@ -439,34 +509,20 @@ const DashboardSidebar: FC = () => {
                 >
                   {pages === undefined ? (
                     <LoadingState message="Loading pages..." />
-                  ) : pages.length === 0 ? (
+                  ) : pagesCount === 0 ? (
                     <EmptyState message="No pages yet" icon={FileStack} />
                   ) : (
                     <div
                       ref={pagesRef}
                       className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <div style={{ height: pagesVirtualizer.getTotalSize(), position: "relative" }}>
-                        {pagesVirtualizer.getVirtualItems().map((virtualRow) => {
-                          const page = pages[virtualRow.index];
-                          return (
-                            <div
-                              key={page._id}
-                              style={{
-                                position: "absolute",
-                                top: virtualRow.start,
-                                left: 0,
-                                width: "100%",
-                              }}
-                            >
-                              <PagesItem
-                                name={page.title}
-                                index={virtualRow.index}
-                                id={page._id as unknown as Id<"pages">}
-                              />
-                            </div>
-                          );
-                        })}
+                      <div 
+                        style={{ 
+                          height: pagesVirtualizer.getTotalSize(), 
+                          position: "relative" 
+                        }}
+                      >
+                        {pagesVirtualizer.getVirtualItems().map(renderPageItem)}
                       </div>
                     </div>
                   )}
@@ -482,7 +538,7 @@ const DashboardSidebar: FC = () => {
               icon={Sparkles}
               onAdd={() => setOpenModal("template")}
               addTooltip="New Template"
-              count={templates?.length}
+              count={templatesCount}
               sectionKey="templates"
             />
             <AnimatePresence>
@@ -496,35 +552,20 @@ const DashboardSidebar: FC = () => {
                 >
                   {templates === undefined ? (
                     <LoadingState message="Loading templates..." />
-                  ) : templates.length === 0 ? (
+                  ) : templatesCount === 0 ? (
                     <EmptyState message="No templates yet" icon={Sparkles} />
                   ) : (
                     <div
                       ref={templatesRef}
                       className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <div style={{ height: templatesVirtualizer.getTotalSize(), position: "relative" }}>
-                        {templatesVirtualizer.getVirtualItems().map((virtualRow) => {
-                          const template = templates[virtualRow.index];
-                          return (
-                            <div
-                              key={template._id}
-                              style={{
-                                position: "absolute",
-                                top: virtualRow.start,
-                                left: 0,
-                                width: "100%",
-                              }}
-                            >
-                              <TemplatesItem
-                                name={template.name}
-                                content={template.content}
-                                index={virtualRow.index}
-                                id={template._id as unknown as Id<"templates">}
-                              />
-                            </div>
-                          );
-                        })}
+                      <div 
+                        style={{ 
+                          height: templatesVirtualizer.getTotalSize(), 
+                          position: "relative" 
+                        }}
+                      >
+                        {templatesVirtualizer.getVirtualItems().map(renderTemplateItem)}
                       </div>
                     </div>
                   )}
