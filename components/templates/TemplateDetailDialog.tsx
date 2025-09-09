@@ -1,7 +1,12 @@
 "use client";
 
 import { FC } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -12,11 +17,15 @@ interface TemplateDetailDialogProps {
   templateId: Id<"templates"> | null;
 }
 
-const TemplateDetailDialog: FC<TemplateDetailDialogProps> = ({ open, setOpen, templateId }) => {
+const TemplateDetailDialog: FC<TemplateDetailDialogProps> = ({
+  open,
+  setOpen,
+  templateId,
+}) => {
   // ✅ Use getById instead of listByUser
   const template = useQuery(
     api.templates.getById,
-    templateId ? { id: templateId } : "skip"
+    templateId ? { id: templateId } : "skip",
   );
 
   return (
