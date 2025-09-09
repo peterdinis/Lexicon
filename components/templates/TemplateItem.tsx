@@ -16,7 +16,7 @@ interface TemplatesItemProps {
   name: string;
   id: Id<"templates">;
   index: number;
-  content: string
+  content: string;
 }
 
 const TemplatesItem: FC<TemplatesItemProps> = ({ name, content }) => {
@@ -39,11 +39,9 @@ const TemplatesItem: FC<TemplatesItemProps> = ({ name, content }) => {
             <DialogDescription>
               Details for template: <strong>{name}</strong>
             </DialogDescription>
-          </DialogHeader> 
+          </DialogHeader>
           <div className="mt-4">
-            <p>
-              {content}
-            </p>
+            <p>{content}</p>
           </div>
 
           <DialogClose className="mt-4 btn btn-primary">Close</DialogClose>

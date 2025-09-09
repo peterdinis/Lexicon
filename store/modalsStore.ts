@@ -11,8 +11,11 @@ type ModalType =
 
 type ModalState = {
   openModal: ModalType | null;
-  templateDetailId: string | null
-  setOpenModal: (modal: ModalType | null, templateDetailId?: string | null) => void;
+  templateDetailId: string | null;
+  setOpenModal: (
+    modal: ModalType | null,
+    templateDetailId?: string | null,
+  ) => void;
   isOpen: (modal: ModalType) => boolean;
 };
 
