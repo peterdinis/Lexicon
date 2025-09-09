@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useRef } from "react";
 import {
   PlusCircle,
   Search,
@@ -44,6 +44,7 @@ import TemplateDialog from "../templates/TemplateDialog";
 import UploadDialog from "../files/UploadFileDialog";
 import { cn } from "@/lib/utils";
 import { useModalStore } from "@/store/modalsStore";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -53,6 +54,7 @@ const DashboardSidebar: FC = () => {
     templates: true,
     files: true,
   });
+
   const { user } = useUser();
   const { signOut } = useClerk();
   const pathname = usePathname();
@@ -70,6 +72,33 @@ const DashboardSidebar: FC = () => {
     }));
   };
 
+  /*** VIRTUALIZERS ***/
+  const workspacesRef = useRef<HTMLDivElement>(null);
+  const pagesRef = useRef<HTMLDivElement>(null);
+  const templatesRef = useRef<HTMLDivElement>(null);
+
+  const workspacesVirtualizer = useVirtualizer({
+    count: workspaces?.length || 0,
+    getScrollElement: () => workspacesRef.current,
+    estimateSize: () => 40,
+    overscan: 5,
+  });
+
+  const pagesVirtualizer = useVirtualizer({
+    count: pages?.length || 0,
+    getScrollElement: () => pagesRef.current,
+    estimateSize: () => 40,
+    overscan: 5,
+  });
+
+  const templatesVirtualizer = useVirtualizer({
+    count: templates?.length || 0,
+    getScrollElement: () => templatesRef.current,
+    estimateSize: () => 40,
+    overscan: 5,
+  });
+
+  /*** COMMON COMPONENTS ***/
   const SidebarButton = ({
     icon: Icon,
     label,
@@ -244,30 +273,12 @@ const DashboardSidebar: FC = () => {
             </div>
           </button>
           {onAdd && (
-            <>
-              {collapsed ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
-                      onClick={onAdd}
-                    >
-                      <PlusCircle className="w-4 h-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p>{addTooltip}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <button
-                  className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
-                  onClick={onAdd}
-                >
-                  <PlusCircle className="w-4 h-4" />
-                </button>
-              )}
-            </>
+            <button
+              className="rounded-lg hover:bg-accent/60 hover:text-foreground text-muted-foreground flex items-center justify-center transition-all duration-200 hover:scale-105 w-6 h-6 ml-2"
+              onClick={onAdd}
+            >
+              <PlusCircle className="w-4 h-4" />
+            </button>
           )}
         </>
       )}
@@ -280,11 +291,7 @@ const DashboardSidebar: FC = () => {
         onClick={() => setCollapsed(!collapsed)}
         className="w-8 h-8 text-muted-foreground rounded-lg hover:bg-accent/60 hover:text-foreground flex items-center justify-center transition-all duration-200"
       >
-        {collapsed ? (
-          <PanelLeftOpen className="w-4 h-4" />
-        ) : (
-          <PanelLeftClose className="w-4 h-4" />
-        )}
+        {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
       </button>
     );
 
@@ -300,8 +307,10 @@ const DashboardSidebar: FC = () => {
     );
   };
 
+  /*** RENDER SIDEBAR ***/
   return (
     <TooltipProvider>
+      {/* DIALOGS */}
       <SearchDialog
         searchOpen={isOpen("search")}
         setSearchOpen={(open) => setOpenModal(open ? "search" : null)}
@@ -339,62 +348,8 @@ const DashboardSidebar: FC = () => {
         </div>
 
         <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
-          <div
-            className={cn(
-              "flex items-center py-2",
-              collapsed ? "justify-center" : "space-x-3",
-            )}
-          >
-            {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center cursor-pointer">
-                    <User className="w-5 h-5 text-primary flex-shrink-0" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="ml-2">
-                  <div>
-                    <p className="font-medium">
-                      {user?.firstName + " " + user?.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {user?.emailAddresses[0]?.emailAddress}
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
-                <AnimatePresence>
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className="truncate flex flex-col justify-center min-h-[36px]"
-                  >
-                    <div className="text-foreground font-medium leading-tight text-sm">
-                      {user?.firstName + " " + user?.lastName}
-                    </div>
-                    <div className="text-xs text-muted-foreground leading-tight truncate">
-                      {user?.emailAddresses[0]?.emailAddress}
-                    </div>
-                    <Button
-                      variant={"link"}
-                      onClick={() => signOut()}
-                      className="p-0 h-auto justify-start font-normal text-xs hover:text-primary transition-colors"
-                    >
-                      Logout
-                    </Button>
-                  </motion.div>
-                </AnimatePresence>
-              </>
-            )}
-          </div>
 
+          {/* Sidebar buttons */}
           <div className="space-y-1">
             <SidebarButton
               icon={Home}
@@ -402,18 +357,11 @@ const DashboardSidebar: FC = () => {
               onClick={() => router.push("/")}
               isActive={pathname === "/"}
             />
-            <SidebarButton
-              icon={Search}
-              label="Search"
-              onClick={() => setOpenModal("search")}
-            />
-            <SidebarButton
-              icon={Trash}
-              label="Trash"
-              onClick={() => setOpenModal("trash")}
-            />
+            <SidebarButton icon={Search} label="Search" onClick={() => setOpenModal("search")} />
+            <SidebarButton icon={Trash} label="Trash" onClick={() => setOpenModal("trash")} />
           </div>
 
+          {/* Workspaces Section */}
           <div className="space-y-1">
             <SectionHeader
               title="Workspaces"
@@ -430,50 +378,54 @@ const DashboardSidebar: FC = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1 overflow-hidden"
+                  className="overflow-hidden"
                 >
                   {workspaces === undefined ? (
                     <LoadingState message="Loading workspaces..." />
                   ) : workspaces.length === 0 ? (
                     <EmptyState message="No workspaces yet" icon={Database} />
                   ) : (
-                    <motion.ul
-                      className="space-y-1"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
+                    <div
+                      ref={workspacesRef}
+                      className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <AnimatePresence>
-                        {workspaces.map((workspace, i) => (
-                          <motion.div
-                            key={workspace._id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: i * 0.05, duration: 0.2 }}
-                          >
-                            <WorkspaceItem
-                              name={workspace.name}
-                              index={i}
-                              id={workspace._id as unknown as Id<"workspaces">}
-                            />
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </motion.ul>
+                      <div style={{ height: workspacesVirtualizer.getTotalSize(), position: "relative" }}>
+                        {workspacesVirtualizer.getVirtualItems().map((virtualRow) => {
+                          const workspace = workspaces[virtualRow.index];
+                          return (
+                            <div
+                              key={workspace._id}
+                              style={{
+                                position: "absolute",
+                                top: virtualRow.start,
+                                left: 0,
+                                width: "100%",
+                              }}
+                            >
+                              <WorkspaceItem
+                                name={workspace.name}
+                                index={virtualRow.index}
+                                id={workspace._id as unknown as Id<"workspaces">}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
+          {/* Pages Section */}
           <div className="space-y-1">
             <SectionHeader
               title="Recent Pages"
               icon={FileStack}
+              onAdd={() => {}}
               addTooltip="New Page"
               sectionKey="pages"
-              onAdd={() => { }}
               count={pages?.length}
             />
             <AnimatePresence>
@@ -483,43 +435,47 @@ const DashboardSidebar: FC = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1 overflow-hidden"
+                  className="overflow-hidden"
                 >
                   {pages === undefined ? (
                     <LoadingState message="Loading pages..." />
                   ) : pages.length === 0 ? (
                     <EmptyState message="No pages yet" icon={FileStack} />
                   ) : (
-                    <motion.ul
-                      className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
+                    <div
+                      ref={pagesRef}
+                      className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <AnimatePresence>
-                        {pages.map((page, i) => (
-                          <motion.div
-                            key={page._id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: i * 0.05, duration: 0.2 }}
-                          >
-                            <PagesItem
-                              name={page.title}
-                              index={i}
-                              id={page._id as unknown as Id<"pages">}
-                            />
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </motion.ul>
+                      <div style={{ height: pagesVirtualizer.getTotalSize(), position: "relative" }}>
+                        {pagesVirtualizer.getVirtualItems().map((virtualRow) => {
+                          const page = pages[virtualRow.index];
+                          return (
+                            <div
+                              key={page._id}
+                              style={{
+                                position: "absolute",
+                                top: virtualRow.start,
+                                left: 0,
+                                width: "100%",
+                              }}
+                            >
+                              <PagesItem
+                                name={page.title}
+                                index={virtualRow.index}
+                                id={page._id as unknown as Id<"pages">}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
+          {/* Templates Section */}
           <div className="space-y-1">
             <SectionHeader
               title="Templates"
@@ -536,45 +492,48 @@ const DashboardSidebar: FC = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1 overflow-hidden"
+                  className="overflow-hidden"
                 >
                   {templates === undefined ? (
                     <LoadingState message="Loading templates..." />
                   ) : templates.length === 0 ? (
                     <EmptyState message="No templates yet" icon={Sparkles} />
                   ) : (
-                    <motion.ul
-                      className="space-y-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
+                    <div
+                      ref={templatesRef}
+                      className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
                     >
-                      <AnimatePresence>
-                        {templates.map((template, i) => (
-                          <motion.div
-                            key={template._id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: i * 0.05, duration: 0.2 }}
-                          >
-                            <TemplatesItem
-                              name={template.name}
-                              content={template.content}
-                              index={i}
-                              id={template._id as unknown as Id<"templates">}
-                            />
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </motion.ul>
+                      <div style={{ height: templatesVirtualizer.getTotalSize(), position: "relative" }}>
+                        {templatesVirtualizer.getVirtualItems().map((virtualRow) => {
+                          const template = templates[virtualRow.index];
+                          return (
+                            <div
+                              key={template._id}
+                              style={{
+                                position: "absolute",
+                                top: virtualRow.start,
+                                left: 0,
+                                width: "100%",
+                              }}
+                            >
+                              <TemplatesItem
+                                name={template.name}
+                                content={template.content}
+                                index={virtualRow.index}
+                                id={template._id as unknown as Id<"templates">}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-
+          {/* Files Section */}
           <div className="space-y-1">
             <SectionHeader
               title="Files"
@@ -610,6 +569,7 @@ const DashboardSidebar: FC = () => {
             </AnimatePresence>
           </div>
 
+          {/* Settings */}
           <div className="mt-auto pt-4 border-t border-border/40">
             <SidebarButton
               icon={Settings}
