@@ -473,7 +473,7 @@ const DashboardSidebar: FC = () => {
               icon={FileStack}
               addTooltip="New Page"
               sectionKey="pages"
-              onAdd={() => {}}
+              onAdd={() => { }}
               count={pages?.length}
             />
             <AnimatePresence>
@@ -560,6 +560,7 @@ const DashboardSidebar: FC = () => {
                           >
                             <TemplatesItem
                               name={template.name}
+                              content={template.content}
                               index={i}
                               id={template._id as unknown as Id<"templates">}
                             />
@@ -572,6 +573,7 @@ const DashboardSidebar: FC = () => {
               )}
             </AnimatePresence>
           </div>
+
 
           <div className="space-y-1">
             <SectionHeader
