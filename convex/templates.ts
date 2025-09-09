@@ -26,3 +26,10 @@ export const create = mutation({
     return id;
   },
 });
+
+export const getById = query({
+  args: { id: v.id("templates") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
+  },
+});

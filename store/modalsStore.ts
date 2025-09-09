@@ -6,16 +6,20 @@ type ModalType =
   | "settings"
   | "trash"
   | "upload"
-  | "template";
+  | "template"
+  | "templateDetail";
 
 type ModalState = {
   openModal: ModalType | null;
-  setOpenModal: (modal: ModalType | null) => void;
+  templateDetailId: string | null
+  setOpenModal: (modal: ModalType | null, templateDetailId?: string | null) => void;
   isOpen: (modal: ModalType) => boolean;
 };
 
 export const useModalStore = create<ModalState>((set, get) => ({
   openModal: null,
-  setOpenModal: (modal) => set({ openModal: modal }),
+  templateDetailId: null,
+  setOpenModal: (modal, templateDetailId = null) =>
+    set({ openModal: modal, templateDetailId }),
   isOpen: (modal) => get().openModal === modal,
 }));
