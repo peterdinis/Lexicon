@@ -186,3 +186,7 @@ html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
 }
+
+::view-transition-old(.slide-in) {
+  animation: slideIn 300ms;
+}

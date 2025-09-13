@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   experimental: {
     browserDebugInfoInTerminal: true,
     devtoolSegmentExplorer: true,
+    viewTransition: true,
   },
 };
 

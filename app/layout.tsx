@@ -5,6 +5,7 @@ import { ConvexClientProvider } from "@/components/providers/ConvexProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import TransitionProvider from "@/components/providers/TransitionProvider";
 
 const geistSans = Ubuntu({
   subsets: ["latin-ext"],
@@ -69,11 +70,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ConvexClientProvider>
-            <main>
-              {children}
-              <ScrollToTop threshold={300} bottom="8" right="8" />
-              <Toaster />
-            </main>
+            <TransitionProvider>
+              <main>
+                {children}
+                <ScrollToTop threshold={300} bottom="8" right="8" />
+                <Toaster />
+              </main>
+            </TransitionProvider>
           </ConvexClientProvider>
         </ThemeProvider>
       </body>

@@ -2,7 +2,7 @@
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useConvexAuth } from "convex/react";
-import { Loader2} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { redirect } from "next/navigation";
 
 const WorkspaceLayout = ({ children }: { children: React.ReactNode }) => {
