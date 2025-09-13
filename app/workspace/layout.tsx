@@ -2,7 +2,7 @@
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useConvexAuth } from "convex/react";
-import { Loader2, Menu } from "lucide-react";
+import { Loader2} from "lucide-react";
 import { redirect } from "next/navigation";
 
 const WorkspaceLayout = ({ children }: { children: React.ReactNode }) => {
@@ -23,10 +23,7 @@ const WorkspaceLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="h-full flex dark:bg-[#1f1f1f] min-h-screen">
       <DashboardSidebar />
-
-      {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Main content */}
         <main className="flex-1 overflow-y-auto p-4">{children}</main>
       </div>
     </div>
