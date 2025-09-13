@@ -27,8 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClerk, useUser } from "@clerk/clerk-react";
-import { Button } from "../ui/button";
+import { useUser } from "@clerk/nextjs";
 import WorkspaceItem from "../workspaces/WorkspaceItem";
 import WorkspaceDialog from "../workspaces/WorkspaceDialog";
 import { useQuery } from "convex/react";

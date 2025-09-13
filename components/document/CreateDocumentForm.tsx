@@ -13,7 +13,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { EmojiPicker } from "./EmojiPicker";
 import { backgroundImages } from "./background-images";

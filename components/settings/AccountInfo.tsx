@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { FC } from "react";
 

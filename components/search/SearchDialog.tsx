@@ -11,7 +11,7 @@ import { Folder, Search, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/nextjs";
 
 type SearchDialogProps = {
   searchOpen: boolean;
