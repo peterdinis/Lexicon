@@ -2,15 +2,13 @@
 
 import { FC } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check } from "lucide-react";
-import { Button } from "../ui/button";
+import { Check } from "lucide-react";
 
 const Hero: FC = () => {
   return (
     <div className="min-h-full flex flex-col dark:bg-[#1f1f1f]">
       <div className="flex flex-col items-center justify-center md:justify-start text-center gap-y-8 flex-1">
         <div className="max-w-3xl space-y-4">
-          {/* Hlavný nadpis */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -23,7 +21,6 @@ const Hero: FC = () => {
             </span>
           </motion.h1>
 
-          {/* Podnadpis */}
           <motion.h3
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -34,7 +31,6 @@ const Hero: FC = () => {
             <br /> ideas flow, teams connect, and work gets done smarter.
           </motion.h3>
 
-          {/* Micro tagline */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -45,22 +41,9 @@ const Hero: FC = () => {
             <span>🤝 Collaborate</span>
             <span>🚀 Innovate</span>
           </motion.div>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Button className="bg-emerald-500 hover:bg-emerald-600">
-              Try Lexicon Free
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </motion.div>
         </div>
       </div>
 
-      {/* Features / Benefits */}
       <motion.div
         className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto text-center"
         initial={{ opacity: 0 }}
@@ -89,8 +72,6 @@ const Hero: FC = () => {
           </p>
         </div>
       </motion.div>
-
-      {/* Placeholder for screenshot/demo */}
       <motion.div
         className="mt-12 w-full max-w-4xl mx-auto h-64 bg-gray-200 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400"
         initial={{ opacity: 0, y: 20 }}
