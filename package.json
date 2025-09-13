@@ -11,7 +11,6 @@
     "convex": "npx convex dev"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.46.2",
     "@clerk/nextjs": "^6.31.10",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",

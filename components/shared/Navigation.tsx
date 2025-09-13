@@ -6,7 +6,7 @@ import { FC, useState } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Menu, X } from "lucide-react";
 import { useConvexAuth } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 

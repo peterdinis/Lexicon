@@ -3,10 +3,10 @@
 import { FC, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea"; // 👈 pridaj import
+import { Textarea } from "../ui/textarea";
 import { useMutation } from "convex/react";
 
 interface NewTemplateItemProps {
