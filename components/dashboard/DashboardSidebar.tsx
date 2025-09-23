@@ -274,7 +274,7 @@ const SettingsSection = memo(
   ({
     collapsed,
     onOpenModal,
-    logout
+    logout,
   }: {
     collapsed: boolean;
     onOpenModal: (modal: string) => void;
@@ -290,7 +290,7 @@ const SettingsSection = memo(
       <SidebarButton
         icon={LogOut}
         label="Logout"
-        onClick={() => logout()} 
+        onClick={() => logout()}
         collapsed={collapsed}
       />
     </div>
@@ -440,7 +440,7 @@ const SectionHeader = memo(
 
 SectionHeader.displayName = "SectionHeader";
 
-const VirtualizedSection = <T extends { _id: string },>({
+const VirtualizedSection = <T extends { _id: string }>({
   items,
   collapsed,
   expandedSections,
@@ -495,12 +495,27 @@ const VirtualizedSection = <T extends { _id: string },>({
             className="overflow-hidden"
           >
             {items === undefined ? (
-              <LoadingState message={`Loading ${title.toLowerCase()}...`} collapsed={collapsed} />
+              <LoadingState
+                message={`Loading ${title.toLowerCase()}...`}
+                collapsed={collapsed}
+              />
             ) : count === 0 ? (
-              <EmptyState message={`No ${title.toLowerCase()} yet`} icon={icon} collapsed={collapsed} />
+              <EmptyState
+                message={`No ${title.toLowerCase()} yet`}
+                icon={icon}
+                collapsed={collapsed}
+              />
             ) : (
-              <div ref={ref} className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-                <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+              <div
+                ref={ref}
+                className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+              >
+                <div
+                  style={{
+                    height: virtualizer.getTotalSize(),
+                    position: "relative",
+                  }}
+                >
                   {virtualizer.getVirtualItems().map((virtualRow) => {
                     const item = items[virtualRow.index];
                     if (!item) return null;
@@ -538,7 +553,7 @@ const DashboardSidebar: FC = () => {
     files: true,
   });
 
-  const {signOut} = useClerk()
+  const { signOut } = useClerk();
   const { user } = useUser();
   const pathname = usePathname();
   const router = useRouter();
@@ -548,22 +563,49 @@ const DashboardSidebar: FC = () => {
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
 
-  const handleToggleCollapse = useCallback(() => setCollapsed(prev => !prev), []);
+  const handleToggleCollapse = useCallback(
+    () => setCollapsed((prev) => !prev),
+    [],
+  );
   const handleToggleSection = useCallback((section: keyof ExpandedSections) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   }, []);
-  const handleNavigate = useCallback((path: any) => router.push(path), [router]);
-  const handleOpenModal = useCallback((modal: any) => setOpenModal(modal), [setOpenModal]);
+  const handleNavigate = useCallback(
+    (path: any) => router.push(path),
+    [router],
+  );
+  const handleOpenModal = useCallback(
+    (modal: any) => setOpenModal(modal),
+    [setOpenModal],
+  );
 
   return (
     <TooltipProvider>
       {/* DIALOGS */}
-      <SearchDialog searchOpen={isOpen("search")} setSearchOpen={(open) => setOpenModal(open ? "search" : null)} />
-      <TrashDialog trashOpen={isOpen("trash")} setTrashOpen={(open) => setOpenModal(open ? "trash" : null)} />
-      <WorkspaceDialog workspaceOpen={isOpen("workspace")} setWorkspaceOpen={(open) => setOpenModal(open ? "workspace" : null)} />
-      <SettingsDialog settingsOpen={isOpen("settings")} setSettingsOpen={(open) => setOpenModal(open ? "settings" : null)} />
-      <TemplateDialog open={isOpen("template")} setOpen={(open) => setOpenModal(open ? "template" : null)} />
-      <UploadDialog uploadDialogOpen={isOpen("upload")} setUploadDialogOpen={(open) => setOpenModal(open ? "upload" : null)} />
+      <SearchDialog
+        searchOpen={isOpen("search")}
+        setSearchOpen={(open) => setOpenModal(open ? "search" : null)}
+      />
+      <TrashDialog
+        trashOpen={isOpen("trash")}
+        setTrashOpen={(open) => setOpenModal(open ? "trash" : null)}
+      />
+      <WorkspaceDialog
+        workspaceOpen={isOpen("workspace")}
+        setWorkspaceOpen={(open) => setOpenModal(open ? "workspace" : null)}
+      />
+      <SettingsDialog
+        settingsOpen={isOpen("settings")}
+        setSettingsOpen={(open) => setOpenModal(open ? "settings" : null)}
+      />
+      <TemplateDialog
+        open={isOpen("template")}
+        setOpen={(open) => setOpenModal(open ? "template" : null)}
+      />
+      <UploadDialog
+        uploadDialogOpen={isOpen("upload")}
+        setUploadDialogOpen={(open) => setOpenModal(open ? "upload" : null)}
+      />
 
       <motion.aside
         initial={{ width: 280 }}
@@ -573,11 +615,19 @@ const DashboardSidebar: FC = () => {
         style={{ overflow: "visible" }}
       >
         <div className="flex justify-end p-3 pb-0">
-          <CollapseButton collapsed={collapsed} onToggle={handleToggleCollapse} />
+          <CollapseButton
+            collapsed={collapsed}
+            onToggle={handleToggleCollapse}
+          />
         </div>
 
         <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
-          <StaticSidebarButtons collapsed={collapsed} pathname={pathname} onNavigate={handleNavigate} onOpenModal={handleOpenModal} />
+          <StaticSidebarButtons
+            collapsed={collapsed}
+            pathname={pathname}
+            onNavigate={handleNavigate}
+            onOpenModal={handleOpenModal}
+          />
 
           <VirtualizedSection
             items={workspaces}
@@ -585,7 +635,13 @@ const DashboardSidebar: FC = () => {
             expandedSections={expandedSections}
             sectionKey="workspaces"
             onToggleSection={handleToggleSection}
-            renderItem={(item, index) => <WorkspaceItem name={item.name} index={index} id={item._id as Id<"workspaces">} />}
+            renderItem={(item, index) => (
+              <WorkspaceItem
+                name={item.name}
+                index={index}
+                id={item._id as Id<"workspaces">}
+              />
+            )}
             onAdd={() => handleOpenModal("workspace")}
             icon={Database}
             title="Workspaces"
@@ -597,7 +653,13 @@ const DashboardSidebar: FC = () => {
             expandedSections={expandedSections}
             sectionKey="pages"
             onToggleSection={handleToggleSection}
-            renderItem={(item, index) => <PagesItem name={item.title} index={index} id={item._id as Id<"pages">} />}
+            renderItem={(item, index) => (
+              <PagesItem
+                name={item.title}
+                index={index}
+                id={item._id as Id<"pages">}
+              />
+            )}
             icon={FileStack}
             title="Recent Pages"
           />
@@ -608,7 +670,14 @@ const DashboardSidebar: FC = () => {
             expandedSections={expandedSections}
             sectionKey="templates"
             onToggleSection={handleToggleSection}
-            renderItem={(item, index) => <TemplatesItem name={item.name} content={item.content} index={index} id={item._id as Id<"templates">} />}
+            renderItem={(item, index) => (
+              <TemplatesItem
+                name={item.name}
+                content={item.content}
+                index={index}
+                id={item._id as Id<"templates">}
+              />
+            )}
             onAdd={() => handleOpenModal("template")}
             icon={Sparkles}
             title="Templates"
@@ -623,7 +692,11 @@ const DashboardSidebar: FC = () => {
             onNavigate={handleNavigate}
           />
 
-          <SettingsSection logout={signOut} collapsed={collapsed} onOpenModal={handleOpenModal} />
+          <SettingsSection
+            logout={signOut}
+            collapsed={collapsed}
+            onOpenModal={handleOpenModal}
+          />
         </div>
       </motion.aside>
     </TooltipProvider>
