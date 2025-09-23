@@ -1,12 +1,11 @@
 "use client";
 
-import { FC, useState, useRef, useMemo, useCallback, memo } from "react";
+import { FC, useState, useRef, useCallback, memo, JSX } from "react";
 import {
   PlusCircle,
   Search,
   Settings,
   Trash,
-  User,
   Loader2,
   File,
   FileX2,
@@ -19,6 +18,8 @@ import {
   PanelLeftOpen,
   ChevronDown,
   ChevronRight,
+  LucideIcon,
+  LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import WorkspaceItem from "../workspaces/WorkspaceItem";
 import WorkspaceDialog from "../workspaces/WorkspaceDialog";
 import { useQuery } from "convex/react";
@@ -45,7 +46,31 @@ import { cn } from "@/lib/utils";
 import { useModalStore } from "@/store/modalsStore";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-// Memoizované statické komponenty
+// ---------------------- Typy ----------------------
+interface Workspace {
+  _id: string;
+  name: string;
+}
+
+interface Page {
+  _id: string;
+  title: string;
+}
+
+interface Template {
+  _id: string;
+  name: string;
+  content: string;
+}
+
+interface ExpandedSections {
+  workspaces: boolean;
+  pages: boolean;
+  templates: boolean;
+  files: boolean;
+}
+
+// ---------------------- Komponenty ----------------------
 const SidebarButton = memo(
   ({
     icon: Icon,
@@ -56,7 +81,7 @@ const SidebarButton = memo(
     showLabel = true,
     collapsed,
   }: {
-    icon: any;
+    icon: LucideIcon;
     label: string;
     onClick?: () => void;
     className?: string;
@@ -195,8 +220,8 @@ const FilesSection = memo(
     onNavigate,
   }: {
     collapsed: boolean;
-    expandedSections: { files: boolean };
-    onToggleSection: (section: string) => void;
+    expandedSections: ExpandedSections;
+    onToggleSection: (section: keyof ExpandedSections) => void;
     onOpenModal: (modal: string) => void;
     pathname: string;
     onNavigate: (path: string) => void;
@@ -249,15 +274,23 @@ const SettingsSection = memo(
   ({
     collapsed,
     onOpenModal,
+    logout,
   }: {
     collapsed: boolean;
     onOpenModal: (modal: string) => void;
+    logout: () => void;
   }) => (
-    <div className="mt-auto pt-4 border-t border-border/40">
+    <div className="mt-auto pt-4 border-t border-border/40 space-y-1">
       <SidebarButton
         icon={Settings}
         label="Settings"
         onClick={() => onOpenModal("settings")}
+        collapsed={collapsed}
+      />
+      <SidebarButton
+        icon={LogOut}
+        label="Logout"
+        onClick={() => logout()}
         collapsed={collapsed}
       />
     </div>
@@ -300,7 +333,7 @@ const EmptyState = memo(
     collapsed,
   }: {
     message: string;
-    icon: any;
+    icon: LucideIcon;
     collapsed: boolean;
   }) => (
     <div
@@ -343,12 +376,12 @@ const SectionHeader = memo(
     title: string;
     onAdd?: () => void;
     addTooltip: string;
-    icon: any;
+    icon: LucideIcon;
     count?: number;
-    sectionKey: string;
+    sectionKey: keyof ExpandedSections;
     collapsed: boolean;
-    expandedSections: Record<string, boolean>;
-    onToggleSection: (section: string) => void;
+    expandedSections: ExpandedSections;
+    onToggleSection: (section: keyof ExpandedSections) => void;
   }) => (
     <div
       className={cn(
@@ -407,354 +440,120 @@ const SectionHeader = memo(
 
 SectionHeader.displayName = "SectionHeader";
 
-// Virtualizované sekcie
-const VirtualizedWorkspaces = memo(
-  ({
-    workspaces,
-    collapsed,
-    expandedSections,
-    onToggleSection,
-    onOpenModal,
-  }: {
-    workspaces: any[] | undefined;
-    collapsed: boolean;
-    expandedSections: { workspaces: boolean };
-    onToggleSection: (section: string) => void;
-    onOpenModal: (modal: string) => void;
-  }) => {
-    const workspacesRef = useRef<HTMLDivElement>(null);
-    const workspacesCount = useMemo(
-      () => workspaces?.length || 0,
-      [workspaces?.length],
-    );
+const VirtualizedSection = <T extends { _id: string }>({
+  items,
+  collapsed,
+  expandedSections,
+  sectionKey,
+  onToggleSection,
+  renderItem,
+  onAdd,
+  icon,
+  title,
+}: {
+  items: T[] | undefined;
+  collapsed: boolean;
+  expandedSections: ExpandedSections;
+  sectionKey: keyof ExpandedSections;
+  onToggleSection: (section: keyof ExpandedSections) => void;
+  renderItem: (item: T, index: number) => JSX.Element;
+  onAdd?: () => void;
+  icon: LucideIcon;
+  title: string;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const count = items?.length || 0;
 
-    const workspacesVirtualizer = useVirtualizer({
-      count: workspacesCount,
-      getScrollElement: () => workspacesRef.current,
-      estimateSize: () => 40,
-      overscan: 5,
-      getItemKey: (index) => workspaces?.[index]?._id || `workspace-${index}`,
-    });
+  const virtualizer = useVirtualizer({
+    count,
+    getScrollElement: () => ref.current,
+    estimateSize: () => 40,
+    overscan: 5,
+    getItemKey: (index) => items?.[index]?._id || `${sectionKey}-${index}`,
+  });
 
-    const renderWorkspaceItem = useCallback(
-      (virtualRow: any) => {
-        const workspace = workspaces?.[virtualRow.index];
-        if (!workspace) return null;
-
-        return (
-          <div
-            key={workspace._id}
-            style={{
-              position: "absolute",
-              top: virtualRow.start,
-              left: 0,
-              width: "100%",
-              height: virtualRow.size,
-            }}
+  return (
+    <div className="space-y-1">
+      <SectionHeader
+        title={title}
+        icon={icon}
+        onAdd={onAdd}
+        addTooltip={`Add ${title}`}
+        count={count}
+        sectionKey={sectionKey}
+        collapsed={collapsed}
+        expandedSections={expandedSections}
+        onToggleSection={onToggleSection}
+      />
+      <AnimatePresence>
+        {!collapsed && expandedSections[sectionKey] && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
           >
-            <WorkspaceItem
-              name={workspace.name}
-              index={virtualRow.index}
-              id={workspace._id as unknown as Id<"workspaces">}
-            />
-          </div>
-        );
-      },
-      [workspaces],
-    );
-
-    return (
-      <div className="space-y-1">
-        <SectionHeader
-          title="Workspaces"
-          icon={Database}
-          onAdd={() => onOpenModal("workspace")}
-          addTooltip="Add workspace"
-          count={workspacesCount}
-          sectionKey="workspaces"
-          collapsed={collapsed}
-          expandedSections={expandedSections}
-          onToggleSection={onToggleSection}
-        />
-        <AnimatePresence>
-          {!collapsed && expandedSections.workspaces && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              {workspaces === undefined ? (
-                <LoadingState
-                  message="Loading workspaces..."
-                  collapsed={collapsed}
-                />
-              ) : workspacesCount === 0 ? (
-                <EmptyState
-                  message="No workspaces yet"
-                  icon={Database}
-                  collapsed={collapsed}
-                />
-              ) : (
+            {items === undefined ? (
+              <LoadingState
+                message={`Loading ${title.toLowerCase()}...`}
+                collapsed={collapsed}
+              />
+            ) : count === 0 ? (
+              <EmptyState
+                message={`No ${title.toLowerCase()} yet`}
+                icon={icon}
+                collapsed={collapsed}
+              />
+            ) : (
+              <div
+                ref={ref}
+                className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+              >
                 <div
-                  ref={workspacesRef}
-                  className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+                  style={{
+                    height: virtualizer.getTotalSize(),
+                    position: "relative",
+                  }}
                 >
-                  <div
-                    style={{
-                      height: workspacesVirtualizer.getTotalSize(),
-                      position: "relative",
-                    }}
-                  >
-                    {workspacesVirtualizer
-                      .getVirtualItems()
-                      .map(renderWorkspaceItem)}
-                  </div>
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const item = items[virtualRow.index];
+                    if (!item) return null;
+                    return (
+                      <div
+                        key={item._id}
+                        style={{
+                          position: "absolute",
+                          top: virtualRow.start,
+                          left: 0,
+                          width: "100%",
+                          height: virtualRow.size,
+                        }}
+                      >
+                        {renderItem(item, virtualRow.index)}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  },
-);
-
-VirtualizedWorkspaces.displayName = "VirtualizedWorkspaces";
-
-const VirtualizedPages = memo(
-  ({
-    pages,
-    collapsed,
-    expandedSections,
-    onToggleSection,
-  }: {
-    pages: any[] | undefined;
-    collapsed: boolean;
-    expandedSections: { pages: boolean };
-    onToggleSection: (section: string) => void;
-  }) => {
-    const pagesRef = useRef<HTMLDivElement>(null);
-    const pagesCount = useMemo(() => pages?.length || 0, [pages?.length]);
-
-    const pagesVirtualizer = useVirtualizer({
-      count: pagesCount,
-      getScrollElement: () => pagesRef.current,
-      estimateSize: () => 40,
-      overscan: 5,
-      getItemKey: (index) => pages?.[index]?._id || `page-${index}`,
-    });
-
-    const renderPageItem = useCallback(
-      (virtualRow: any) => {
-        const page = pages?.[virtualRow.index];
-        if (!page) return null;
-
-        return (
-          <div
-            key={page._id}
-            style={{
-              position: "absolute",
-              top: virtualRow.start,
-              left: 0,
-              width: "100%",
-              height: virtualRow.size,
-            }}
-          >
-            <PagesItem
-              name={page.title}
-              index={virtualRow.index}
-              id={page._id as unknown as Id<"pages">}
-            />
-          </div>
-        );
-      },
-      [pages],
-    );
-
-    return (
-      <div className="space-y-1">
-        <SectionHeader
-          title="Recent Pages"
-          icon={FileStack}
-          addTooltip="New Page"
-          sectionKey="pages"
-          count={pagesCount}
-          collapsed={collapsed}
-          expandedSections={expandedSections}
-          onToggleSection={onToggleSection}
-        />
-        <AnimatePresence>
-          {!collapsed && expandedSections.pages && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              {pages === undefined ? (
-                <LoadingState
-                  message="Loading pages..."
-                  collapsed={collapsed}
-                />
-              ) : pagesCount === 0 ? (
-                <EmptyState
-                  message="No pages yet"
-                  icon={FileStack}
-                  collapsed={collapsed}
-                />
-              ) : (
-                <div
-                  ref={pagesRef}
-                  className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
-                >
-                  <div
-                    style={{
-                      height: pagesVirtualizer.getTotalSize(),
-                      position: "relative",
-                    }}
-                  >
-                    {pagesVirtualizer.getVirtualItems().map(renderPageItem)}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  },
-);
-
-VirtualizedPages.displayName = "VirtualizedPages";
-
-const VirtualizedTemplates = memo(
-  ({
-    templates,
-    collapsed,
-    expandedSections,
-    onToggleSection,
-    onOpenModal,
-  }: {
-    templates: any[] | undefined;
-    collapsed: boolean;
-    expandedSections: { templates: boolean };
-    onToggleSection: (section: string) => void;
-    onOpenModal: (modal: string) => void;
-  }) => {
-    const templatesRef = useRef<HTMLDivElement>(null);
-    const templatesCount = useMemo(
-      () => templates?.length || 0,
-      [templates?.length],
-    );
-
-    const templatesVirtualizer = useVirtualizer({
-      count: templatesCount,
-      getScrollElement: () => templatesRef.current,
-      estimateSize: () => 40,
-      overscan: 5,
-      getItemKey: (index) => templates?.[index]?._id || `template-${index}`,
-    });
-
-    const renderTemplateItem = useCallback(
-      (virtualRow: any) => {
-        const template = templates?.[virtualRow.index];
-        if (!template) return null;
-
-        return (
-          <div
-            key={template._id}
-            style={{
-              position: "absolute",
-              top: virtualRow.start,
-              left: 0,
-              width: "100%",
-              height: virtualRow.size,
-            }}
-          >
-            <TemplatesItem
-              name={template.name}
-              content={template.content}
-              index={virtualRow.index}
-              id={template._id as unknown as Id<"templates">}
-            />
-          </div>
-        );
-      },
-      [templates],
-    );
-
-    return (
-      <div className="space-y-1">
-        <SectionHeader
-          title="Templates"
-          icon={Sparkles}
-          onAdd={() => onOpenModal("template")}
-          addTooltip="New Template"
-          count={templatesCount}
-          sectionKey="templates"
-          collapsed={collapsed}
-          expandedSections={expandedSections}
-          onToggleSection={onToggleSection}
-        />
-        <AnimatePresence>
-          {!collapsed && expandedSections.templates && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              {templates === undefined ? (
-                <LoadingState
-                  message="Loading templates..."
-                  collapsed={collapsed}
-                />
-              ) : templatesCount === 0 ? (
-                <EmptyState
-                  message="No templates yet"
-                  icon={Sparkles}
-                  collapsed={collapsed}
-                />
-              ) : (
-                <div
-                  ref={templatesRef}
-                  className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
-                >
-                  <div
-                    style={{
-                      height: templatesVirtualizer.getTotalSize(),
-                      position: "relative",
-                    }}
-                  >
-                    {templatesVirtualizer
-                      .getVirtualItems()
-                      .map(renderTemplateItem)}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  },
-);
-
-VirtualizedTemplates.displayName = "VirtualizedTemplates";
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const DashboardSidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
+  const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     workspaces: true,
     pages: true,
     templates: true,
     files: true,
   });
 
+  const { signOut } = useClerk();
   const { user } = useUser();
   const pathname = usePathname();
   const router = useRouter();
@@ -764,30 +563,19 @@ const DashboardSidebar: FC = () => {
   const pages = useQuery(api.pages.listByUser, { userId: user?.id! });
   const templates = useQuery(api.templates.listByUser, { userId: user?.id! });
 
-  const handleToggleCollapse = useCallback(() => {
-    setCollapsed((prev) => !prev);
+  const handleToggleCollapse = useCallback(
+    () => setCollapsed((prev) => !prev),
+    [],
+  );
+  const handleToggleSection = useCallback((section: keyof ExpandedSections) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   }, []);
-
-  // TODO: Fix later any use custom types
-
-  const handleToggleSection = useCallback((section: any) => {
-    setExpandedSections((prev: any) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  }, []);
-
   const handleNavigate = useCallback(
-    (path: any) => {
-      router.push(path);
-    },
+    (path: any) => router.push(path),
     [router],
   );
-
   const handleOpenModal = useCallback(
-    (modal: any) => {
-      setOpenModal(modal);
-    },
+    (modal: any) => setOpenModal(modal),
     [setOpenModal],
   );
 
@@ -834,7 +622,6 @@ const DashboardSidebar: FC = () => {
         </div>
 
         <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
-          {/* Static Sidebar buttons */}
           <StaticSidebarButtons
             collapsed={collapsed}
             pathname={pathname}
@@ -842,28 +629,58 @@ const DashboardSidebar: FC = () => {
             onOpenModal={handleOpenModal}
           />
 
-          {/* Virtualized Sections */}
-          <VirtualizedWorkspaces
-            workspaces={workspaces}
+          <VirtualizedSection
+            items={workspaces}
             collapsed={collapsed}
             expandedSections={expandedSections}
+            sectionKey="workspaces"
             onToggleSection={handleToggleSection}
-            onOpenModal={handleOpenModal}
+            renderItem={(item, index) => (
+              <WorkspaceItem
+                name={item.name}
+                index={index}
+                id={item._id as Id<"workspaces">}
+              />
+            )}
+            onAdd={() => handleOpenModal("workspace")}
+            icon={Database}
+            title="Workspaces"
           />
 
-          <VirtualizedPages
-            pages={pages}
+          <VirtualizedSection
+            items={pages}
             collapsed={collapsed}
             expandedSections={expandedSections}
+            sectionKey="pages"
             onToggleSection={handleToggleSection}
+            renderItem={(item, index) => (
+              <PagesItem
+                name={item.title}
+                index={index}
+                id={item._id as Id<"pages">}
+              />
+            )}
+            icon={FileStack}
+            title="Recent Pages"
           />
 
-          <VirtualizedTemplates
-            templates={templates}
+          <VirtualizedSection
+            items={templates}
             collapsed={collapsed}
             expandedSections={expandedSections}
+            sectionKey="templates"
             onToggleSection={handleToggleSection}
-            onOpenModal={handleOpenModal}
+            renderItem={(item, index) => (
+              <TemplatesItem
+                name={item.name}
+                content={item.content}
+                index={index}
+                id={item._id as Id<"templates">}
+              />
+            )}
+            onAdd={() => handleOpenModal("template")}
+            icon={Sparkles}
+            title="Templates"
           />
 
           <FilesSection
@@ -876,6 +693,7 @@ const DashboardSidebar: FC = () => {
           />
 
           <SettingsSection
+            logout={signOut}
             collapsed={collapsed}
             onOpenModal={handleOpenModal}
           />

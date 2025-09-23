@@ -4,7 +4,7 @@ import { FC } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import Image from "next/image";
-import demoImage from "../../public/img/demo.png"
+import demoImage from "../../public/img/demo.png";
 
 const Hero: FC = () => {
   return (
