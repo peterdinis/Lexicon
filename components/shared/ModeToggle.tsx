@@ -1,39 +1,26 @@
-"use client";
+"us client"
 
-import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "../ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const iconVariants = {
-    hidden: { scale: 0, rotate: 90, opacity: 0 },
-    visible: { scale: 1, rotate: 0, opacity: 1 },
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const menuItemVariants = {
-    hidden: { x: -10, opacity: 0 },
-    visible: { x: 0, opacity: 1 },
-  };
+  if (!mounted) return null; 
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="relative overflow-hidden"
-        >
+        <Button variant="outline" size="icon" className="relative overflow-hidden">
           <AnimatePresence initial={false}>
             {theme === "dark" ? (
               <motion.div
@@ -41,7 +28,10 @@ export function ModeToggle() {
                 initial="hidden"
                 animate="visible"
                 exit="hidden"
-                variants={iconVariants}
+                variants={{
+                  hidden: { scale: 0, rotate: 90, opacity: 0 },
+                  visible: { scale: 1, rotate: 0, opacity: 1 },
+                }}
                 transition={{ duration: 0.3 }}
                 className="absolute h-[1.2rem] w-[1.2rem]"
               >
@@ -53,7 +43,10 @@ export function ModeToggle() {
                 initial="hidden"
                 animate="visible"
                 exit="hidden"
-                variants={iconVariants}
+                variants={{
+                  hidden: { scale: 0, rotate: 90, opacity: 0 },
+                  visible: { scale: 1, rotate: 0, opacity: 1 },
+                }}
                 transition={{ duration: 0.3 }}
                 className="h-[1.2rem] w-[1.2rem]"
               >
@@ -69,10 +62,9 @@ export function ModeToggle() {
         {["light", "dark", "system"].map((mode) => (
           <motion.div
             key={mode}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={menuItemVariants}
+            initial={{ x: -10, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -10, opacity: 0 }}
             transition={{ duration: 0.2, delay: 0.05 }}
           >
             <DropdownMenuItem onClick={() => setTheme(mode)}>
