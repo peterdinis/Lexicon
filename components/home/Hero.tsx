@@ -8,8 +8,8 @@ import demoImage from "../../public/img/demo.png"
 
 const Hero: FC = () => {
   return (
-    <div className="min-h-full flex flex-col dark:bg-[#1f1f1f]">
-      <div className="flex flex-col items-center justify-center md:justify-start text-center gap-y-8 flex-1">
+    <div className="min-h-screen flex flex-col dark:bg-[#1f1f1f] bg-blue-50">
+      <div className="flex flex-col items-center justify-center md:justify-start text-center gap-y-8 flex-1 px-4 py-8">
         <div className="max-w-3xl space-y-4">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -47,7 +47,7 @@ const Hero: FC = () => {
       </div>
 
       <motion.div
-        className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto text-center"
+        className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto text-center px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.7 }}
@@ -74,17 +74,24 @@ const Hero: FC = () => {
           </p>
         </div>
       </motion.div>
+
+      {/* Zväčšený obrázok zaberajúci celú plochu */}
       <motion.div
-        className="mt-12 bg-gray-200 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400"
+        className="mt-12 w-fullflex items-center justify-center py-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.9 }}
       >
-        <Image
-          src={demoImage}
-          alt="Lexicon DEMO"
-          priority
-        />
+        <div className="w-full max-w-6xl mx-auto px-4">
+          <Image
+            src={demoImage}
+            alt="Lexicon DEMO"
+            priority
+            className="w-full h-auto object-contain rounded-xl shadow-lg"
+            width={1200}
+            height={600}
+          />
+        </div>
       </motion.div>
     </div>
   );
