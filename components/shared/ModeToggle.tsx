@@ -1,7 +1,12 @@
-"us client"
+"us client";
 
 import { useEffect, useState } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,12 +20,16 @@ export function ModeToggle() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; 
+  if (!mounted) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="relative overflow-hidden">
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative overflow-hidden"
+        >
           <AnimatePresence initial={false}>
             {theme === "dark" ? (
               <motion.div

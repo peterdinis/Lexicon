@@ -3,6 +3,8 @@
 import { FC } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import Image from "next/image";
+import demoImage from "../../public/img/demo.png"
 
 const Hero: FC = () => {
   return (
@@ -73,12 +75,16 @@ const Hero: FC = () => {
         </div>
       </motion.div>
       <motion.div
-        className="mt-12 w-full max-w-4xl mx-auto h-64 bg-gray-200 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400"
+        className="mt-12 bg-gray-200 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.9 }}
       >
-        Screenshot / Demo Preview
+        <Image
+          src={demoImage}
+          alt="Lexicon DEMO"
+          priority
+        />
       </motion.div>
     </div>
   );
