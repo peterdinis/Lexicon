@@ -37,7 +37,7 @@ const Hero: FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex space-x-4 text-sm text-gray-500 font-medium justify-center"
+            className="flex space-x-4 text-sm text-gray-500 dark:text-sky-100 font-medium justify-center"
           >
             <span>📝 Organize</span>
             <span>🤝 Collaborate</span>
@@ -75,7 +75,6 @@ const Hero: FC = () => {
         </div>
       </motion.div>
 
-      {/* Zväčšený obrázok zaberajúci celú plochu */}
       <motion.div
         className="mt-12 w-fullflex items-center justify-center py-8"
         initial={{ opacity: 0, y: 20 }}

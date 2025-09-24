@@ -9,7 +9,7 @@ import TransitionProvider from "@/components/providers/TransitionProvider";
 
 const geistSans = Ubuntu({
   subsets: ["latin-ext"],
-  weight: "500",
+  weight: "700",
 });
 
 export const metadata: Metadata = {
@@ -26,11 +26,9 @@ export const metadata: Metadata = {
     "collaboration",
     "productivity",
   ],
-  authors: [{ name: "Lexicon Team", url: "https://lexicon.app" }],
+  authors: [{ name: "Peter Dinis", url: "https://portfolio-peter-dinis.vercel.app" }],
   creator: "Lexicon",
   publisher: "Lexicon",
-  metadataBase: new URL("https://lexicon.app"),
-
   category: "productivity",
 
   robots: {
@@ -43,14 +41,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
       "max-image-preview": "large",
       "max-video-preview": -1,
-    },
-  },
-
-  alternates: {
-    canonical: "https://lexicon.app",
-    languages: {
-      "en-US": "https://lexicon.app",
-      "sk-SK": "https://lexicon.app/sk",
     },
   },
 };
