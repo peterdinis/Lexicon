@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     browserDebugInfoInTerminal: true,
     devtoolSegmentExplorer: true,
     viewTransition: true,
+    typedEnv: true
   },
 };
 
