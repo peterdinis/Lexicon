@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Route } from "next";
 
 interface WorkspaceInfoProps {
   onEdit?: () => void;
@@ -60,7 +61,7 @@ const WorkspaceInfo: FC<WorkspaceInfoProps> = ({ onEdit }) => {
 
     try {
       await deleteWorkspace({ id: workspaceId });
-      router.push("/workspaces"); // ← správne presmerovanie
+      router.push<"/workspaces">
     } catch (err: any) {
       alert(err.message);
     }
