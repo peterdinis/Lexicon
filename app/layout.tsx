@@ -26,7 +26,9 @@ export const metadata: Metadata = {
     "collaboration",
     "productivity",
   ],
-  authors: [{ name: "Peter Dinis", url: "https://portfolio-peter-dinis.vercel.app" }],
+  authors: [
+    { name: "Peter Dinis", url: "https://portfolio-peter-dinis.vercel.app" },
+  ],
   creator: "Lexicon",
   publisher: "Lexicon",
   category: "productivity",

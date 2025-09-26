@@ -6,7 +6,7 @@ import { FC, useState } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Menu, X } from "lucide-react";
 import { useConvexAuth } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 
@@ -39,14 +39,12 @@ const Navigation: FC = () => {
           {isLoading && <Loader2 className="animate-spin w-8 h-8" />}
           {!isAuthenticated && !isLoading && (
             <>
-              <SignInButton>
-                <Button variant={"ghost"} size={"sm"}>
-                  Log In
-                </Button>
-              </SignInButton>
-              <SignInButton>
-                <Button size={"sm"}>Get Free Trial</Button>
-              </SignInButton>
+              <Button variant={"ghost"} size={"sm"}>
+                <a href="/sign-in">Log In</a>
+              </Button>
+              <Button size={"sm"}>
+                <a href="/sign-in">Register</a>
+              </Button>
             </>
           )}
           {isAuthenticated && !isLoading && (
