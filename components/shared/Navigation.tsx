@@ -5,14 +5,11 @@ import { cn } from "@/lib/utils";
 import { FC, useState } from "react";
 import { Button } from "../ui/button";
 import { Loader2, Menu, X } from "lucide-react";
-import { useConvexAuth } from "convex/react";
-import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 
 const Navigation: FC = () => {
   const scrolled = useScrollTop();
-  const { isAuthenticated, isLoading } = useConvexAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -36,25 +33,7 @@ const Navigation: FC = () => {
       <div className="md:ml-auto flex items-center">
         {/* Desktop tlačidlá */}
         <div className="hidden md:flex gap-x-2">
-          {isLoading && <Loader2 className="animate-spin w-8 h-8" />}
-          {!isAuthenticated && !isLoading && (
-            <>
-              <Button variant={"ghost"} size={"sm"}>
-                <a href="/sign-in">Log In</a>
-              </Button>
-              <Button size={"sm"}>
-                <a href="/sign-in">Register</a>
-              </Button>
-            </>
-          )}
-          {isAuthenticated && !isLoading && (
-            <>
-              <Button variant={"ghost"} size={"sm"}>
-                <Link href="/dashboard">Go to my lexicon</Link>
-              </Button>
-              <UserButton afterSwitchSessionUrl="/" />
-            </>
-          )}
+         TODO
           <ModeToggle />
         </div>
 
