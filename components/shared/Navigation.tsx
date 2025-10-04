@@ -33,7 +33,7 @@ const Navigation: FC = () => {
       <div className="md:ml-auto flex items-center">
         {/* Desktop tlačidlá */}
         <div className="hidden md:flex gap-x-2">
-         TODO
+          TODO
           <ModeToggle />
         </div>
 
