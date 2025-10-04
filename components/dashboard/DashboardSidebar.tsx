@@ -438,6 +438,7 @@ const VirtualizedSection = <T extends { _id: string }>({
   title: string;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const logoutMutation = useLogout();
   const count = items?.length || 0;
 
   const virtualizer = useVirtualizer({
@@ -586,6 +587,14 @@ const DashboardSidebar: FC = () => {
             onOpenModal={handleOpenModal}
           />
         </div>
+
+         <SettingsSection
+            logout={() => {
+              logoutMutation.mutate()
+            }}
+            collapsed={collapsed}
+            onOpenModal={handleOpenModal}
+          />
       </motion.aside>
     </TooltipProvider>
   );
