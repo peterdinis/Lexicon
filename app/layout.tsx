@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import TransitionProvider from "@/components/providers/TransitionProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 
 const geistSans = Ubuntu({
   subsets: ["latin-ext"],
@@ -60,13 +61,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-            <TransitionProvider>
+          <TransitionProvider>
+            <QueryProvider>
               <main>
                 {children}
                 <ScrollToTop threshold={300} bottom="8" right="8" />
                 <Toaster />
               </main>
-            </TransitionProvider>
+            </QueryProvider>
+          </TransitionProvider>
         </ThemeProvider>
       </body>
     </html>
