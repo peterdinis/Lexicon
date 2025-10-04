@@ -66,6 +66,7 @@ export function useRegister() {
     Error,
     { username: string; email: string; password: string }
   >({
+    mutationKey: ["registerUser"],
     mutationFn: registerUser,
     onSuccess: () => {
       toast({

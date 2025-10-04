@@ -46,13 +46,17 @@ export function useLogin() {
 
   return useMutation<LoginResponse, Error, { email: string; password: string }>(
     {
+      mutationKey: ["loginUser"],
       mutationFn: loginUser,
       onSuccess: (data) => {
+        localStorage.setItem("jwtToken", data.jwt);
+
         toast({
           title: "Login successful",
           duration: 2000,
           className: "bg-green-800 text-white font-bold text-base",
         });
+
         router.push("/dashboard");
       },
       onError: (error) => {
