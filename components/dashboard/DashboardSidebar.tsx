@@ -1,9 +1,7 @@
 import { FC } from "react";
 
 const DashboardSidebar: FC = () => {
-    return (
-        <>Sidebar</>
-    )
-}
+  return <>Sidebar</>;
+};
 
-export default DashboardSidebar
+export default DashboardSidebar;
