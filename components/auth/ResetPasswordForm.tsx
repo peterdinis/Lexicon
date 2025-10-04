@@ -1,9 +1,7 @@
 import { FC } from "react";
 
 const ResetPasswordForm: FC = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default ResetPasswordForm
+export default ResetPasswordForm;

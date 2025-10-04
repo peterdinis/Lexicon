@@ -51,17 +51,25 @@ const LoginForm: FC = () => {
         <div>
           <Label>Email</Label>
           <Input type="email" {...register("email")} />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
           <Label>Password</Label>
           <Input type="password" {...register("password")} />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password.message}</p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? <Loader2 className="animate-spin w-6 h-6 mx-auto" /> : "Login"}
+          {isPending ? (
+            <Loader2 className="animate-spin w-6 h-6 mx-auto" />
+          ) : (
+            "Login"
+          )}
         </Button>
       </motion.form>
     </div>

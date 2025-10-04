@@ -7,7 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { RegisterFormValues, registerSchema, useRegister } from "@/hooks/auth/useRegister";
+import {
+  RegisterFormValues,
+  registerSchema,
+  useRegister,
+} from "@/hooks/auth/useRegister";
 import { Loader2 } from "lucide-react";
 
 const RegisterForm: FC = () => {
@@ -24,12 +28,16 @@ const RegisterForm: FC = () => {
 
   const onSubmit = (values: RegisterFormValues) => {
     mutate(
-      { username: values.username, email: values.email, password: values.password },
+      {
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      },
       {
         onSuccess: () => {
-          reset(); 
+          reset();
         },
-      }
+      },
     );
   };
 
@@ -81,12 +89,18 @@ const RegisterForm: FC = () => {
           <Label>Confirm Password</Label>
           <Input type="password" {...register("confirmPassword")} />
           {errors.confirmPassword && (
-            <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+            <p className="text-red-500 text-sm">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? <Loader2 className="animate-spin w-6 h-6 mx-auto" /> : "Register"}
+          {isPending ? (
+            <Loader2 className="animate-spin w-6 h-6 mx-auto" />
+          ) : (
+            "Register"
+          )}
         </Button>
       </motion.form>
     </div>

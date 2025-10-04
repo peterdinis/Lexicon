@@ -31,7 +31,11 @@ export interface RegisterResponse {
 }
 
 // --- API Call ---
-async function registerUser(data: { username: string; email: string; password: string }): Promise<RegisterResponse> {
+async function registerUser(data: {
+  username: string;
+  email: string;
+  password: string;
+}): Promise<RegisterResponse> {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const res = await fetch(`${baseUrl}/api/auth/local/register`, {
@@ -57,7 +61,11 @@ export function useRegister() {
   const { toast } = useToast();
   const router = useRouter();
 
-  return useMutation<RegisterResponse, Error, { username: string; email: string; password: string }>({
+  return useMutation<
+    RegisterResponse,
+    Error,
+    { username: string; email: string; password: string }
+  >({
     mutationFn: registerUser,
     onSuccess: () => {
       toast({

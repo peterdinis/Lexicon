@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const LoginPage: NextPage = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default LoginPage
+export default LoginPage;

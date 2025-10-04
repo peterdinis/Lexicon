@@ -16,7 +16,10 @@ export interface LoginResponse {
 }
 
 // --- API Call ---
-async function loginUser(data: { email: string; password: string }): Promise<LoginResponse> {
+async function loginUser(data: {
+  email: string;
+  password: string;
+}): Promise<LoginResponse> {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const res = await fetch(`${baseUrl}/api/auth/local`, {
@@ -41,23 +44,25 @@ export function useLogin() {
   const { toast } = useToast();
   const router = useRouter();
 
-  return useMutation<LoginResponse, Error, { email: string; password: string }>({
-    mutationFn: loginUser,
-    onSuccess: (data) => {
-      toast({
-        title: "Login successful",
-        duration: 2000,
-        className: "bg-green-800 text-white font-bold text-base",
-      });
-      router.push("/dashboard"); 
+  return useMutation<LoginResponse, Error, { email: string; password: string }>(
+    {
+      mutationFn: loginUser,
+      onSuccess: (data) => {
+        toast({
+          title: "Login successful",
+          duration: 2000,
+          className: "bg-green-800 text-white font-bold text-base",
+        });
+        router.push("/dashboard");
+      },
+      onError: (error) => {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          duration: 2000,
+          className: "bg-red-800 text-white font-bold text-base",
+        });
+      },
     },
-    onError: (error) => {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        duration: 2000,
-        className: "bg-red-800 text-white font-bold text-base",
-      });
-    },
-  });
+  );
 }
