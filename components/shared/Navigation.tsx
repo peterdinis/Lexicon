@@ -31,12 +31,15 @@ const Navigation: FC = () => {
 
       {/* Tlačidlá / Hamburger */}
       <div className="md:ml-auto flex items-center">
-        {/* Desktop tlačidlá */}
         <div className="hidden md:flex gap-x-2">
-          TODO
+          <Button variant={"ghost"} size={"sm"}>
+            <a href="/login">Log In</a>
+          </Button>
+          <Button size={"sm"}>
+            <a href="/register">Register</a>
+          </Button>
           <ModeToggle />
         </div>
-
         {/* Mobile hamburger */}
         <div className="md:hidden">
           <button
@@ -51,8 +54,12 @@ const Navigation: FC = () => {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="absolute top-full left-0 w-full bg-background dark:bg-[#1f1f1f] flex flex-col items-center gap-2 py-4 shadow-md md:hidden">
-          <Button>Login</Button>
-          <Button>New Account</Button>
+          <Button variant={"ghost"} size={"sm"}>
+            <a href="/login">Log In</a>
+          </Button>
+          <Button size={"sm"}>
+            <a href="/register">Register</a>
+          </Button>
         </div>
       )}
     </div>
