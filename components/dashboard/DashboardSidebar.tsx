@@ -34,8 +34,10 @@ import { cn } from "@/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useUser } from "@/hooks/auth/useProfile";
 import { useLogout } from "@/hooks/auth/useLogout";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useModalStore } from "@/store/modalStore";
+import SearchDialog from "../dialogs/SearchDialog";
+import TrashDialog from "../dialogs/TrashDialog";
 
 const SidebarButton = memo(
   ({
@@ -531,6 +533,7 @@ const DashboardSidebar: FC = () => {
 
   const { data: user } = useUser();
   const logoutMutation = useLogout();
+  const pathname = usePathname();
   const router = useRouter();
   const { setOpenModal, isOpen } = useModalStore();
 
@@ -552,9 +555,39 @@ const DashboardSidebar: FC = () => {
   );
 
   return (
-    <div className="p-4 w-64 bg-gray-100 h-full">
-      <h2 className="text-xl font-bold mb-4">Sidebar</h2>
-    </div>
+    <TooltipProvider>
+      <SearchDialog
+        searchOpen={isOpen("search")}
+        setSearchOpen={(open) => setOpenModal(open ? "search" : null)}
+      />
+      <TrashDialog
+        trashOpen={isOpen("trash")}
+        setTrashOpen={(open) => setOpenModal(open ? "trash" : null)}
+      />
+       <motion.aside
+        initial={{ width: 280 }}
+        animate={{ width: collapsed ? 64 : 280 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className="group/sidebar h-full bg-background/95 backdrop-blur-sm border-r border-border/40 flex flex-col z-[99999] min-h-screen left-0 top-0 shadow-sm sticky"
+        style={{ overflow: "visible" }}
+      >
+        <div className="flex justify-end p-3 pb-0">
+          <CollapseButton
+            collapsed={collapsed}
+            onToggle={handleToggleCollapse}
+          />
+        </div>
+
+        <div className="flex flex-col flex-1 px-3 space-y-4 pb-3 overflow-y-auto">
+          <StaticSidebarButtons
+            collapsed={collapsed}
+            pathname={pathname}
+            onNavigate={handleNavigate}
+            onOpenModal={handleOpenModal}
+          />
+        </div>
+      </motion.aside>
+    </TooltipProvider>
   );
 };
 
