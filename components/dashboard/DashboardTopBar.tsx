@@ -1,0 +1,60 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { LogOut, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { FC } from "react"
+import { getSupabaseBrowserClient } from "@/supabase/client"
+
+interface DashboardTopBarProps {
+  userEmail: string
+}
+
+const DashboardTopBar: FC<DashboardTopBarProps> = ({
+    userEmail
+}: DashboardTopBarProps) => {
+  const router = useRouter()
+  const supabase = getSupabaseBrowserClient()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/auth/login")
+    router.refresh()
+  }
+
+  return (
+    <header className="border-b bg-background">
+      <div className="flex h-14 items-center justify-between px-4">
+        <h1 className="text-lg font-semibold">Workspace</h1>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>TODO EMAIL</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+
+export default DashboardTopBar
