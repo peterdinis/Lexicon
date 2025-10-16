@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { FileText, CheckSquare, Calendar, Folder, Share2, Zap, Sparkles } from "lucide-react"
 import { FC } from "react"
+import { ModeToggle } from "../shared/ModeToggle"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -53,6 +54,7 @@ const HomeWrapper: FC = () => {
             <Link href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
+            <ModeToggle />
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login">
