@@ -1,6 +1,5 @@
 import { pgTable, uuid, text, jsonb, integer, timestamp } from "drizzle-orm/pg-core";
 
-// Pages table
 export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").notNull(),
