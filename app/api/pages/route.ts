@@ -1,32 +1,32 @@
-import { getErrorMessage } from "@/constants/applicationConstants"
-import { getSupabaseServerClient } from "@/supabase/server"
-import { NextResponse } from "next/server"
+import { getErrorMessage } from "@/constants/applicationConstants";
+import { getSupabaseServerClient } from "@/supabase/server";
+import { NextResponse } from "next/server";
 
 interface Page {
-  id: string
-  user_id: string
-  title: string
-  parent_id: string | null
-  is_folder: boolean
-  deleted_at: string | null
-  updated_at: string
-  [key: string]: unknown // pre prípad ďalších polí
+  id: string;
+  user_id: string;
+  title: string;
+  parent_id: string | null;
+  is_folder: boolean;
+  deleted_at: string | null;
+  updated_at: string;
+  [key: string]: unknown;
 }
 
 export async function GET() {
   try {
-    const supabase = await getSupabaseServerClient()
+    const supabase = await getSupabaseServerClient();
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (userError) {
-      return NextResponse.json({ error: userError.message }, { status: 500 })
+      return NextResponse.json({ error: userError.message }, { status: 500 });
     }
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { data: pages, error } = await supabase
@@ -34,43 +34,43 @@ export async function GET() {
       .select("*")
       .eq("user_id", user.id)
       .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
+      .order("updated_at", { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(pages)
+    return NextResponse.json(pages);
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Unknown server error"
-    return NextResponse.json({ error: message }, { status: 500 })
+      error instanceof Error ? error.message : "Unknown server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = await getSupabaseServerClient()
+    const supabase = await getSupabaseServerClient();
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (userError) {
-      return NextResponse.json({ error: userError.message }, { status: 500 })
+      return NextResponse.json({ error: userError.message }, { status: 500 });
     }
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = (await request.json()) as {
-      title?: string
-      parent_id?: string | null
-      is_folder?: boolean
-    }
+      title?: string;
+      parent_id?: string | null;
+      is_folder?: boolean;
+    };
 
-    const { title, parent_id, is_folder } = body
+    const { title, parent_id, is_folder } = body;
 
     const { data: page, error } = await supabase
       .from("pages")
@@ -81,15 +81,15 @@ export async function POST(request: Request) {
         is_folder: is_folder ?? false,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(page)
+    return NextResponse.json(page);
   } catch (error) {
-     const message = getErrorMessage(error)
-    return NextResponse.json({ error: message }, { status: 500 })
+    const message = getErrorMessage(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -20,6 +20,7 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/constants/applicationConstants";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -56,8 +57,9 @@ const ForgotPasswordForm: FC = () => {
       toast.success("Reset password is DONE");
       if (error) throw error;
       setSuccess(true);
-    } catch (err: any) {
-      setServerError(err.message || "Failed to send reset email");
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setServerError(message || "Failed to send reset email");
     }
   };
 

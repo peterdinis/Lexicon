@@ -1,15 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { ImageIcon, X } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { ImageIcon, X } from "lucide-react";
 
 interface CoverImageSelectorProps {
-  value?: string
-  onChange: (url: string | null) => void
+  value?: string;
+  onChange: (url: string | null) => void;
 }
 
 const UNSPLASH_IMAGES = [
@@ -21,24 +25,27 @@ const UNSPLASH_IMAGES = [
   "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1200&h=400&fit=crop",
   "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1200&h=400&fit=crop",
   "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1200&h=400&fit=crop",
-]
+];
 
-export function CoverImageSelector({ value, onChange }: CoverImageSelectorProps) {
-  const [open, setOpen] = useState(false)
-  const [customUrl, setCustomUrl] = useState("")
+export function CoverImageSelector({
+  value,
+  onChange,
+}: CoverImageSelectorProps) {
+  const [open, setOpen] = useState(false);
+  const [customUrl, setCustomUrl] = useState("");
 
   const handleSelectImage = (url: string) => {
-    onChange(url)
-    setOpen(false)
-  }
+    onChange(url);
+    setOpen(false);
+  };
 
   const handleCustomUrl = () => {
     if (customUrl) {
-      onChange(customUrl)
-      setCustomUrl("")
-      setOpen(false)
+      onChange(customUrl);
+      setCustomUrl("");
+      setOpen(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -85,7 +92,7 @@ export function CoverImageSelector({ value, onChange }: CoverImageSelectorProps)
                     onChange={(e) => setCustomUrl(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        handleCustomUrl()
+                        handleCustomUrl();
                       }
                     }}
                   />
@@ -104,5 +111,5 @@ export function CoverImageSelector({ value, onChange }: CoverImageSelectorProps)
         </Button>
       )}
     </div>
-  )
+  );
 }

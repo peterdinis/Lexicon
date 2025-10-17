@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
+import { getErrorMessage } from "@/constants/applicationConstants";
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -65,9 +66,10 @@ const LoginForm: FC = () => {
         router.push("/dashboard");
         router.refresh();
       }, 800);
-    } catch (err: any) {
-      setServerError(err.message || "Failed to login");
-      toast.error(err.message || "Failed to login");
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setServerError(message || "Failed to login");
+      toast.error(message || "Failed to login");
     }
   };
 

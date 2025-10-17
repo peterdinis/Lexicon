@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getSupabaseBrowserClient } from "@/supabase/client";
+import { getErrorMessage } from "@/constants/applicationConstants";
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -56,8 +57,9 @@ const SignupForm: FC = () => {
 
       router.push("/dashboard");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Failed to create account");
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message || "Failed to create account");
     } finally {
       setLoading(false);
     }
