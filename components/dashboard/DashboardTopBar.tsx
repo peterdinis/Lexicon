@@ -15,14 +15,9 @@ import { FC } from "react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import useSWR from "swr";
+import { fetchUser } from "@/actions/authActions";
 
 const supabase = getSupabaseBrowserClient();
-
-const fetchUser = async () => {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error("No user found");
-  return data.user;
-};
 
 const DashboardTopBar: FC = () => {
   const router = useRouter();
@@ -37,7 +32,7 @@ const DashboardTopBar: FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    mutate(undefined, false); // Clear cached user
+    mutate(undefined, false);
     router.push("/auth/login");
     router.refresh();
   };

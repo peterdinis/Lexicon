@@ -18,6 +18,8 @@ import {
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { fetcher } from "@/lib/fetcher";
+import { checkEmailAction } from "@/actions/authActions";
+import { CheckEmailResponse } from "@/types/applicationTypes";
 
 
 const SignupForm: FC = () => {
@@ -30,10 +32,19 @@ const SignupForm: FC = () => {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   
-  const { data: emailTaken, isLoading: checkingEmail } = useSWR(
-    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher,
-  );
+ const { data: emailCheck} = useSWR(
+  email ? ["checkEmail", email] : null,
+  async ([, email]) => {
+    try {
+      const result = (await checkEmailAction({ email })) as unknown as CheckEmailResponse
+      return result.exists;
+    } catch {
+      return undefined;
+    }
+  }
+);
+
+const emailTaken = emailCheck;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +120,7 @@ const SignupForm: FC = () => {
                 required
                 disabled={loading}
               />
-              {checkingEmail && (
+              {emailCheck && (
                 <p className="text-sm text-muted-foreground">
                   Checking email...
                 </p>
@@ -154,7 +165,7 @@ const SignupForm: FC = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || checkingEmail || emailTaken}
+              disabled={loading || emailCheck || emailTaken}
             >
               {loading ? "Creating account..." : "Create account"}
             </Button>

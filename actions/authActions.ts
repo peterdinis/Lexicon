@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { actionClient } from "@/lib/safe-action";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { getSupabaseServerClient } from "@/supabase/server";
+import { getSupabaseBrowserClient } from "@/supabase/client";
 
 const exchangeCodeSchema = z.object({
   code: z.string().min(1),
@@ -16,6 +17,14 @@ const exchangeCodeSchema = z.object({
 const checkEmailSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
+
+const supabase = getSupabaseBrowserClient();
+
+export const fetchUser = async () => {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) throw new Error("No user found");
+  return data.user;
+};
 
 export const checkEmailAction = actionClient
   .inputSchema(checkEmailSchema)
