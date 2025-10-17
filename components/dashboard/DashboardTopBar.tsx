@@ -16,6 +16,7 @@ import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import useSWR from "swr";
 import { fetchUser } from "@/actions/authActions";
+import { Spinner } from "../ui/spinner";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -38,7 +39,12 @@ const DashboardTopBar: FC = () => {
   };
 
   if (error) return <div>Error loading user</div>;
-  if (!user) return <div>Loading...</div>;
+  if (!user)
+    return (
+      <div>
+        <Spinner />
+      </div>
+    );
 
   return (
     <header className="border-b bg-background">

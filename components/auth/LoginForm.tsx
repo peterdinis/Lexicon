@@ -51,7 +51,9 @@ const LoginForm: FC = () => {
 
     try {
       // Overenie e-mailu až pri odoslaní
-      const result = (await checkEmailAction({ email: data.email })) as { exists: boolean };
+      const result = (await checkEmailAction({ email: data.email })) as {
+        exists: boolean;
+      };
       if (!result.exists) {
         setServerError("This email is not registered");
         toast.error("This email is not registered");
@@ -107,7 +109,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -130,7 +134,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </CardContent>

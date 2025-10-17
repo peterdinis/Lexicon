@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const DiagramsPage: NextPage = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default DiagramsPage
+export default DiagramsPage;

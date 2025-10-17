@@ -106,7 +106,10 @@ export function DashboardSidebar({
     try {
       const response = await fetch("/api/pages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
         body: JSON.stringify({ title: "Untitled", parent_id: parentId }),
       });
 
@@ -295,8 +298,9 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-          }`}
+        className={`rounded-lg transition-colors ${
+          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+        }`}
       >
         {children}
       </div>
@@ -320,8 +324,9 @@ export function DashboardSidebar({
 
     const content = (
       <div
-        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
-          }`}
+        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
+          currentPageId === page.id ? "bg-accent" : ""
+        }`}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
         <button
@@ -395,7 +400,9 @@ export function DashboardSidebar({
               </>
             )}
             <DropdownMenuItem
-              onClick={(e: React.MouseEvent<HTMLDivElement>) => deletePage(page.id, e)}
+              onClick={(e: React.MouseEvent<HTMLDivElement>) =>
+                deletePage(page.id, e)
+              }
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Move to Trash
@@ -584,10 +591,11 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
-                    ? "bg-primary/10 ring-2 ring-primary/50"
-                    : ""
-                    }`}
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
+                    isOverRoot && activeId
+                      ? "bg-primary/10 ring-2 ring-primary/50"
+                      : ""
+                  }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -619,8 +627,9 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-            }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
+            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+          }`}
         >
           <SidebarContent />
         </aside>

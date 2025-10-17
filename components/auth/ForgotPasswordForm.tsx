@@ -35,7 +35,9 @@ const ForgotPasswordForm: FC = () => {
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
-  const [emailExists, setEmailExists] = useState<boolean | undefined>(undefined);
+  const [emailExists, setEmailExists] = useState<boolean | undefined>(
+    undefined,
+  );
 
   const {
     register,
@@ -96,7 +98,8 @@ const ForgotPasswordForm: FC = () => {
               Check your email
             </CardTitle>
             <CardDescription className="text-center">
-              We've sent a password reset link to <strong>{getValues("email")}</strong>
+              We've sent a password reset link to{" "}
+              <strong>{getValues("email")}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -126,7 +129,8 @@ const ForgotPasswordForm: FC = () => {
             Reset your password
           </CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we'll send you a link to reset your
+            password
           </CardDescription>
         </CardHeader>
 
@@ -149,13 +153,19 @@ const ForgotPasswordForm: FC = () => {
                 disabled={isSubmitting || checkingEmail}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
               {checkingEmail && (
-                <p className="text-sm text-muted-foreground">Checking email...</p>
+                <p className="text-sm text-muted-foreground">
+                  Checking email...
+                </p>
               )}
               {emailExists === false && (
-                <p className="text-sm text-destructive">This email is not registered</p>
+                <p className="text-sm text-destructive">
+                  This email is not registered
+                </p>
               )}
             </div>
           </CardContent>

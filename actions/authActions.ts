@@ -18,7 +18,23 @@ const checkEmailSchema = z.object({
 });
 
 export const fetchUser = async () => {
-  const supabase = await getSupabaseServerClient(); 
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookieStore).getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(async ({ name, value, options }) =>
+            (await cookieStore).set(name, value, options),
+          );
+        },
+      },
+    },
+  );
 
   const { data, error } = await supabase.auth.getUser();
   if (error) throw new Error(error.message || "No user found");
@@ -26,6 +42,7 @@ export const fetchUser = async () => {
 
   return data.user;
 };
+
 export const checkEmailAction = actionClient
   .inputSchema(checkEmailSchema)
   .action(async ({ parsedInput: { email } }) => {

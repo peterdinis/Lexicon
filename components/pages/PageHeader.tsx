@@ -26,14 +26,20 @@ export function PageHeader({
   icon: initialIcon,
   coverImage: initialCoverImage,
 }: PageHeaderProps) {
-  const { data: page, error, mutate } = useSWR(
+  const {
+    data: page,
+    error,
+    mutate,
+  } = useSWR(
     () => pageId,
     () => fetchPage(pageId),
   );
 
   const [title, setTitle] = useState<string>(initialTitle || "");
   const [icon, setIcon] = useState<string | undefined>(initialIcon);
-  const [coverImage, setCoverImage] = useState<string | undefined>(initialCoverImage || undefined);
+  const [coverImage, setCoverImage] = useState<string | undefined>(
+    initialCoverImage || undefined,
+  );
 
   // Sync SWR data to local state if props are missing
   useEffect(() => {
