@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { FC, useState } from "react"
-import Link from "next/link"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FC, useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -15,22 +15,22 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ArrowLeft, CheckCircle2 } from "lucide-react"
-import { getSupabaseBrowserClient } from "@/supabase/client"
-import { Spinner } from "../ui/spinner"
-import {toast} from "sonner"
+} from "@/components/ui/card";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/supabase/client";
+import { Spinner } from "../ui/spinner";
+import { toast } from "sonner";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-})
+});
 
-type ForgotPasswordFormValues = z.infer<typeof ForgotPasswordSchema>
+type ForgotPasswordFormValues = z.infer<typeof ForgotPasswordSchema>;
 
 const ForgotPasswordForm: FC = () => {
-  const supabase = getSupabaseBrowserClient()
-  const [success, setSuccess] = useState(false)
-  const [serverError, setServerError] = useState("")
+  const supabase = getSupabaseBrowserClient();
+  const [success, setSuccess] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -42,24 +42,24 @@ const ForgotPasswordForm: FC = () => {
     defaultValues: {
       email: "",
     },
-  })
+  });
 
-  const email = watch("email")
+  const email = watch("email");
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
-    setServerError("")
+    setServerError("");
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
+      });
       toast.success("Reset password is DONE");
-      if (error) throw error
-      setSuccess(true)
+      if (error) throw error;
+      setSuccess(true);
     } catch (err: any) {
-      setServerError(err.message || "Failed to send reset email")
+      setServerError(err.message || "Failed to send reset email");
     }
-  }
+  };
 
   if (success) {
     return (
@@ -78,7 +78,8 @@ const ForgotPasswordForm: FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Click the link in the email to reset your password. The link will expire in 1 hour.
+              Click the link in the email to reset your password. The link will
+              expire in 1 hour.
             </p>
           </CardContent>
           <CardFooter>
@@ -91,16 +92,19 @@ const ForgotPasswordForm: FC = () => {
           </CardFooter>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Reset your password</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Reset your password
+          </CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we'll send you a link to reset your
+            password
           </CardDescription>
         </CardHeader>
 
@@ -122,7 +126,9 @@ const ForgotPasswordForm: FC = () => {
                 disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -141,7 +147,7 @@ const ForgotPasswordForm: FC = () => {
         </form>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ForgotPasswordForm
+export default ForgotPasswordForm;

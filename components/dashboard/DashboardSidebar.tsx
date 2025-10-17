@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   FileText,
@@ -21,11 +21,16 @@ import {
   FolderPlus,
   MoreHorizontal,
   GripVertical,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   DndContext,
   DragOverlay,
@@ -37,27 +42,32 @@ import {
   type DragEndEvent,
   type DragStartEvent,
   type DragOverEvent,
-  useDraggable, 
-  useDroppable
-} from "@dnd-kit/core"
-import { CSS } from "@dnd-kit/utilities"
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 interface DashboardSidebarProps {
-  initialPages: any[]
-  currentPageId?: string
+  initialPages: any[];
+  currentPageId?: string;
 }
 
-export function DashboardSidebar({ initialPages, currentPageId }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<any[]>(initialPages)
-  const [loading, setLoading] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [desktopCollapsed, setDesktopCollapsed] = useState(false)
-  const [workspaceExpanded, setWorkspaceExpanded] = useState(true)
-  const [pagesExpanded, setPagesExpanded] = useState(true)
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [overId, setOverId] = useState<string | null>(null)
-  const router = useRouter()
+export function DashboardSidebar({
+  initialPages,
+  currentPageId,
+}: DashboardSidebarProps) {
+  const [pages, setPages] = useState<any[]>(initialPages);
+  const [loading, setLoading] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
+  const [pagesExpanded, setPagesExpanded] = useState(true);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const router = useRouter();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,71 +76,75 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
       },
     }),
     useSensor(KeyboardSensor),
-  )
+  );
 
   const buildHierarchy = (pages: any[]): any[] => {
-    const pageMap = new Map<string, any & { children?: any[] }>()
-    const rootPages: any[] = []
+    const pageMap = new Map<string, any & { children?: any[] }>();
+    const rootPages: any[] = [];
 
     pages.forEach((page) => {
-      pageMap.set(page.id, { ...page, children: [] })
-    })
+      pageMap.set(page.id, { ...page, children: [] });
+    });
 
     pages.forEach((page) => {
-      const pageWithChildren = pageMap.get(page.id)!
+      const pageWithChildren = pageMap.get(page.id)!;
       if (page.parent_id && pageMap.has(page.parent_id)) {
-        const parent = pageMap.get(page.parent_id)!
-        parent.children!.push(pageWithChildren)
+        const parent = pageMap.get(page.parent_id)!;
+        parent.children!.push(pageWithChildren);
       } else {
-        rootPages.push(pageWithChildren)
+        rootPages.push(pageWithChildren);
       }
-    })
+    });
 
-    return rootPages
-  }
+    return rootPages;
+  };
 
   const createPage = async (parentId?: string) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await fetch("/api/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Untitled", parent_id: parentId }),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to create page")
+      if (!response.ok) throw new Error("Failed to create page");
 
-      const newPage = await response.json()
-      setPages([newPage, ...pages])
-      router.push(`/page/${newPage.id}`)
-      setMobileOpen(false)
+      const newPage = await response.json();
+      setPages([newPage, ...pages]);
+      router.push(`/page/${newPage.id}`);
+      setMobileOpen(false);
     } catch (error) {
-      console.error("Error creating page:", error)
+      console.error("Error creating page:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const createFolder = async (parentId?: string) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await fetch("/api/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Untitled Folder", is_folder: true, parent_id: parentId }),
-      })
+        body: JSON.stringify({
+          title: "Untitled Folder",
+          is_folder: true,
+          parent_id: parentId,
+        }),
+      });
 
-      if (!response.ok) throw new Error("Failed to create folder")
+      if (!response.ok) throw new Error("Failed to create folder");
 
-      const newFolder = await response.json()
-      setPages([newFolder, ...pages])
-      setExpandedFolders(new Set([...expandedFolders, newFolder.id]))
+      const newFolder = await response.json();
+      setPages([newFolder, ...pages]);
+      setExpandedFolders(new Set([...expandedFolders, newFolder.id]));
     } catch (error) {
-      console.error("Error creating folder:", error)
+      console.error("Error creating folder:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const movePage = async (pageId: string, targetFolderId: string | null) => {
     try {
@@ -138,128 +152,143 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ parent_id: targetFolderId }),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to move page")
+      if (!response.ok) throw new Error("Failed to move page");
 
-      const updatedPage = await response.json()
-      setPages(pages.map((p) => (p.id === pageId ? updatedPage : p)))
+      const updatedPage = await response.json();
+      setPages(pages.map((p) => (p.id === pageId ? updatedPage : p)));
     } catch (error) {
-      console.error("Error moving page:", error)
+      console.error("Error moving page:", error);
     }
-  }
+  };
 
   const deletePage = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
 
-    if (!confirm("Are you sure you want to move this to trash?")) return
+    if (!confirm("Are you sure you want to move this to trash?")) return;
 
     try {
       const response = await fetch(`/api/pages/${id}`, {
         method: "DELETE",
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to delete page")
+      if (!response.ok) throw new Error("Failed to delete page");
 
-      setPages(pages.filter((p) => p.id !== id))
+      setPages(pages.filter((p) => p.id !== id));
 
       if (currentPageId === id) {
-        router.push("/")
+        router.push("/");
       }
     } catch (error) {
-      console.error("Error deleting page:", error)
+      console.error("Error deleting page:", error);
     }
-  }
+  };
 
   const toggleFolder = (folderId: string) => {
-    const newExpanded = new Set(expandedFolders)
+    const newExpanded = new Set(expandedFolders);
     if (newExpanded.has(folderId)) {
-      newExpanded.delete(folderId)
+      newExpanded.delete(folderId);
     } else {
-      newExpanded.add(folderId)
+      newExpanded.add(folderId);
     }
-    setExpandedFolders(newExpanded)
-  }
+    setExpandedFolders(newExpanded);
+  };
 
   const isDescendant = (parentId: string, childId: string): boolean => {
-    const page = pages.find((p) => p.id === childId)
-    if (!page || !page.parent_id) return false
-    if (page.parent_id === parentId) return true
-    return isDescendant(parentId, page.parent_id)
-  }
+    const page = pages.find((p) => p.id === childId);
+    if (!page || !page.parent_id) return false;
+    if (page.parent_id === parentId) return true;
+    return isDescendant(parentId, page.parent_id);
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
-  }
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragOver = (event: DragOverEvent) => {
-    setOverId(event.over?.id as string | null)
-  }
+    setOverId(event.over?.id as string | null);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    setActiveId(null)
-    setOverId(null)
+    const { active, over } = event;
+    setActiveId(null);
+    setOverId(null);
 
-    if (!over || active.id === over.id) return
+    if (!over || active.id === over.id) return;
 
-    const draggedPageId = active.id as string
-    const targetId = over.id as string
+    const draggedPageId = active.id as string;
+    const targetId = over.id as string;
 
     // Prevent dropping a folder into itself or its descendants
-    const draggedPage = pages.find((p) => p.id === draggedPageId)
-    if (draggedPage?.is_folder && (targetId === draggedPageId || isDescendant(draggedPageId, targetId))) {
-      return
+    const draggedPage = pages.find((p) => p.id === draggedPageId);
+    if (
+      draggedPage?.is_folder &&
+      (targetId === draggedPageId || isDescendant(draggedPageId, targetId))
+    ) {
+      return;
     }
 
     // If dropping on root, set parent to null
     if (targetId === "root") {
-      movePage(draggedPageId, null)
-      return
+      movePage(draggedPageId, null);
+      return;
     }
 
     // If dropping on a folder, set that folder as parent
-    const targetPage = pages.find((p) => p.id === targetId)
+    const targetPage = pages.find((p) => p.id === targetId);
     if (targetPage?.is_folder) {
-      movePage(draggedPageId, targetId)
+      movePage(draggedPageId, targetId);
       // Auto-expand the folder
-      setExpandedFolders(new Set([...expandedFolders, targetId]))
+      setExpandedFolders(new Set([...expandedFolders, targetId]));
     }
-  }
+  };
 
-  const DraggablePageItem = ({ page, depth = 0 }: { page: any & { children?: any[] }; depth?: number }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-      id: page.id,
-      data: { page },
-    })
+  const DraggablePageItem = ({
+    page,
+    depth = 0,
+  }: {
+    page: any & { children?: any[] };
+    depth?: number;
+  }) => {
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+      useDraggable({
+        id: page.id,
+        data: { page },
+      });
 
     const style = {
       transform: CSS.Translate.toString(transform),
       opacity: isDragging ? 0.5 : 1,
-    }
+    };
 
     return (
       <div ref={setNodeRef} style={style}>
-        <PageTreeItem page={page} depth={depth} dragHandleProps={{ ...attributes, ...listeners }} />
+        <PageTreeItem
+          page={page}
+          depth={depth}
+          dragHandleProps={{ ...attributes, ...listeners }}
+        />
       </div>
-    )
-  }
+    );
+  };
 
   const DroppableFolder = ({
     page,
     depth = 0,
     children,
   }: {
-    page: any & { children?: any[] }
-    depth?: number
-    children: React.ReactNode
+    page: any & { children?: any[] };
+    depth?: number;
+    children: React.ReactNode;
   }) => {
     const { setNodeRef, isOver } = useDroppable({
       id: page.id,
       data: { page },
-    })
+    });
 
-    const isValidDrop = activeId && activeId !== page.id && !isDescendant(page.id, activeId)
+    const isValidDrop =
+      activeId && activeId !== page.id && !isDescendant(page.id, activeId);
 
     return (
       <div
@@ -270,20 +299,20 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
       >
         {children}
       </div>
-    )
-  }
+    );
+  };
 
   const PageTreeItem = ({
     page,
     depth = 0,
     dragHandleProps,
   }: {
-    page: any & { children?: any[] }
-    depth?: number
-    dragHandleProps?: any
+    page: any & { children?: any[] };
+    depth?: number;
+    dragHandleProps?: any;
   }) => {
-    const isExpanded = expandedFolders.has(page.id)
-    const hasChildren = page.children && page.children.length > 0
+    const isExpanded = expandedFolders.has(page.id);
+    const hasChildren = page.children && page.children.length > 0;
 
     const content = (
       <div
@@ -301,14 +330,21 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
 
         {page.is_folder ? (
           <>
-            <button onClick={() => toggleFolder(page.id)} className="p-1 hover:bg-accent-foreground/10 rounded">
-              {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            <button
+              onClick={() => toggleFolder(page.id)}
+              className="p-1 hover:bg-accent-foreground/10 rounded"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5" />
+              )}
             </button>
             <button
               onClick={() => {
                 if (!page.is_folder) {
-                  router.push(`/page/${page.id}`)
-                  setMobileOpen(false)
+                  router.push(`/page/${page.id}`);
+                  setMobileOpen(false);
                 }
               }}
               className="flex flex-1 items-center gap-2 py-1.5 text-sm"
@@ -324,8 +360,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
             <div className="w-5" />
             <button
               onClick={() => {
-                router.push(`/page/${page.id}`)
-                setMobileOpen(false)
+                router.push(`/page/${page.id}`);
+                setMobileOpen(false);
               }}
               className="flex flex-1 items-center gap-2 py-1.5 text-sm"
             >
@@ -362,7 +398,7 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    )
+    );
 
     return (
       <div>
@@ -376,19 +412,23 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
         {page.is_folder && isExpanded && hasChildren && (
           <div>
             {page.children!.map((child: any) => (
-              <DraggablePageItem key={child.id} page={child} depth={depth + 1} />
+              <DraggablePageItem
+                key={child.id}
+                page={child}
+                depth={depth + 1}
+              />
             ))}
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
-    const hierarchicalPages = buildHierarchy(pages)
+    const hierarchicalPages = buildHierarchy(pages);
     const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({
       id: "root",
-    })
+    });
 
     return (
       <div className="flex h-full flex-col">
@@ -401,7 +441,11 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
               onClick={() => setDesktopCollapsed(!desktopCollapsed)}
               className="h-8 w-8"
             >
-              {desktopCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              {desktopCollapsed ? (
+                <PanelLeft className="h-4 w-4" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" />
+              )}
             </Button>
           </div>
         )}
@@ -413,15 +457,19 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                 onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
                 className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                {workspaceExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {workspaceExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
                 Workspace
               </button>
               {workspaceExpanded && (
                 <div className="ml-2 mt-1 space-y-1">
                   <button
                     onClick={() => {
-                      router.push("/")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -430,8 +478,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/todos")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/todos");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -440,8 +488,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/calendar")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/calendar");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -450,8 +498,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/diagrams")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/diagrams");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -472,8 +520,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/settings")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/settings");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -482,8 +530,8 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/trash")
-                      if (isMobile) setMobileOpen(false)
+                      router.push("/trash");
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
                   >
@@ -500,7 +548,11 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                   onClick={() => setPagesExpanded(!pagesExpanded)}
                   className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
                 >
-                  {pagesExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {pagesExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
                   Pages
                 </button>
                 <div className="flex gap-1">
@@ -528,7 +580,9 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                 <div
                   ref={setRootRef}
                   className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId ? "bg-primary/10 ring-2 ring-primary/50" : ""
+                    isOverRoot && activeId
+                      ? "bg-primary/10 ring-2 ring-primary/50"
+                      : ""
                   }`}
                 >
                   {hierarchicalPages.length === 0 ? (
@@ -536,7 +590,9 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
                       No pages yet. Create your first page!
                     </div>
                   ) : (
-                    hierarchicalPages.map((page) => <DraggablePageItem key={page.id} page={page} />)
+                    hierarchicalPages.map((page) => (
+                      <DraggablePageItem key={page.id} page={page} />
+                    ))
                   )}
                 </div>
               )}
@@ -544,10 +600,10 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
           </div>
         </ScrollArea>
       </div>
-    )
-  }
+    );
+  };
 
-  const activePage = activeId ? pages.find((p) => p.id === activeId) : null
+  const activePage = activeId ? pages.find((p) => p.id === activeId) : null;
 
   return (
     <>
@@ -595,8 +651,16 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild className="md:hidden">
-          <Button variant="ghost" size="icon" className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg">
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
+          >
+            {mobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
@@ -604,5 +668,5 @@ export function DashboardSidebar({ initialPages, currentPageId }: DashboardSideb
         </SheetContent>
       </Sheet>
     </>
-  )
+  );
 }

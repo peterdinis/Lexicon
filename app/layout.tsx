@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Lexicon - Your Personal Knowledge Hub",
-  description: "Organize your notes, docs, and ideas effortlessly with Lexicon, a Notion-inspired knowledge management app.",
+  description:
+    "Organize your notes, docs, and ideas effortlessly with Lexicon, a Notion-inspired knowledge management app.",
   keywords: [
     "Lexicon",
     "notes",
@@ -29,7 +30,8 @@ export const metadata: Metadata = {
   publisher: "Tvoja Firma",
   openGraph: {
     title: "Lexicon - Your Personal Knowledge Hub",
-    description: "Organize your notes, docs, and ideas effortlessly with Lexicon.",
+    description:
+      "Organize your notes, docs, and ideas effortlessly with Lexicon.",
     url: "https://tvojaappka.sk",
     siteName: "Lexicon",
     images: [
@@ -46,7 +48,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Lexicon - Your Personal Knowledge Hub",
-    description: "Organize your notes, docs, and ideas effortlessly with Lexicon.",
+    description:
+      "Organize your notes, docs, and ideas effortlessly with Lexicon.",
     images: ["https://tvojaappka.sk/og-image.png"],
     creator: "@tvoj_twitter",
   },
@@ -73,14 +76,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

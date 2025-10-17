@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { FC, useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { FC, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -17,22 +17,22 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Spinner } from "../ui/spinner"
-import { getSupabaseBrowserClient } from "@/supabase/client"
+} from "@/components/ui/card";
+import { Spinner } from "../ui/spinner";
+import { getSupabaseBrowserClient } from "@/supabase/client";
 
 // ✅ Zod schema
 const LoginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
-})
+});
 
-type LoginFormValues = z.infer<typeof LoginSchema>
+type LoginFormValues = z.infer<typeof LoginSchema>;
 
 const LoginForm: FC = () => {
-  const router = useRouter()
-  const supabase = getSupabaseBrowserClient()
-  const [serverError, setServerError] = useState("")
+  const router = useRouter();
+  const supabase = getSupabaseBrowserClient();
+  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -44,39 +44,41 @@ const LoginForm: FC = () => {
       email: "",
       password: "",
     },
-  })
+  });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setServerError("")
+    setServerError("");
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       // ✅ Show success toast
-      toast.success("Successfully signed in!")
+      toast.success("Successfully signed in!");
 
       // ✅ Redirect after short delay (so toast is visible)
       setTimeout(() => {
-        router.push("/dashboard")
-        router.refresh()
-      }, 800)
+        router.push("/dashboard");
+        router.refresh();
+      }, 800);
     } catch (err: any) {
-      setServerError(err.message || "Failed to login")
-      toast.error(err.message || "Failed to login")
+      setServerError(err.message || "Failed to login");
+      toast.error(err.message || "Failed to login");
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Enter your credentials to access your workspace</CardDescription>
+          <CardDescription>
+            Enter your credentials to access your workspace
+          </CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -98,7 +100,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -121,7 +125,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -144,7 +150,7 @@ const LoginForm: FC = () => {
         </form>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default LoginForm
+export default LoginForm;
