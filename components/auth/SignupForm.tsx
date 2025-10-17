@@ -21,7 +21,6 @@ import { fetcher } from "@/lib/fetcher";
 import { checkEmailAction } from "@/actions/authActions";
 import { CheckEmailResponse } from "@/types/applicationTypes";
 
-
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,20 +30,22 @@ const SignupForm: FC = () => {
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  
- const { data: emailCheck} = useSWR(
-  email ? ["checkEmail", email] : null,
-  async ([, email]) => {
-    try {
-      const result = (await checkEmailAction({ email })) as unknown as CheckEmailResponse
-      return result.exists;
-    } catch {
-      return undefined;
-    }
-  }
-);
 
-const emailTaken = emailCheck;
+  const { data: emailCheck } = useSWR(
+    email ? ["checkEmail", email] : null,
+    async ([, email]) => {
+      try {
+        const result = (await checkEmailAction({
+          email,
+        })) as unknown as CheckEmailResponse;
+        return result.exists;
+      } catch {
+        return undefined;
+      }
+    },
+  );
+
+  const emailTaken = emailCheck;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -84,6 +84,8 @@ export const exchangeCodeAction = actionClient
 
       return { redirect: next };
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : "Failed to exchange code");
+      throw new Error(
+        err instanceof Error ? err.message : "Failed to exchange code",
+      );
     }
   });

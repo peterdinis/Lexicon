@@ -45,39 +45,41 @@ export const getPageAction = actionClient
 
 export const updatePageAction = actionClient
   .inputSchema(updatePageSchema)
-  .action(async ({ parsedInput: { id, title, content, icon, cover_image } }) => {
-    try {
-      const supabase = await getSupabaseServerClient();
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+  .action(
+    async ({ parsedInput: { id, title, content, icon, cover_image } }) => {
+      try {
+        const supabase = await getSupabaseServerClient();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
-      if (userError) throw new Error(userError.message);
-      if (!user) throw new Error("Unauthorized");
+        if (userError) throw new Error(userError.message);
+        if (!user) throw new Error("Unauthorized");
 
-      const updateData: any = {
-        updated_at: new Date().toISOString(),
-        ...(title !== undefined && { title }),
-        ...(content !== undefined && { content }),
-        ...(icon !== undefined && { icon }),
-        ...(cover_image !== undefined && { cover_image }),
-      };
+        const updateData: any = {
+          updated_at: new Date().toISOString(),
+          ...(title !== undefined && { title }),
+          ...(content !== undefined && { content }),
+          ...(icon !== undefined && { icon }),
+          ...(cover_image !== undefined && { cover_image }),
+        };
 
-      const { data: page, error } = await supabase
-        .from("pages")
-        .update(updateData)
-        .eq("id", id)
-        .eq("user_id", user.id)
-        .select()
-        .single();
+        const { data: page, error } = await supabase
+          .from("pages")
+          .update(updateData)
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return page;
-    } catch (err) {
-      throw new Error(getErrorMessage(err));
-    }
-  });
+        if (error) throw error;
+        return page;
+      } catch (err) {
+        throw new Error(getErrorMessage(err));
+      }
+    },
+  );
 
 export const deletePageAction = actionClient
   .inputSchema(pageIdSchema)

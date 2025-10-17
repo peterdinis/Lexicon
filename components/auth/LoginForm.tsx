@@ -53,12 +53,14 @@ const LoginForm: FC = () => {
     email ? ["checkEmail", email] : null,
     async ([, email]) => {
       try {
-        const result = (await checkEmailAction({ email })) as { exists: boolean };
+        const result = (await checkEmailAction({ email })) as {
+          exists: boolean;
+        };
         return result.exists; // boolean
       } catch {
         return undefined;
       }
-    }
+    },
   );
 
   const onSubmit = async (data: LoginFormValues) => {

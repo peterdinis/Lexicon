@@ -49,16 +49,18 @@ const ForgotPasswordForm: FC = () => {
   const email = watch("email");
 
   const { data: emailExists, isLoading } = useSWR(
-  email ? ["checkEmail", email] : null,
-  async ([, email]) => {
-    try {
-      const result = (await checkEmailAction({ email })) as unknown as CheckEmailResponse
-      return result.exists;
-    } catch {
-      return undefined;
-    }
-  }
-);
+    email ? ["checkEmail", email] : null,
+    async ([, email]) => {
+      try {
+        const result = (await checkEmailAction({
+          email,
+        })) as unknown as CheckEmailResponse;
+        return result.exists;
+      } catch {
+        return undefined;
+      }
+    },
+  );
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setServerError("");
