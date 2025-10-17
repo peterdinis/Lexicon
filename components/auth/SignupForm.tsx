@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/card";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { fetcher } from "@/lib/fetcher";
 import { checkEmailAction } from "@/actions/authActions";
 import { CheckEmailResponse } from "@/types/applicationTypes";
+import { useDebounce } from "use-debounce";
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -30,9 +30,10 @@ const SignupForm: FC = () => {
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
+  const [debouncedEmail] = useDebounce(email, 500);
 
   const { data: emailCheck } = useSWR(
-    email ? ["checkEmail", email] : null,
+    debouncedEmail ? ["checkEmail", debouncedEmail] : null,
     async ([, email]) => {
       try {
         const result = (await checkEmailAction({

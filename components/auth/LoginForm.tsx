@@ -23,6 +23,7 @@ import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
+import {useDebounce} from "use-debounce"
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -48,20 +49,19 @@ const LoginForm: FC = () => {
   });
 
   const email = watch("email");
+  const [debouncedEmail] = useDebounce(email, 500);
 
   const { data: emailExists, isLoading } = useSWR(
-    email ? ["checkEmail", email] : null,
-    async ([, email]) => {
-      try {
-        const result = (await checkEmailAction({ email })) as {
-          exists: boolean;
-        };
-        return result.exists; // boolean
-      } catch {
-        return undefined;
-      }
-    },
-  );
+  debouncedEmail ? ["checkEmail", debouncedEmail] : null,
+  async ([, email]) => {
+    try {
+      const result = (await checkEmailAction({ email })) as { exists: boolean };
+      return result.exists;
+    } catch {
+      return undefined;
+    }
+  },
+);
 
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");

@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
 import { CheckEmailResponse } from "@/types/applicationTypes";
+import { useDebounce } from "use-debounce";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -47,9 +48,10 @@ const ForgotPasswordForm: FC = () => {
   });
 
   const email = watch("email");
+  const [debouncedEmail] = useDebounce(email, 500);
 
   const { data: emailExists, isLoading } = useSWR(
-    email ? ["checkEmail", email] : null,
+    debouncedEmail ? ["checkEmail", debouncedEmail] : null,
     async ([, email]) => {
       try {
         const result = (await checkEmailAction({
