@@ -22,7 +22,8 @@ import { getSupabaseBrowserClient } from "@/supabase/client";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { fetcher } from "@/lib/fetcher";
+import { checkEmailAction } from "@/actions/authActions";
+import { CheckEmailResponse } from "@/types/applicationTypes";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -46,11 +47,18 @@ const ForgotPasswordForm: FC = () => {
   });
 
   const email = watch("email");
-  
+
   const { data: emailExists, isLoading } = useSWR(
-    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher,
-  );
+  email ? ["checkEmail", email] : null,
+  async ([, email]) => {
+    try {
+      const result = (await checkEmailAction({ email })) as unknown as CheckEmailResponse
+      return result.exists;
+    } catch {
+      return undefined;
+    }
+  }
+);
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setServerError("");
@@ -64,8 +72,8 @@ const ForgotPasswordForm: FC = () => {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      toast.success("Reset password email sent!");
       if (error) throw error;
+      toast.success("Reset password email sent!");
       setSuccess(true);
     } catch (err) {
       const message = getErrorMessage(err);

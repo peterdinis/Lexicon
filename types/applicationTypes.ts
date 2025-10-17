@@ -67,6 +67,8 @@ export interface PageShare {
   updated_at: string;
 }
 
+export type CheckEmailResponse = { exists: boolean };
+
 export interface Diagram {
   id: string;
   user_id: string;

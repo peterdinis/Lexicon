@@ -22,7 +22,7 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { fetcher } from "@/lib/fetcher";
+import { checkEmailAction } from "@/actions/authActions";
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -50,8 +50,15 @@ const LoginForm: FC = () => {
   const email = watch("email");
 
   const { data: emailExists, isLoading } = useSWR(
-    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher,
+    email ? ["checkEmail", email] : null,
+    async ([, email]) => {
+      try {
+        const result = (await checkEmailAction({ email })) as { exists: boolean };
+        return result.exists; // boolean
+      } catch {
+        return undefined;
+      }
+    }
   );
 
   const onSubmit = async (data: LoginFormValues) => {

@@ -32,11 +32,11 @@ const ResetPasswordForm: FC = () => {
   const searchParams = useSearchParams();
   const supabase = getSupabaseBrowserClient();
 
-  const token = searchParams.get("token"); 4
+  const token = searchParams.get("token");
   const { data: tokenValid, isLoading: checkingToken } = useSWR(
     token ? `/api/validate-reset-token?token=${token}` : null,
     fetcher,
-  );
+  ); // TODO: Make for this server-action
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
