@@ -1,6 +1,5 @@
 "use client";
 
-import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -67,7 +66,7 @@ export function DashboardSidebar({
     new Set(),
   );
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
+  const [, setOverId] = useState<string | null>(null);
   const router = useRouter();
 
   const sensors = useSensors(
@@ -392,7 +391,7 @@ export function DashboardSidebar({
                 </DropdownMenuItem>
               </>
             )}
-            <DropdownMenuItem onClick={(e) => deletePage(page.id, e as Page)}>
+            <DropdownMenuItem onClick={(e) => deletePage(page.id, e as unknown as Page)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Move to Trash
             </DropdownMenuItem>
