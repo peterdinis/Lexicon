@@ -8,6 +8,10 @@ import { getErrorMessage } from "@/constants/applicationConstants";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 
+const validateResetTokenSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+});
+
 const exchangeCodeSchema = z.object({
   code: z.string().min(1),
   next: z.string().optional(),
