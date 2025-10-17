@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { fetcher } from "@/lib/fetcher";
 
 const ResetPasswordForm: FC = () => {
   const [password, setPassword] = useState("");
@@ -33,9 +32,7 @@ const ResetPasswordForm: FC = () => {
   const searchParams = useSearchParams();
   const supabase = getSupabaseBrowserClient();
 
-  const token = searchParams.get("token"); // token z query param
-
-  // -------------------- useSWR pre validitu tokenu --------------------
+  const token = searchParams.get("token"); 4
   const { data: tokenValid, isLoading: checkingToken } = useSWR(
     token ? `/api/validate-reset-token?token=${token}` : null,
     fetcher,

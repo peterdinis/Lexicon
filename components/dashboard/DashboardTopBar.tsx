@@ -18,20 +18,13 @@ import useSWR from "swr";
 
 const supabase = getSupabaseBrowserClient();
 
-// Fetcher funkcia pre useSWR
 const fetchUser = async () => {
   const { data } = await supabase.auth.getUser();
   if (!data.user) throw new Error("No user found");
   return data.user;
 };
 
-type DashboardTopBarProps = {
-  userEmail: string;
-};
-
-const DashboardTopBar: FC<DashboardTopBarProps> = ({
-  userEmail,
-}: DashboardTopBarProps) => {
+const DashboardTopBar: FC = () => {
   const router = useRouter();
 
   const {

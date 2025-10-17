@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/card";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
+import { fetcher } from "@/lib/fetcher";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -29,8 +29,7 @@ const SignupForm: FC = () => {
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-
-  // -------------------- useSWR na kontrolu emailu --------------------
+  
   const { data: emailTaken, isLoading: checkingEmail } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
     fetcher,
