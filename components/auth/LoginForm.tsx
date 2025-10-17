@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
-import {useDebounce} from "use-debounce"
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -42,37 +40,24 @@ const LoginForm: FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(LoginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const email = watch("email");
-  const [debouncedEmail] = useDebounce(email, 500);
-
-  const { data: emailExists, isLoading } = useSWR(
-  debouncedEmail ? ["checkEmail", debouncedEmail] : null,
-  async ([, email]) => {
-    try {
-      const result = (await checkEmailAction({ email })) as { exists: boolean };
-      return result.exists;
-    } catch {
-      return undefined;
-    }
-  },
-);
-
+  // ✅ Pri odoslaní formulára
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
 
-    if (emailExists === false) {
-      setServerError("This email is not registered");
-      toast.error("This email is not registered");
-      return;
-    }
-
     try {
+      // Overenie e-mailu až pri odoslaní
+      const result = (await checkEmailAction({ email: data.email })) as { exists: boolean };
+      if (!result.exists) {
+        setServerError("This email is not registered");
+        toast.error("This email is not registered");
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
@@ -119,17 +104,10 @@ const LoginForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-              {email && emailExists === false && (
-                <p className="text-sm text-destructive">
-                  This email is not registered
-                </p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
 
@@ -149,23 +127,17 @@ const LoginForm: FC = () => {
                 type="password"
                 placeholder="••••••••"
                 {...register("password")}
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting || isLoading}
-            >
-              {isSubmitting || isLoading ? <Spinner /> : "Sign in"}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Spinner /> : "Sign in"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">

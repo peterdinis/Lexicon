@@ -3,7 +3,6 @@
 import { FC, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +17,6 @@ import {
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
-import { CheckEmailResponse } from "@/types/applicationTypes";
-import { useDebounce } from "use-debounce";
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -30,24 +27,8 @@ const SignupForm: FC = () => {
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const [debouncedEmail] = useDebounce(email, 500);
 
-  const { data: emailCheck } = useSWR(
-    debouncedEmail ? ["checkEmail", debouncedEmail] : null,
-    async ([, email]) => {
-      try {
-        const result = (await checkEmailAction({
-          email,
-        })) as unknown as CheckEmailResponse;
-        return result.exists;
-      } catch {
-        return undefined;
-      }
-    },
-  );
-
-  const emailTaken = emailCheck;
-
+  // ✅ Signup logika s kontrolou e-mailu až pri odoslaní
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -62,14 +43,16 @@ const SignupForm: FC = () => {
       return;
     }
 
-    if (emailTaken) {
-      setError("Email is already registered");
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // Overenie e-mailu pri odoslaní formulára
+      const result = (await checkEmailAction({ email })) as { exists: boolean };
+      if (result.exists) {
+        setError("Email is already registered");
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -96,9 +79,7 @@ const SignupForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
 
@@ -122,16 +103,6 @@ const SignupForm: FC = () => {
                 required
                 disabled={loading}
               />
-              {emailCheck && (
-                <p className="text-sm text-muted-foreground">
-                  Checking email...
-                </p>
-              )}
-              {emailTaken && (
-                <p className="text-sm text-destructive">
-                  Email is already registered
-                </p>
-              )}
             </div>
 
             {/* Password */}
@@ -164,11 +135,7 @@ const SignupForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading || emailCheck || emailTaken}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create account"}
             </Button>
 

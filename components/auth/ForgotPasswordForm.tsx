@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +23,6 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
 import { CheckEmailResponse } from "@/types/applicationTypes";
-import { useDebounce } from "use-debounce";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -36,33 +34,34 @@ const ForgotPasswordForm: FC = () => {
   const supabase = getSupabaseBrowserClient();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [emailExists, setEmailExists] = useState<boolean | undefined>(undefined);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
+    getValues,
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: { email: "" },
   });
 
-  const email = watch("email");
-  const [debouncedEmail] = useDebounce(email, 500);
+  // ✅ Kontrola emailu pri opustení inputu
+  const handleEmailBlur = async () => {
+    const email = getValues("email");
+    if (!email || !/\S+@\S+\.\S+/.test(email)) return;
 
-  const { data: emailExists, isLoading } = useSWR(
-    debouncedEmail ? ["checkEmail", debouncedEmail] : null,
-    async ([, email]) => {
-      try {
-        const result = (await checkEmailAction({
-          email,
-        })) as unknown as CheckEmailResponse;
-        return result.exists;
-      } catch {
-        return undefined;
-      }
-    },
-  );
+    try {
+      setCheckingEmail(true);
+      const result = (await checkEmailAction({ email })) as CheckEmailResponse;
+      setEmailExists(result.exists);
+    } catch {
+      setEmailExists(undefined);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setServerError("");
@@ -97,7 +96,7 @@ const ForgotPasswordForm: FC = () => {
               Check your email
             </CardTitle>
             <CardDescription className="text-center">
-              We've sent a password reset link to <strong>{email}</strong>
+              We've sent a password reset link to <strong>{getValues("email")}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -127,8 +126,7 @@ const ForgotPasswordForm: FC = () => {
             Reset your password
           </CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your
-            password
+            Enter your email address and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
 
@@ -147,17 +145,17 @@ const ForgotPasswordForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting || isLoading}
+                onBlur={handleEmailBlur}
+                disabled={isSubmitting || checkingEmail}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
-              {email && emailExists === false && (
-                <p className="text-sm text-destructive">
-                  This email is not registered
-                </p>
+              {checkingEmail && (
+                <p className="text-sm text-muted-foreground">Checking email...</p>
+              )}
+              {emailExists === false && (
+                <p className="text-sm text-destructive">This email is not registered</p>
               )}
             </div>
           </CardContent>
@@ -166,9 +164,9 @@ const ForgotPasswordForm: FC = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting || checkingEmail}
             >
-              {isSubmitting || isLoading ? <Spinner /> : "Send reset link"}
+              {isSubmitting || checkingEmail ? <Spinner /> : "Send reset link"}
             </Button>
             <Link href="/auth/login" className="w-full">
               <Button variant="ghost" className="w-full">
