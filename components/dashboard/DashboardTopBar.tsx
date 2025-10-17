@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { LogOut, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
+import { LogOut, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,30 +10,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { FC } from "react"
-import { getSupabaseBrowserClient } from "@/supabase/client"
+} from "@/components/ui/dropdown-menu";
+import { FC } from "react";
+import { getSupabaseBrowserClient } from "@/supabase/client";
+import { ModeToggle } from "../shared/ModeToggle";
 
 interface DashboardTopBarProps {
-  userEmail: string
+  userEmail: string;
 }
 
 const DashboardTopBar: FC<DashboardTopBarProps> = ({
-    userEmail
+  userEmail,
 }: DashboardTopBarProps) => {
-  const router = useRouter()
-  const supabase = getSupabaseBrowserClient()
+  const router = useRouter();
+  const supabase = getSupabaseBrowserClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/auth/login")
-    router.refresh()
-  }
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  };
 
   return (
     <header className="border-b bg-background">
       <div className="flex h-14 items-center justify-between px-4">
-        <h1 className="text-lg font-semibold">Workspace</h1>
+        <h1 className="text-lg font-semibold" />
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -41,8 +42,11 @@ const DashboardTopBar: FC<DashboardTopBarProps> = ({
                 <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
+              <ModeToggle />
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>TODO EMAIL</DropdownMenuLabel>
+              <DropdownMenuLabel>{userEmail}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -53,8 +57,7 @@ const DashboardTopBar: FC<DashboardTopBarProps> = ({
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-
-export default DashboardTopBar
+export default DashboardTopBar;

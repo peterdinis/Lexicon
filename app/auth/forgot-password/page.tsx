@@ -2,7 +2,7 @@ import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import { NextPage } from "next";
 
 const ForgotPasswordPage: NextPage = () => {
-    return <ForgotPasswordForm />
-}
+  return <ForgotPasswordForm />;
+};
 
-export default ForgotPasswordPage
+export default ForgotPasswordPage;

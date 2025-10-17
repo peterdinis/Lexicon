@@ -1,9 +1,16 @@
-import { pgTable, uuid, text, jsonb, integer, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  jsonb,
+  integer,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").notNull(),
-  title: text("title").notNull().default('Untitled'),
+  title: text("title").notNull().default("Untitled"),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -11,9 +18,8 @@ export const pages = pgTable("pages", {
 export const blocks = pgTable("blocks", {
   id: uuid("id").primaryKey().defaultRandom(),
   page_id: uuid("page_id").notNull(),
-  type: text("type")
-    .notNull(),
-  content: jsonb("content").notNull().default('{}'),
+  type: text("type").notNull(),
+  content: jsonb("content").notNull().default("{}"),
   position: integer("position").notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
