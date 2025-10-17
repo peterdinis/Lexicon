@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation"
-import { TiptapEditorWrapper } from "@/components/tiptap-editor-wrapper"
-import { PageHeader } from "@/components/page-header"
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar"
 import { getSupabaseServerClient } from "@/supabase/server"
+import { PageHeader } from "@/components/pages/PageHeader"
+import { TiptapEditor } from "@/components/editor/TipTapEditor"
 
 export default async function PageView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -38,7 +38,7 @@ export default async function PageView({ params }: { params: Promise<{ id: strin
         <div className="flex flex-1 flex-col overflow-hidden">
           <PageHeader pageId={id} title={page.title} icon={page.icon} coverImage={page.cover_image} />
           <main className="flex-1 overflow-y-auto">
-            <TiptapEditorWrapper pageId={id} initialContent={page.content || ""} />
+            <TiptapEditor pageId={id} initialContent={page.content || ""} />
           </main>
         </div>
       </div>
