@@ -3,6 +3,7 @@
 import { FC, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,14 +18,23 @@ import {
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
+
+  // -------------------- useSWR na kontrolu emailu --------------------
+  const { data: emailTaken, isLoading: checkingEmail } = useSWR(
+    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
+    fetcher
+  );
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +47,11 @@ const SignupForm: FC = () => {
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (emailTaken) {
+      setError("Email is already registered");
       return;
     }
 
@@ -69,11 +84,10 @@ const SignupForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
+
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
             {error && (
@@ -81,6 +95,8 @@ const SignupForm: FC = () => {
                 {error}
               </div>
             )}
+
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -92,7 +108,13 @@ const SignupForm: FC = () => {
                 required
                 disabled={loading}
               />
+              {checkingEmail && <p className="text-sm text-muted-foreground">Checking email...</p>}
+              {emailTaken && (
+                <p className="text-sm text-destructive">Email is already registered</p>
+              )}
             </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -105,6 +127,8 @@ const SignupForm: FC = () => {
                 disabled={loading}
               />
             </div>
+
+            {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
               <Input
@@ -118,10 +142,16 @@ const SignupForm: FC = () => {
               />
             </div>
           </CardContent>
+
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || checkingEmail || emailTaken}
+            >
               {loading ? "Creating account..." : "Create account"}
             </Button>
+
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link

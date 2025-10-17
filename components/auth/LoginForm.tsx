@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useSWR from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,9 @@ const LoginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof LoginSchema>;
 
+// fetcher pre useSWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const LoginForm: FC = () => {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
@@ -39,16 +43,29 @@ const LoginForm: FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
+
+  const email = watch("email");
+
+  // -------------------- useSWR --------------------
+  const { data: emailExists, isLoading } = useSWR(
+    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
+    fetcher
+  );
 
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
+
+    // ak e-mail neexistuje, hneď zastavíme login
+    if (emailExists === false) {
+      setServerError("This email is not registered");
+      toast.error("This email is not registered");
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -58,10 +75,8 @@ const LoginForm: FC = () => {
 
       if (error) throw error;
 
-      // ✅ Show success toast
       toast.success("Successfully signed in!");
 
-      // ✅ Redirect after short delay (so toast is visible)
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
@@ -99,11 +114,14 @@ const LoginForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               />
               {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+              {email && emailExists === false && (
                 <p className="text-sm text-destructive">
-                  {errors.email.message}
+                  This email is not registered
                 </p>
               )}
             </div>
@@ -124,19 +142,21 @@ const LoginForm: FC = () => {
                 type="password"
                 placeholder="••••••••"
                 {...register("password")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner /> : "Sign in"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting || isLoading}
+            >
+              {isSubmitting || isLoading ? <Spinner /> : "Sign in"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">

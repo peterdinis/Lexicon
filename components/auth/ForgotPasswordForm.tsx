@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,9 @@ const ForgotPasswordSchema = z.object({
 
 type ForgotPasswordFormValues = z.infer<typeof ForgotPasswordSchema>;
 
+// fetcher pre useSWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const ForgotPasswordForm: FC = () => {
   const supabase = getSupabaseBrowserClient();
   const [success, setSuccess] = useState(false);
@@ -40,21 +44,30 @@ const ForgotPasswordForm: FC = () => {
     watch,
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(ForgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
+    defaultValues: { email: "" },
   });
 
   const email = watch("email");
 
+  // -------------------- useSWR --------------------
+  const { data: emailExists, isLoading } = useSWR(
+    email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
+    fetcher
+  );
+
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setServerError("");
+
+    if (emailExists === false) {
+      setServerError("This email is not registered");
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      toast.success("Reset password is DONE");
+      toast.success("Reset password email sent!");
       if (error) throw error;
       setSuccess(true);
     } catch (err) {
@@ -125,19 +138,22 @@ const ForgotPasswordForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               />
               {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+              {email && emailExists === false && (
                 <p className="text-sm text-destructive">
-                  {errors.email.message}
+                  This email is not registered
                 </p>
               )}
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner /> : "Send reset link"}
+            <Button type="submit" className="w-full" disabled={isSubmitting || isLoading}>
+              {isSubmitting || isLoading ? <Spinner /> : "Send reset link"}
             </Button>
             <Link href="/auth/login" className="w-full">
               <Button variant="ghost" className="w-full">

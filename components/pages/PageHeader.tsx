@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { Input } from "@/components/ui/input";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
@@ -8,34 +9,47 @@ import { ShareDialog } from "../dialogs/ShareDialog";
 
 interface PageHeaderProps {
   pageId: string;
-  title: string;
-  icon?: string;
-  coverImage?: string;
 }
 
-export function PageHeader({
-  pageId,
-  title: initialTitle,
-  icon: initialIcon,
-  coverImage: initialCoverImage,
-}: PageHeaderProps) {
-  const [title, setTitle] = useState(initialTitle);
-  const [icon, setIcon] = useState(initialIcon);
-  const [coverImage, setCoverImage] = useState(initialCoverImage);
+const fetchPage = async (pageId: string) => {
+  const res = await fetch(`/api/pages/${pageId}`);
+  if (!res.ok) throw new Error("Failed to fetch page");
+  return res.json();
+};
 
+export function PageHeader({ pageId }: PageHeaderProps) {
+  const { data: page, error, mutate } = useSWR(() => pageId, () =>
+    fetchPage(pageId)
+  );
+
+  const [title, setTitle] = useState<string>("");
+  const [icon, setIcon] = useState<string | undefined>(undefined);
+  const [coverImage, setCoverImage] = useState<string | undefined>(undefined);
+
+  // Sync SWR data to local state
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (title !== initialTitle) {
-        fetch(`/api/pages/${pageId}`, {
+    if (page) {
+      setTitle(page.title);
+      setIcon(page.icon);
+      setCoverImage(page.cover_image);
+    }
+  }, [page]);
+
+  // Auto-save title after debounce
+  useEffect(() => {
+    if (!page) return;
+    const timer = setTimeout(async () => {
+      if (title !== page.title) {
+        await fetch(`/api/pages/${pageId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title }),
         });
+        mutate(); // Revalidate SWR cache
       }
     }, 500);
-
     return () => clearTimeout(timer);
-  }, [title, pageId, initialTitle]);
+  }, [title, page, pageId, mutate]);
 
   const handleIconChange = async (newIcon: string) => {
     setIcon(newIcon);
@@ -44,6 +58,7 @@ export function PageHeader({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ icon: newIcon }),
     });
+    mutate(); // Revalidate SWR
   };
 
   const handleCoverImageChange = async (newCoverImage: string | null) => {
@@ -53,7 +68,11 @@ export function PageHeader({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cover_image: newCoverImage }),
     });
+    mutate(); // Revalidate SWR
   };
+
+  if (error) return <div>Error loading page</div>;
+  if (!page) return <div>Loading...</div>;
 
   return (
     <div className="border-b">

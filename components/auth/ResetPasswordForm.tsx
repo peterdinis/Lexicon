@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, FC, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, FC } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,8 @@ import {
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const ResetPasswordForm: FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,22 +30,25 @@ const ResetPasswordForm: FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = getSupabaseBrowserClient();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        setError("Invalid or expired reset link. Please request a new one.");
-      }
-    };
+  const token = searchParams.get("token"); // token z query param
 
-    void checkSession();
-  }, [supabase]);
+  // -------------------- useSWR pre validitu tokenu --------------------
+  const { data: tokenValid, isLoading: checkingToken } = useSWR(
+    token ? `/api/validate-reset-token?token=${token}` : null,
+    fetcher
+  );
 
-  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
+    if (!tokenValid) {
+      setError("Invalid or expired reset link.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -58,12 +64,10 @@ const ResetPasswordForm: FC = () => {
 
     try {
       const { error } = await supabase.auth.updateUser({ password });
-
       if (error) throw error;
 
       setSuccess(true);
 
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
         router.push("/dashboard");
       }, 2000);
@@ -75,6 +79,14 @@ const ResetPasswordForm: FC = () => {
       setLoading(false);
     }
   };
+
+  if (checkingToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <p>Checking reset link...</p>
+      </div>
+    );
+  }
 
   if (success) {
     return (
@@ -112,7 +124,7 @@ const ResetPasswordForm: FC = () => {
               </div>
             )}
 
-            {/* Password field */}
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">New Password</Label>
               <div className="relative">
@@ -131,16 +143,12 @@ const ResetPasswordForm: FC = () => {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm password field */}
+            {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
@@ -159,11 +167,7 @@ const ResetPasswordForm: FC = () => {
                   onClick={() => setShowConfirmPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -174,7 +178,7 @@ const ResetPasswordForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !tokenValid}>
               {loading ? "Resetting..." : "Reset password"}
             </Button>
             <Link

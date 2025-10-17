@@ -14,22 +14,39 @@ import {
 import { FC } from "react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
+import useSWR from "swr";
 
-interface DashboardTopBarProps {
+const supabase = getSupabaseBrowserClient();
+
+// Fetcher funkcia pre useSWR
+const fetchUser = async () => {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) throw new Error("No user found");
+  return data.user;
+};
+
+type DashboardTopBarProps = {
   userEmail: string;
 }
 
 const DashboardTopBar: FC<DashboardTopBarProps> = ({
-  userEmail,
+  userEmail
 }: DashboardTopBarProps) => {
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient();
+
+  const { data: user, error, mutate } = useSWR(() => "user", fetchUser, {
+    revalidateOnFocus: true,
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    mutate(undefined, false); // Clear cached user
     router.push("/auth/login");
     router.refresh();
   };
+
+  if (error) return <div>Error loading user</div>;
+  if (!user) return <div>Loading...</div>;
 
   return (
     <header className="border-b bg-background">
@@ -46,7 +63,7 @@ const DashboardTopBar: FC<DashboardTopBarProps> = ({
               <ModeToggle />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{userEmail}</DropdownMenuLabel>
+              <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
