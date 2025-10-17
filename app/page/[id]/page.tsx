@@ -41,7 +41,7 @@ export default async function PageView({
 
   return (
     <div className="flex h-screen flex-col">
-      <DashboardTopBar userEmail={user.email || ""} />
+      <DashboardTopBar />
       <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar initialPages={pages || []} currentPageId={id} />
         <div className="flex flex-1 flex-col overflow-hidden">

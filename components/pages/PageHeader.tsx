@@ -9,6 +9,9 @@ import { ShareDialog } from "../dialogs/ShareDialog";
 
 interface PageHeaderProps {
   pageId: string;
+  title?: string;
+  icon?: string;
+  coverImage?: string | null;
 }
 
 const fetchPage = async (pageId: string) => {
@@ -17,21 +20,22 @@ const fetchPage = async (pageId: string) => {
   return res.json();
 };
 
-export function PageHeader({ pageId }: PageHeaderProps) {
-  const {
-    data: page,
-    error,
-    mutate,
-  } = useSWR(
+export function PageHeader({
+  pageId,
+  title: initialTitle,
+  icon: initialIcon,
+  coverImage: initialCoverImage,
+}: PageHeaderProps) {
+  const { data: page, error, mutate } = useSWR(
     () => pageId,
     () => fetchPage(pageId),
   );
 
-  const [title, setTitle] = useState<string>("");
-  const [icon, setIcon] = useState<string | undefined>(undefined);
-  const [coverImage, setCoverImage] = useState<string | undefined>(undefined);
+  const [title, setTitle] = useState<string>(initialTitle || "");
+  const [icon, setIcon] = useState<string | undefined>(initialIcon);
+  const [coverImage, setCoverImage] = useState<string | undefined>(initialCoverImage || undefined);
 
-  // Sync SWR data to local state
+  // Sync SWR data to local state if props are missing
   useEffect(() => {
     if (page) {
       setTitle(page.title);
@@ -77,7 +81,7 @@ export function PageHeader({ pageId }: PageHeaderProps) {
   };
 
   if (error) return <div>Error loading page</div>;
-  if (!page) return <div>Loading...</div>;
+  if (!page && !initialTitle) return <div>Loading...</div>;
 
   return (
     <div className="border-b">
