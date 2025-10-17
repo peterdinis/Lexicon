@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,9 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/constants/applicationConstants";
+import { checkEmailAction } from "@/actions/authActions";
+import { CheckEmailResponse } from "@/types/applicationTypes";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -39,25 +43,43 @@ const ForgotPasswordForm: FC = () => {
     watch,
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(ForgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
+    defaultValues: { email: "" },
   });
 
   const email = watch("email");
 
+  const { data: emailExists, isLoading } = useSWR(
+    email ? ["checkEmail", email] : null,
+    async ([, email]) => {
+      try {
+        const result = (await checkEmailAction({
+          email,
+        })) as unknown as CheckEmailResponse;
+        return result.exists;
+      } catch {
+        return undefined;
+      }
+    },
+  );
+
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setServerError("");
+
+    if (emailExists === false) {
+      setServerError("This email is not registered");
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      toast.success("Reset password is DONE");
       if (error) throw error;
+      toast.success("Reset password email sent!");
       setSuccess(true);
-    } catch (err: any) {
-      setServerError(err.message || "Failed to send reset email");
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setServerError(message || "Failed to send reset email");
     }
   };
 
@@ -123,19 +145,28 @@ const ForgotPasswordForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               />
               {errors.email && (
                 <p className="text-sm text-destructive">
                   {errors.email.message}
                 </p>
               )}
+              {email && emailExists === false && (
+                <p className="text-sm text-destructive">
+                  This email is not registered
+                </p>
+              )}
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner /> : "Send reset link"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting || isLoading}
+            >
+              {isSubmitting || isLoading ? <Spinner /> : "Send reset link"}
             </Button>
             <Link href="/auth/login" className="w-full">
               <Button variant="ghost" className="w-full">
