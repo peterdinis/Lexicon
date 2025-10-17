@@ -18,8 +18,13 @@ const fetchPage = async (pageId: string) => {
 };
 
 export function PageHeader({ pageId }: PageHeaderProps) {
-  const { data: page, error, mutate } = useSWR(() => pageId, () =>
-    fetchPage(pageId)
+  const {
+    data: page,
+    error,
+    mutate,
+  } = useSWR(
+    () => pageId,
+    () => fetchPage(pageId),
   );
 
   const [title, setTitle] = useState<string>("");

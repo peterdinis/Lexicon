@@ -38,7 +38,7 @@ const ResetPasswordForm: FC = () => {
   // -------------------- useSWR pre validitu tokenu --------------------
   const { data: tokenValid, isLoading: checkingToken } = useSWR(
     token ? `/api/validate-reset-token?token=${token}` : null,
-    fetcher
+    fetcher,
   );
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -143,7 +143,11 @@ const ResetPasswordForm: FC = () => {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -167,7 +171,11 @@ const ResetPasswordForm: FC = () => {
                   onClick={() => setShowConfirmPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -178,7 +186,11 @@ const ResetPasswordForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading || !tokenValid}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || !tokenValid}
+            >
               {loading ? "Resetting..." : "Reset password"}
             </Button>
             <Link

@@ -52,7 +52,7 @@ const ForgotPasswordForm: FC = () => {
   // -------------------- useSWR --------------------
   const { data: emailExists, isLoading } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher
+    fetcher,
   );
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
@@ -141,7 +141,9 @@ const ForgotPasswordForm: FC = () => {
                 disabled={isSubmitting || isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
               {email && emailExists === false && (
                 <p className="text-sm text-destructive">
@@ -152,7 +154,11 @@ const ForgotPasswordForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting || isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting || isLoading}
+            >
               {isSubmitting || isLoading ? <Spinner /> : "Send reset link"}
             </Button>
             <Link href="/auth/login" className="w-full">

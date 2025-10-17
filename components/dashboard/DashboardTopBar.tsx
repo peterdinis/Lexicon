@@ -27,14 +27,18 @@ const fetchUser = async () => {
 
 type DashboardTopBarProps = {
   userEmail: string;
-}
+};
 
 const DashboardTopBar: FC<DashboardTopBarProps> = ({
-  userEmail
+  userEmail,
 }: DashboardTopBarProps) => {
   const router = useRouter();
 
-  const { data: user, error, mutate } = useSWR(() => "user", fetchUser, {
+  const {
+    data: user,
+    error,
+    mutate,
+  } = useSWR(() => "user", fetchUser, {
     revalidateOnFocus: true,
   });
 

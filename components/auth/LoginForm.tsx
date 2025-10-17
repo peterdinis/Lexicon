@@ -54,7 +54,7 @@ const LoginForm: FC = () => {
   // -------------------- useSWR --------------------
   const { data: emailExists, isLoading } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher
+    fetcher,
   );
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -117,7 +117,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting || isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
               {email && emailExists === false && (
                 <p className="text-sm text-destructive">
@@ -145,7 +147,9 @@ const LoginForm: FC = () => {
                 disabled={isSubmitting || isLoading}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </CardContent>

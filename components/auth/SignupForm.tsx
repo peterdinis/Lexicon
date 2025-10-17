@@ -33,7 +33,7 @@ const SignupForm: FC = () => {
   // -------------------- useSWR na kontrolu emailu --------------------
   const { data: emailTaken, isLoading: checkingEmail } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
-    fetcher
+    fetcher,
   );
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -84,7 +84,9 @@ const SignupForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
           <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
 
@@ -108,9 +110,15 @@ const SignupForm: FC = () => {
                 required
                 disabled={loading}
               />
-              {checkingEmail && <p className="text-sm text-muted-foreground">Checking email...</p>}
+              {checkingEmail && (
+                <p className="text-sm text-muted-foreground">
+                  Checking email...
+                </p>
+              )}
               {emailTaken && (
-                <p className="text-sm text-destructive">Email is already registered</p>
+                <p className="text-sm text-destructive">
+                  Email is already registered
+                </p>
               )}
             </div>
 
