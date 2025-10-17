@@ -22,6 +22,7 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
+import { fetcher } from "@/lib/fetcher";
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -30,9 +31,6 @@ const LoginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof LoginSchema>;
-
-// fetcher pre useSWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const LoginForm: FC = () => {
   const router = useRouter();
@@ -51,7 +49,6 @@ const LoginForm: FC = () => {
 
   const email = watch("email");
 
-  // -------------------- useSWR --------------------
   const { data: emailExists, isLoading } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
     fetcher,
@@ -60,7 +57,6 @@ const LoginForm: FC = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
 
-    // ak e-mail neexistuje, hneď zastavíme login
     if (emailExists === false) {
       setServerError("This email is not registered");
       toast.error("This email is not registered");

@@ -22,15 +22,13 @@ import { getSupabaseBrowserClient } from "@/supabase/client";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/constants/applicationConstants";
+import { fetcher } from "@/lib/fetcher";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof ForgotPasswordSchema>;
-
-// fetcher pre useSWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const ForgotPasswordForm: FC = () => {
   const supabase = getSupabaseBrowserClient();
@@ -48,8 +46,7 @@ const ForgotPasswordForm: FC = () => {
   });
 
   const email = watch("email");
-
-  // -------------------- useSWR --------------------
+  
   const { data: emailExists, isLoading } = useSWR(
     email ? `/api/check-email?email=${encodeURIComponent(email)}` : null,
     fetcher,
