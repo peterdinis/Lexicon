@@ -3,6 +3,7 @@
 import { FC, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getSupabaseBrowserClient } from "@/supabase/client";
+import { getErrorMessage } from "@/constants/applicationConstants";
+import { fetcher } from "@/lib/fetcher";
+import { checkEmailAction } from "@/actions/authActions";
+import { CheckEmailResponse } from "@/types/applicationTypes";
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -22,8 +27,25 @@ const SignupForm: FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
+
+  const { data: emailCheck } = useSWR(
+    email ? ["checkEmail", email] : null,
+    async ([, email]) => {
+      try {
+        const result = (await checkEmailAction({
+          email,
+        })) as unknown as CheckEmailResponse;
+        return result.exists;
+      } catch {
+        return undefined;
+      }
+    },
+  );
+
+  const emailTaken = emailCheck;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +58,11 @@ const SignupForm: FC = () => {
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (emailTaken) {
+      setError("Email is already registered");
       return;
     }
 
@@ -56,8 +83,9 @@ const SignupForm: FC = () => {
 
       router.push("/dashboard");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Failed to create account");
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setError(message || "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -72,6 +100,7 @@ const SignupForm: FC = () => {
           </CardTitle>
           <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
+
         <form onSubmit={handleSignup}>
           <CardContent className="space-y-4">
             {error && (
@@ -79,6 +108,8 @@ const SignupForm: FC = () => {
                 {error}
               </div>
             )}
+
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -90,7 +121,19 @@ const SignupForm: FC = () => {
                 required
                 disabled={loading}
               />
+              {emailCheck && (
+                <p className="text-sm text-muted-foreground">
+                  Checking email...
+                </p>
+              )}
+              {emailTaken && (
+                <p className="text-sm text-destructive">
+                  Email is already registered
+                </p>
+              )}
             </div>
+
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -103,6 +146,8 @@ const SignupForm: FC = () => {
                 disabled={loading}
               />
             </div>
+
+            {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
               <Input
@@ -116,10 +161,16 @@ const SignupForm: FC = () => {
               />
             </div>
           </CardContent>
+
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || emailCheck || emailTaken}
+            >
               {loading ? "Creating account..." : "Create account"}
             </Button>
+
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link

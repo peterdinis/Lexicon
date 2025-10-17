@@ -46,9 +46,10 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { Page } from "@/types/applicationTypes";
 
 interface DashboardSidebarProps {
-  initialPages: any[];
+  initialPages: Page[];
   currentPageId?: string;
 }
 
@@ -56,7 +57,7 @@ export function DashboardSidebar({
   initialPages,
   currentPageId,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<any[]>(initialPages);
+  const [pages, setPages] = useState<Page[]>(initialPages);
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
@@ -78,9 +79,9 @@ export function DashboardSidebar({
     useSensor(KeyboardSensor),
   );
 
-  const buildHierarchy = (pages: any[]): any[] => {
-    const pageMap = new Map<string, any & { children?: any[] }>();
-    const rootPages: any[] = [];
+  const buildHierarchy = (pages: Page[]): Page[] => {
+    const pageMap = new Map<string, Page & { children?: Page[] }>();
+    const rootPages: Page[] = [];
 
     pages.forEach((page) => {
       pageMap.set(page.id, { ...page, children: [] });
@@ -248,7 +249,7 @@ export function DashboardSidebar({
     page,
     depth = 0,
   }: {
-    page: any & { children?: any[] };
+    page: Page & { children?: Page[] };
     depth?: number;
   }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -278,7 +279,7 @@ export function DashboardSidebar({
     depth = 0,
     children,
   }: {
-    page: any & { children?: any[] };
+    page: Page & { children?: Page[] };
     depth?: number;
     children: React.ReactNode;
   }) => {
@@ -307,9 +308,9 @@ export function DashboardSidebar({
     depth = 0,
     dragHandleProps,
   }: {
-    page: any & { children?: any[] };
+    page: Page & { children?: Page[] };
     depth?: number;
-    dragHandleProps?: any;
+    dragHandleProps?: Page;
   }) => {
     const isExpanded = expandedFolders.has(page.id);
     const hasChildren = page.children && page.children.length > 0;
@@ -391,7 +392,7 @@ export function DashboardSidebar({
                 </DropdownMenuItem>
               </>
             )}
-            <DropdownMenuItem onClick={(e) => deletePage(page.id, e as any)}>
+            <DropdownMenuItem onClick={(e) => deletePage(page.id, e as Page)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Move to Trash
             </DropdownMenuItem>
@@ -411,7 +412,7 @@ export function DashboardSidebar({
         )}
         {page.is_folder && isExpanded && hasChildren && (
           <div>
-            {page.children!.map((child: any) => (
+            {page.children!.map((child: Page) => (
               <DraggablePageItem
                 key={child.id}
                 page={child}

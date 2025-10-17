@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { useEditor, EditorContent } from "@tiptap/react"
-import { StarterKit } from "@tiptap/starter-kit"
-import { Placeholder } from "@tiptap/extension-placeholder"
-import { TaskList } from "@tiptap/extension-task-list"
-import { TaskItem } from "@tiptap/extension-task-item"
-import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight"
-import { Table } from "@tiptap/extension-table"
-import { TableRow } from "@tiptap/extension-table-row"
-import { TableCell } from "@tiptap/extension-table-cell"
-import { TableHeader } from "@tiptap/extension-table-header"
-import { Image } from "@tiptap/extension-image"
-import { Link } from "@tiptap/extension-link"
-import { Highlight } from "@tiptap/extension-highlight"
-import { TextAlign } from "@tiptap/extension-text-align"
-import { Underline } from "@tiptap/extension-underline"
-import { Subscript } from "@tiptap/extension-subscript"
-import { Superscript } from "@tiptap/extension-superscript"
-import { common, createLowlight } from "lowlight"
-import { useEffect, useCallback } from "react"
+import { useEditor, EditorContent } from "@tiptap/react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
+import { TaskList } from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { Image } from "@tiptap/extension-image";
+import { Link } from "@tiptap/extension-link";
+import { Highlight } from "@tiptap/extension-highlight";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Underline } from "@tiptap/extension-underline";
+import { Subscript } from "@tiptap/extension-subscript";
+import { Superscript } from "@tiptap/extension-superscript";
+import { common, createLowlight } from "lowlight";
+import { useEffect, useCallback } from "react";
 import {
   Bold,
   Italic,
@@ -44,10 +44,10 @@ import {
   SubscriptIcon,
   SuperscriptIcon,
   TableIcon,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -55,22 +55,26 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useState } from "react"
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
-const lowlight = createLowlight(common)
+const lowlight = createLowlight(common);
 
 interface TiptapEditorProps {
-  pageId: string
-  initialContent?: string
-  onUpdate?: (content: string) => void
+  pageId: string;
+  initialContent?: string;
+  onUpdate?: (content: string) => void;
 }
 
-export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEditorProps) {
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [linkUrl, setLinkUrl] = useState("")
-  const [imageDialogOpen, setImageDialogOpen] = useState(false)
-  const [imageUrl, setImageUrl] = useState("")
+export function TiptapEditor({
+  pageId,
+  initialContent = "",
+  onUpdate,
+}: TiptapEditorProps) {
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -100,7 +104,8 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-primary underline underline-offset-4 hover:text-primary/80",
+          class:
+            "text-primary underline underline-offset-4 hover:text-primary/80",
         },
       }),
       Highlight.configure({
@@ -121,35 +126,35 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
       },
     },
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML()
-      onUpdate?.(html)
+      const html = editor.getHTML();
+      onUpdate?.(html);
     },
-  })
+  });
 
   useEffect(() => {
     if (editor && initialContent && editor.getHTML() !== initialContent) {
-      editor.commands.setContent(initialContent)
+      editor.commands.setContent(initialContent);
     }
-  }, [editor, initialContent])
+  }, [editor, initialContent]);
 
   const addLink = useCallback(() => {
     if (linkUrl && editor) {
-      editor.chain().focus().setLink({ href: linkUrl }).run()
-      setLinkUrl("")
-      setLinkDialogOpen(false)
+      editor.chain().focus().setLink({ href: linkUrl }).run();
+      setLinkUrl("");
+      setLinkDialogOpen(false);
     }
-  }, [editor, linkUrl])
+  }, [editor, linkUrl]);
 
   const addImage = useCallback(() => {
     if (imageUrl && editor) {
-      editor.chain().focus().setImage({ src: imageUrl }).run()
-      setImageUrl("")
-      setImageDialogOpen(false)
+      editor.chain().focus().setImage({ src: imageUrl }).run();
+      setImageUrl("");
+      setImageDialogOpen(false);
     }
-  }, [editor, imageUrl])
+  }, [editor, imageUrl]);
 
   if (!editor) {
-    return null
+    return null;
   }
 
   return (
@@ -231,24 +236,36 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+          className={
+            editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""
+          }
         >
           <Heading1 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
+          className={
+            editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""
+          }
         >
           <Heading2 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
+          className={
+            editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""
+          }
         >
           <Heading3 className="h-4 w-4" />
         </Button>
@@ -295,7 +312,9 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className={editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""}
+          className={
+            editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""
+          }
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -311,7 +330,9 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-          className={editor.isActive({ textAlign: "justify" }) ? "bg-accent" : ""}
+          className={
+            editor.isActive({ textAlign: "justify" }) ? "bg-accent" : ""
+          }
         >
           <AlignJustify className="h-4 w-4" />
         </Button>
@@ -341,24 +362,46 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
         >
           <TableIcon className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setLinkDialogOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLinkDialogOpen(true)}
+        >
           <Link2 className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setImageDialogOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setImageDialogOpen(true)}
+        >
           <ImageIcon className="h-4 w-4" />
         </Button>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* History */}
-        <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().undo().run()}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+        >
           <Undo className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().redo().run()}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+        >
           <Redo className="h-4 w-4" />
         </Button>
       </div>
@@ -370,7 +413,9 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Link</DialogTitle>
-            <DialogDescription>Enter the URL you want to link to</DialogDescription>
+            <DialogDescription>
+              Enter the URL you want to link to
+            </DialogDescription>
           </DialogHeader>
           <Input
             placeholder="https://example.com"
@@ -378,7 +423,7 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
             onChange={(e) => setLinkUrl(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                addLink()
+                addLink();
               }
             }}
           />
@@ -403,7 +448,7 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
             onChange={(e) => setImageUrl(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                addImage()
+                addImage();
               }
             }}
           />
@@ -416,5 +461,5 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
