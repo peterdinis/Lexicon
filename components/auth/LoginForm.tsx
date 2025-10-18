@@ -21,6 +21,7 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
+import { Eye, EyeOff } from "lucide-react"; // 👈 pridané
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -34,6 +35,7 @@ const LoginForm: FC = () => {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👈 pridané
 
   const {
     register,
@@ -56,7 +58,6 @@ const LoginForm: FC = () => {
       if (error) throw error;
 
       toast.success("Successfully signed in!");
-
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
@@ -114,13 +115,31 @@ const LoginForm: FC = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register("password")}
-                disabled={isSubmitting}
-              />
+
+              {/* 👇 Password Input s toggle buttonom */}
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password")}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
               {errors.password && (
                 <p className="text-sm text-destructive">
                   {errors.password.message}

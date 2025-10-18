@@ -17,6 +17,7 @@ import {
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
+import { Eye, EyeOff } from "lucide-react"; // 👈 pridané
 
 const SignupForm: FC = () => {
   const [email, setEmail] = useState("");
@@ -25,10 +26,12 @@ const SignupForm: FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false); // 👈 pre hlavné heslo
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // 👈 pre potvrdenie
+
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
 
-  // ✅ Signup logika s kontrolou e-mailu až pri odoslaní
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -46,7 +49,6 @@ const SignupForm: FC = () => {
     setLoading(true);
 
     try {
-      // Overenie e-mailu pri odoslaní formulára
       const result = (await checkEmailAction({ email })) as { exists: boolean };
       if (result.exists) {
         setError("Email is already registered");
@@ -110,29 +112,61 @@ const SignupForm: FC = () => {
             {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword((prev) => !prev)
+                  }
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </CardContent>
 
