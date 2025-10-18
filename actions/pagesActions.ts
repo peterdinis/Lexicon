@@ -5,16 +5,8 @@ import { getSupabaseServerClient } from "@/supabase/server";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
 
-// Všetky schémy sú teraz bez export - len vnútorné konštanty
 const pageIdSchema = z.object({
   id: z.string().min(1),
-});
-
-const updatePageSchema = pageIdSchema.extend({
-  title: z.string().optional(),
-  content: z.string().optional(),
-  icon: z.string().optional(),
-  cover_image: z.string().nullable().optional(),
 });
 
 const createPageSchema = z.object({
@@ -22,7 +14,6 @@ const createPageSchema = z.object({
   description: z.string().optional().default(""),
 });
 
-// Pomocná funkcia pre vytvorenie stránky
 async function createPageHandler(title: string = "Untitled", description: string = "") {
   const supabase = await getSupabaseServerClient();
   
