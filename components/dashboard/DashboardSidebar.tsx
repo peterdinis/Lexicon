@@ -102,28 +102,34 @@ export function DashboardSidebar({
     return rootPages;
   };
 
-  const createPage = async (parentId?: string) => {
+    const createPage = () => {
     setLoading(true);
-    try {
-      const result = await createPageAction({
-        title: "Untitled",
-        parent_id: parentId ?? null,
-        is_folder: false,
+    
+    createPageAction({
+      title: "Untitled",
+      description: "",
+    })
+      .then((result) => {
+        if (result?.serverError) {
+          throw new Error(result.serverError);
+        }
+
+        if (!result?.data) {
+          throw new Error("No data returned from server");
+        }
+
+        const newPage: Page = result.data;
+        setPages([newPage, ...pages]);
+        router.push(`/page/${newPage.id}`);
+        setMobileOpen(false);
+      })
+      .catch((error) => {
+        console.error("Error creating page:", error);
+        alert(`Failed to create page: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      const newPage: Page = result.data;
-
-      console.log("New page", newPage);
-      console.log("Result", result)
-
-      setPages([newPage, ...pages]);
-      router.push(`/page/${newPage.id}`);
-      setMobileOpen(false);
-    } catch (error) {
-      console.error("Error creating page:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const createFolder = async (parentId?: string) => {
@@ -387,7 +393,7 @@ export function DashboardSidebar({
           <DropdownMenuContent align="end">
             {page.is_folder && (
               <>
-                <DropdownMenuItem onClick={() => createPage(page.id)}>
+                <DropdownMenuItem onClick={() => createPage()}>
                   <Plus className="mr-2 h-4 w-4" />
                   New Page
                 </DropdownMenuItem>
@@ -590,8 +596,8 @@ export function DashboardSidebar({
                 <div
                   ref={setRootRef}
                   className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
-                      ? "bg-primary/10 ring-2 ring-primary/50"
-                      : ""
+                    ? "bg-primary/10 ring-2 ring-primary/50"
+                    : ""
                     }`}
                 >
                   {hierarchicalPages.length === 0 ? (

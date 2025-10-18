@@ -16,54 +16,46 @@ const updatePageSchema = pageIdSchema.extend({
   cover_image: z.string().nullable().optional(),
 });
 
-const createPageSchema = z.object({
-  title: z.string().min(1).optional(),
-  content: z.string().optional(),
-  icon: z.string().optional(),
-  cover_image: z.string().nullable().optional(),
-  parent_id: z.string().nullable().optional(),
-  is_folder: z.boolean().optional(),
+export const createPageSchema = z.object({
+  title: z.string().optional().default("Untitled"),
+  description: z.string().optional().default(""),
 });
 
 export const createPageAction = actionClient
   .inputSchema(createPageSchema)
-  .action(
-    async ({
-      parsedInput: { title = "Untitled", content, icon, cover_image, parent_id = null, is_folder = false },
-    }) => {
-      try {
-        const supabase = await getSupabaseServerClient();
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+  .action(async ({
+    parsedInput: { title = "Untitled", description = "" },
+  }) => {
+    try {
+      const supabase = await getSupabaseServerClient();
+      
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-        if (userError) throw new Error(userError.message);
-        if (!user) throw new Error("Unauthorized");
+      if (userError) throw new Error(userError.message);
+      if (!user) throw new Error("Unauthorized");
 
-        const { data: page, error } = await supabase
-          .from("pages")
-          .insert({
-            user_id: user.id,
-            title,
-            content,
-            icon,
-            cover_image,
-            parent_id,
-            is_folder,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from("pages")
+        .insert({
+          user_id: user.id,
+          title,
+          description,
+        })
+        .select("*")
+        .single();
 
-        if (error) throw error;
-        return page;
-      } catch (err) {
-        throw new Error(getErrorMessage(err));
-      }
-    },
-  );
+      if (error) throw error;
+      if (!data) throw new Error("Failed to create page");
+
+      return data;
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
 
 export const getPageAction = actionClient
   .inputSchema(pageIdSchema)

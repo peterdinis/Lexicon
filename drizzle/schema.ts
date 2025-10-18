@@ -11,6 +11,7 @@ export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").notNull(),
   title: text("title").notNull().default("Untitled"),
+  description: text("description").notNull().default(""),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
