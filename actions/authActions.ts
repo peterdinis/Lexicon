@@ -1,21 +1,11 @@
 "use server";
 
-import { z } from "zod";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { actionClient } from "@/lib/safe-action";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { getSupabaseServerClient } from "@/supabase/server";
-
-const exchangeCodeSchema = z.object({
-  code: z.string().min(1),
-  next: z.string().optional(),
-  type: z.enum(["recovery", "login"]).optional(),
-});
-
-const checkEmailSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
+import { checkEmailSchema, exchangeCodeSchema } from "./schemas/authSchemas";
 
 export const fetchUser = async () => {
   const cookieStore = cookies();
