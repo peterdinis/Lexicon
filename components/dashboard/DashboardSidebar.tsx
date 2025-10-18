@@ -48,6 +48,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
+import { createPageAction } from "@/actions/pagesActions";
 
 interface DashboardSidebarProps {
   initialPages: Page[];
@@ -104,18 +105,17 @@ export function DashboardSidebar({
   const createPage = async (parentId?: string) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/pages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ title: "Untitled", parent_id: parentId }),
+      const result = await createPageAction({
+        title: "Untitled",
+        parent_id: parentId ?? null,
+        is_folder: false,
       });
 
-      if (!response.ok) throw new Error("Failed to create page");
+      const newPage: Page = result.data;
 
-      const newPage = await response.json();
+      console.log("New page", newPage);
+      console.log("Result", result)
+
       setPages([newPage, ...pages]);
       router.push(`/page/${newPage.id}`);
       setMobileOpen(false);
@@ -298,9 +298,8 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${
-          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-        }`}
+        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+          }`}
       >
         {children}
       </div>
@@ -324,9 +323,8 @@ export function DashboardSidebar({
 
     const content = (
       <div
-        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
-          currentPageId === page.id ? "bg-accent" : ""
-        }`}
+        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
+          }`}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
         <button
@@ -591,11 +589,10 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                  }`}
+                    }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -627,9 +624,8 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
-            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-          }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+            }`}
         >
           <SidebarContent />
         </aside>
