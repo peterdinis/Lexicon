@@ -14,9 +14,32 @@ const createPageSchema = z.object({
   description: z.string().optional().default(""),
 });
 
+async function getPageHandler(id: string) {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: page, error } = await supabase
+    .from("pages")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (error) throw error;
+  if (!page) throw new Error("Page not found");
+
+  return page;
+}
+
 async function createPageHandler(title: string = "Untitled", description: string = "") {
   const supabase = await getSupabaseServerClient();
-  
+
   const {
     data: { user },
     error: userError,
@@ -41,7 +64,6 @@ async function createPageHandler(title: string = "Untitled", description: string
   return data;
 }
 
-// Action používajúca pomocnú funkciu
 export const createPageAction = actionClient
   .inputSchema(createPageSchema)
   .action(async ({ parsedInput: { title = "Untitled", description = "" } }) => {
@@ -51,3 +73,12 @@ export const createPageAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
+
+export const getPageAction = actionClient.inputSchema(pageIdSchema)
+.action(async ({parsedInput: {id}}) => {
+  try {
+    return await getPageHandler(id);
+  } catch(err) {
+    throw new Error(getErrorMessage(err));
+  }
+})

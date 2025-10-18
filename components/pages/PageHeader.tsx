@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useSWR from "swr";
 import { Input } from "@/components/ui/input";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 import { ShareDialog } from "../dialogs/ShareDialog";
+import { getPageAction } from "@/actions/pagesActions";
 
 interface PageHeaderProps {
   pageId: string;
@@ -14,80 +14,57 @@ interface PageHeaderProps {
   coverImage?: string | null;
 }
 
-const fetchPage = async (pageId: string) => {
-  const res = await fetch(`/api/pages/${pageId}`);
-  if (!res.ok) throw new Error("Failed to fetch page");
-  return res.json();
-};
-
 export function PageHeader({
   pageId,
   title: initialTitle,
   icon: initialIcon,
   coverImage: initialCoverImage,
 }: PageHeaderProps) {
-  const {
-    data: page,
-    error,
-    mutate,
-  } = useSWR(
-    () => pageId,
-    () => fetchPage(pageId),
-  );
-
   const [title, setTitle] = useState<string>(initialTitle || "");
   const [icon, setIcon] = useState<string | undefined>(initialIcon);
   const [coverImage, setCoverImage] = useState<string | undefined>(
     initialCoverImage || undefined,
   );
+  const [page, setPage] = useState<any>(null);
+  const [loading, setLoading] = useState(!initialTitle);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sync SWR data to local state if props are missing
+  // Načítaj page data pomocou getPageAction
   useEffect(() => {
-    if (page) {
-      setTitle(page.title);
-      setIcon(page.icon);
-      setCoverImage(page.cover_image);
-    }
-  }, [page]);
+    const loadPage = async () => {
+      try {
+        setLoading(true);
+        const result = await getPageAction({ id: pageId });
 
-  // Auto-save title after debounce
-  useEffect(() => {
-    if (!page) return;
-    const timer = setTimeout(async () => {
-      if (title !== page.title) {
-        await fetch(`/api/pages/${pageId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title }),
-        });
-        mutate(); // Revalidate SWR cache
+        if (result?.serverError) {
+          setError(result.serverError);
+          return;
+        }
+
+        if (result?.data) {
+          setPage(result.data);
+          setTitle(result.data.title);
+          setIcon(result.data.icon);
+          setCoverImage(result.data.cover_image || undefined);
+        }
+      } catch (err) {
+        setError("Failed to load page");
+        console.error("Error loading page:", err);
+      } finally {
+        setLoading(false);
       }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [title, page, pageId, mutate]);
+    };
 
-  const handleIconChange = async (newIcon: string) => {
-    setIcon(newIcon);
-    await fetch(`/api/pages/${pageId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ icon: newIcon }),
-    });
-    mutate(); // Revalidate SWR
-  };
+    // Načítaj page iba ak nemáme initial props
+    if (!initialTitle) {
+      loadPage();
+    } else {
+      setPage({ title: initialTitle, icon: initialIcon, cover_image: initialCoverImage });
+    }
+  }, [pageId, initialTitle, initialIcon, initialCoverImage]);
 
-  const handleCoverImageChange = async (newCoverImage: string | null) => {
-    setCoverImage(newCoverImage || undefined);
-    await fetch(`/api/pages/${pageId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cover_image: newCoverImage }),
-    });
-    mutate(); // Revalidate SWR
-  };
-
-  if (error) return <div>Error loading page</div>;
-  if (!page && !initialTitle) return <div>Loading...</div>;
+  if (error) return <div>Error loading page: {error}</div>;
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="border-b">
@@ -101,7 +78,9 @@ export function PageHeader({
           <div className="absolute bottom-4 right-4">
             <CoverImageSelector
               value={coverImage}
-              onChange={handleCoverImageChange}
+              onChange={() => {
+                console.log("DO NOTHING")
+              }}
             />
           </div>
         </div>
@@ -109,11 +88,15 @@ export function PageHeader({
       <div className="mx-auto max-w-3xl p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <EmojiPicker value={icon} onChange={handleIconChange} />
+            <EmojiPicker value={icon} onChange={() => {
+              console.log("DO NOTHING")
+            }} />
             {!coverImage && (
               <CoverImageSelector
                 value={coverImage}
-                onChange={handleCoverImageChange}
+                onChange={() => {
+                  console.log("DO NOTHING")
+                }}
               />
             )}
           </div>
