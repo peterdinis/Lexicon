@@ -15,11 +15,12 @@ export const createPageAction = actionClient
     }
   });
 
-export const getPageAction = actionClient.inputSchema(pageIdSchema)
-.action(async ({parsedInput: {id}}) => {
-  try {
-    return await getPageHandler(id);
-  } catch(err) {
-    throw new Error(getErrorMessage(err));
-  }
-})
+export const getPageAction = actionClient
+  .inputSchema(pageIdSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      return await getPageHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });

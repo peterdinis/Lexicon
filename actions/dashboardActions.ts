@@ -15,7 +15,7 @@ export const fetchDashboardDataAction = actionClient.action(async () => {
 
     if (userError) throw userError;
     if (!user) throw new Error("Unauthorized");
-    
+
     const { data: pages, error: pagesError } = await supabase
       .from("pages")
       .select("*")

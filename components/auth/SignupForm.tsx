@@ -154,9 +154,7 @@ const SignupForm: FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword((prev) => !prev)
-                  }
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
                   className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >

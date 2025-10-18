@@ -23,7 +23,10 @@ export async function getPageHandler(id: string) {
   return page;
 }
 
-export async function createPageHandler(title: string = "Untitled", description: string = "") {
+export async function createPageHandler(
+  title: string = "Untitled",
+  description: string = "",
+) {
   const supabase = await getSupabaseServerClient();
 
   const {
