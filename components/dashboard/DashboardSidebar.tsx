@@ -119,7 +119,7 @@ export function DashboardSidebar({
       }
 
       const newPage: Page = result.data;
-      setPages([newPage, ...pages]);
+      setPages((prevPages) => [newPage, ...prevPages]);
       router.push(`/page/${newPage.id}`);
       setMobileOpen(false);
     } catch (error) {
@@ -444,6 +444,8 @@ export function DashboardSidebar({
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
     const hierarchicalPages = buildHierarchy(pages);
+
+    console.log(hierarchicalPages, "HP", pages, "P")
     const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({
       id: "root",
     });
