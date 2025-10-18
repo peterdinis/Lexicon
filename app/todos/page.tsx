@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const TodosPage: NextPage = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default TodosPage
+export default TodosPage;

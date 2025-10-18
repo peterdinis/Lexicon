@@ -2,16 +2,14 @@ import DashboardTopBar from "./DashboardTopBar";
 import { redirect } from "next/navigation";
 import { AnimatedPageWrapper } from "../shared/AnimatedPageWrapper";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { fetchDashboardDataAction } from "@/actions/dashboardActions";
 
 export default async function DashboardPage() {
-  let user;
   let pages;
 
   try {
-    const result = await fetchDashboardDataAction();
-    user = result.user;
-    pages = result.pages;
+    //const result = await fetchDashboardDataAction();
+    //user = result.user;
+    //pages = result.pages;
   } catch (err) {
     redirect("/auth/login");
   }

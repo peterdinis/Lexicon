@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const SettingsPage: NextPage = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default SettingsPage
+export default SettingsPage;

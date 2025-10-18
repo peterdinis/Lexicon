@@ -1,9 +1,7 @@
 import { NextPage } from "next";
 
 const TrashPage: NextPage = () => {
-    return (
-        <></>
-    )
-}
+  return <></>;
+};
 
-export default TrashPage
+export default TrashPage;

@@ -8,6 +8,13 @@
       "when": 1760628330328,
       "tag": "0000_easy_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760797391539,
+      "tag": "0001_tiresome_cammi",
+      "breakpoints": true
     }
   ]
 }

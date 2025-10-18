@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,7 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { checkEmailAction } from "@/actions/authActions";
+import { Eye, EyeOff } from "lucide-react"; // 👈 pridané
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -36,41 +35,19 @@ const LoginForm: FC = () => {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👈 pridané
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(LoginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const email = watch("email");
-
-  const { data: emailExists, isLoading } = useSWR(
-    email ? ["checkEmail", email] : null,
-    async ([, email]) => {
-      try {
-        const result = (await checkEmailAction({ email })) as {
-          exists: boolean;
-        };
-        return result.exists; // boolean
-      } catch {
-        return undefined;
-      }
-    },
-  );
-
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
-
-    if (emailExists === false) {
-      setServerError("This email is not registered");
-      toast.error("This email is not registered");
-      return;
-    }
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -81,7 +58,6 @@ const LoginForm: FC = () => {
       if (error) throw error;
 
       toast.success("Successfully signed in!");
-
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
@@ -119,16 +95,11 @@ const LoginForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting}
               />
               {errors.email && (
                 <p className="text-sm text-destructive">
                   {errors.email.message}
-                </p>
-              )}
-              {email && emailExists === false && (
-                <p className="text-sm text-destructive">
-                  This email is not registered
                 </p>
               )}
             </div>
@@ -144,13 +115,31 @@ const LoginForm: FC = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register("password")}
-                disabled={isSubmitting || isLoading}
-              />
+
+              {/* 👇 Password Input s toggle buttonom */}
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password")}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
               {errors.password && (
                 <p className="text-sm text-destructive">
                   {errors.password.message}
@@ -160,12 +149,8 @@ const LoginForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting || isLoading}
-            >
-              {isSubmitting || isLoading ? <Spinner /> : "Sign in"}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Spinner /> : "Sign in"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">

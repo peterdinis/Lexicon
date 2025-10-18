@@ -48,6 +48,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
+import { createPageAction } from "@/actions/pagesActions";
 
 interface DashboardSidebarProps {
   initialPages: Page[];
@@ -101,23 +102,29 @@ export function DashboardSidebar({
     return rootPages;
   };
 
-  const createPage = async (parentId?: string) => {
+      const createPage = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/pages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Untitled", parent_id: parentId }),
+      const result = await createPageAction({
+        title: "Untitled",
+        description: "",
       });
 
-      if (!response.ok) throw new Error("Failed to create page");
+      if (result?.serverError) {
+        throw new Error(result.serverError);
+      }
 
-      const newPage = await response.json();
+      if (!result?.data) {
+        throw new Error("No data returned from server");
+      }
+
+      const newPage: Page = result.data;
       setPages([newPage, ...pages]);
       router.push(`/page/${newPage.id}`);
       setMobileOpen(false);
     } catch (error) {
       console.error("Error creating page:", error);
+      alert(`Failed to create page: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -384,7 +391,7 @@ export function DashboardSidebar({
           <DropdownMenuContent align="end">
             {page.is_folder && (
               <>
-                <DropdownMenuItem onClick={() => createPage(page.id)}>
+                <DropdownMenuItem onClick={() => createPage()}>
                   <Plus className="mr-2 h-4 w-4" />
                   New Page
                 </DropdownMenuItem>
@@ -395,7 +402,9 @@ export function DashboardSidebar({
               </>
             )}
             <DropdownMenuItem
-              onClick={(e: React.MouseEvent<HTMLDivElement>) => deletePage(page.id, e)}
+              onClick={(e: React.MouseEvent<HTMLDivElement>) =>
+                deletePage(page.id, e)
+              }
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Move to Trash
