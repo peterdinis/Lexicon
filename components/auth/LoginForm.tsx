@@ -21,7 +21,6 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { checkEmailAction } from "@/actions/authActions";
 
 // ✅ Zod schema
 const LoginSchema = z.object({
@@ -45,21 +44,10 @@ const LoginForm: FC = () => {
     defaultValues: { email: "", password: "" },
   });
 
-  // ✅ Pri odoslaní formulára
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
 
     try {
-      // Overenie e-mailu až pri odoslaní
-      const result = (await checkEmailAction({ email: data.email })) as {
-        exists: boolean;
-      };
-      if (!result.exists) {
-        setServerError("This email is not registered");
-        toast.error("This email is not registered");
-        return;
-      }
-
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
