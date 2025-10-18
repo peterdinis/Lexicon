@@ -102,34 +102,32 @@ export function DashboardSidebar({
     return rootPages;
   };
 
-    const createPage = () => {
+      const createPage = async () => {
     setLoading(true);
-    
-    createPageAction({
-      title: "Untitled",
-      description: "",
-    })
-      .then((result) => {
-        if (result?.serverError) {
-          throw new Error(result.serverError);
-        }
-
-        if (!result?.data) {
-          throw new Error("No data returned from server");
-        }
-
-        const newPage: Page = result.data;
-        setPages([newPage, ...pages]);
-        router.push(`/page/${newPage.id}`);
-        setMobileOpen(false);
-      })
-      .catch((error) => {
-        console.error("Error creating page:", error);
-        alert(`Failed to create page: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const result = await createPageAction({
+        title: "Untitled",
+        description: "",
       });
+
+      if (result?.serverError) {
+        throw new Error(result.serverError);
+      }
+
+      if (!result?.data) {
+        throw new Error("No data returned from server");
+      }
+
+      const newPage: Page = result.data;
+      setPages([newPage, ...pages]);
+      router.push(`/page/${newPage.id}`);
+      setMobileOpen(false);
+    } catch (error) {
+      console.error("Error creating page:", error);
+      alert(`Failed to create page: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createFolder = async (parentId?: string) => {

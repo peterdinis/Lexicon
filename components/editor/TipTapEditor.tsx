@@ -77,6 +77,7 @@ export function TiptapEditor({
   const [imageUrl, setImageUrl] = useState("");
 
   const editor = useEditor({
+    immediatelyRender: false, // Fix pre SSR
     extensions: [
       StarterKit.configure({
         codeBlock: false,
