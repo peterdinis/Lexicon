@@ -53,7 +53,6 @@ export async function createPageHandler(
   return data;
 }
 
-
 export async function updatePageHandler(id: string, content: string) {
   const supabase = await getSupabaseServerClient();
 
@@ -67,7 +66,7 @@ export async function updatePageHandler(id: string, content: string) {
 
   const { data, error } = await supabase
     .from("pages")
-    .update({ content})
+    .update({ content })
     .eq("id", id)
     .eq("user_id", user.id)
     .select("*")

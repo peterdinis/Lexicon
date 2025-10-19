@@ -100,7 +100,7 @@ export function TiptapEditor({
         }
       });
     }, 1000),
-    [pageId]
+    [pageId],
   );
 
   const editor = useEditor({
@@ -386,20 +386,36 @@ export function TiptapEditor({
         >
           <TableIcon className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setLinkDialogOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLinkDialogOpen(true)}
+        >
           <Link2 className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setImageDialogOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setImageDialogOpen(true)}
+        >
           <ImageIcon className="h-4 w-4" />
         </Button>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
         {/* History */}
-        <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().undo().run()}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+        >
           <Undo className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => editor.chain().focus().redo().run()}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+        >
           <Redo className="h-4 w-4" />
         </Button>
       </div>
@@ -421,7 +437,9 @@ export function TiptapEditor({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Link</DialogTitle>
-            <DialogDescription>Enter the URL you want to link to</DialogDescription>
+            <DialogDescription>
+              Enter the URL you want to link to
+            </DialogDescription>
           </DialogHeader>
           <Input
             placeholder="https://example.com"

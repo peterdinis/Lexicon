@@ -445,7 +445,7 @@ export function DashboardSidebar({
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
     const hierarchicalPages = buildHierarchy(pages);
 
-    console.log(hierarchicalPages, "HP", pages, "P")
+    console.log(hierarchicalPages, "HP", pages, "P");
     const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({
       id: "root",
     });
