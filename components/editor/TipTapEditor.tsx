@@ -18,7 +18,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { common, createLowlight } from "lowlight";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState, useTransition } from "react";
 import {
   Bold,
   Italic,
@@ -56,9 +56,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { updatePageAction } from "@/actions/pagesActions";
 
 const lowlight = createLowlight(common);
+
+// 🔁 debounce helper
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
 
 interface TiptapEditorProps {
   pageId: string;
@@ -76,32 +85,39 @@ export function TiptapEditor({
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
+  const [isPending, startTransition] = useTransition();
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // 🔁 debounce save function
+  const saveContent = useCallback(
+    debounce((content: string) => {
+      startTransition(async () => {
+        try {
+          await updatePageAction({ id: pageId, content });
+          setLastSaved(new Date());
+        } catch (err) {
+          console.error("❌ Failed to save content:", err);
+        }
+      });
+    }, 1000),
+    [pageId],
+  );
+
   const editor = useEditor({
-    immediatelyRender: false, // Fix pre SSR
+    immediatelyRender: false,
     extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-      }),
+      StarterKit.configure({ codeBlock: false }),
       Placeholder.configure({
         placeholder: "Start writing or press '/' for commands...",
       }),
       TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      CodeBlockLowlight.configure({
-        lowlight,
-      }),
-      Table.configure({
-        resizable: true,
-      }),
+      TaskItem.configure({ nested: true }),
+      CodeBlockLowlight.configure({ lowlight }),
+      Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       TableCell,
-      Image.configure({
-        inline: true,
-        allowBase64: true,
-      }),
+      Image.configure({ inline: true, allowBase64: true }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -109,12 +125,8 @@ export function TiptapEditor({
             "text-primary underline underline-offset-4 hover:text-primary/80",
         },
       }),
-      Highlight.configure({
-        multicolor: true,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Underline,
       Subscript,
       Superscript,
@@ -129,6 +141,7 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       onUpdate?.(html);
+      saveContent(html);
     },
   });
 
@@ -154,9 +167,7 @@ export function TiptapEditor({
     }
   }, [editor, imageUrl]);
 
-  if (!editor) {
-    return null;
-  }
+  if (!editor) return null;
 
   return (
     <div className="flex flex-col">
@@ -301,6 +312,7 @@ export function TiptapEditor({
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
+        {/* Alignment */}
         <Button
           variant="ghost"
           size="sm"
@@ -360,6 +372,7 @@ export function TiptapEditor({
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
+        {/* Table, Link, Image */}
         <Button
           variant="ghost"
           size="sm"
@@ -410,6 +423,16 @@ export function TiptapEditor({
       {/* Editor */}
       <EditorContent editor={editor} />
 
+      {/* Save indicator */}
+      {isPending ? (
+        <p className="text-sm text-muted-foreground px-8 py-2">Saving...</p>
+      ) : lastSaved ? (
+        <p className="text-sm text-muted-foreground px-8 py-2">
+          Saved at {lastSaved.toLocaleTimeString()}
+        </p>
+      ) : null}
+
+      {/* Link dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -422,11 +445,7 @@ export function TiptapEditor({
             placeholder="https://example.com"
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                addLink();
-              }
-            }}
+            onKeyDown={(e) => e.key === "Enter" && addLink()}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
@@ -437,6 +456,7 @@ export function TiptapEditor({
         </DialogContent>
       </Dialog>
 
+      {/* Image dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -447,11 +467,7 @@ export function TiptapEditor({
             placeholder="https://example.com/image.jpg"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                addImage();
-              }
-            }}
+            onKeyDown={(e) => e.key === "Enter" && addImage()}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setImageDialogOpen(false)}>

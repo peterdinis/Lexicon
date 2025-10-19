@@ -59,7 +59,11 @@ export function PageHeader({
     if (!initialTitle) {
       loadPage();
     } else {
-      setPage({ title: initialTitle, icon: initialIcon, cover_image: initialCoverImage });
+      setPage({
+        title: initialTitle,
+        icon: initialIcon,
+        cover_image: initialCoverImage,
+      });
     }
   }, [pageId, initialTitle, initialIcon, initialCoverImage]);
 
@@ -79,7 +83,7 @@ export function PageHeader({
             <CoverImageSelector
               value={coverImage}
               onChange={() => {
-                console.log("DO NOTHING")
+                console.log("DO NOTHING");
               }}
             />
           </div>
@@ -88,14 +92,17 @@ export function PageHeader({
       <div className="mx-auto max-w-3xl p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <EmojiPicker value={icon} onChange={() => {
-              console.log("DO NOTHING")
-            }} />
+            <EmojiPicker
+              value={icon}
+              onChange={() => {
+                console.log("DO NOTHING");
+              }}
+            />
             {!coverImage && (
               <CoverImageSelector
                 value={coverImage}
                 onChange={() => {
-                  console.log("DO NOTHING")
+                  console.log("DO NOTHING");
                 }}
               />
             )}

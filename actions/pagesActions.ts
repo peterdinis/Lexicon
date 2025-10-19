@@ -1,68 +1,17 @@
 "use server";
 
-import { z } from "zod";
-import { getSupabaseServerClient } from "@/supabase/server";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-
-const pageIdSchema = z.object({
-  id: z.string().min(1),
-});
-
-const createPageSchema = z.object({
-  title: z.string().optional().default("Untitled"),
-  description: z.string().optional().default(""),
-});
-
-async function getPageHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
-
-  const { data: page, error } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (error) throw error;
-  if (!page) throw new Error("Page not found");
-
-  return page;
-}
-
-async function createPageHandler(title: string = "Untitled", description: string = "") {
-  const supabase = await getSupabaseServerClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-    .from("pages")
-    .insert({
-      user_id: user.id,
-      title,
-      description,
-    })
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  if (!data) throw new Error("Failed to create page");
-
-  return data;
-}
+import {
+  createPageSchema,
+  pageIdSchema,
+  updatePageSchema,
+} from "./schemas/pagesSchemas";
+import {
+  createPageHandler,
+  getPageHandler,
+  updatePageHandler,
+} from "./handlers/pageHandlers";
 
 export const createPageAction = actionClient
   .inputSchema(createPageSchema)
@@ -74,11 +23,22 @@ export const createPageAction = actionClient
     }
   });
 
-export const getPageAction = actionClient.inputSchema(pageIdSchema)
-.action(async ({parsedInput: {id}}) => {
-  try {
-    return await getPageHandler(id);
-  } catch(err) {
-    throw new Error(getErrorMessage(err));
-  }
-})
+export const getPageAction = actionClient
+  .inputSchema(pageIdSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      return await getPageHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+export const updatePageAction = actionClient
+  .inputSchema(updatePageSchema)
+  .action(async ({ parsedInput: { id, content } }) => {
+    try {
+      return await updatePageHandler(id, content);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });

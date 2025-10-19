@@ -102,7 +102,7 @@ export function DashboardSidebar({
     return rootPages;
   };
 
-      const createPage = async () => {
+  const createPage = async () => {
     setLoading(true);
     try {
       const result = await createPageAction({
@@ -119,12 +119,14 @@ export function DashboardSidebar({
       }
 
       const newPage: Page = result.data;
-      setPages([newPage, ...pages]);
+      setPages((prevPages) => [newPage, ...prevPages]);
       router.push(`/page/${newPage.id}`);
       setMobileOpen(false);
     } catch (error) {
       console.error("Error creating page:", error);
-      alert(`Failed to create page: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(
+        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -302,8 +304,9 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-          }`}
+        className={`rounded-lg transition-colors ${
+          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+        }`}
       >
         {children}
       </div>
@@ -327,8 +330,9 @@ export function DashboardSidebar({
 
     const content = (
       <div
-        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
-          }`}
+        className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
+          currentPageId === page.id ? "bg-accent" : ""
+        }`}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
         <button
@@ -440,6 +444,8 @@ export function DashboardSidebar({
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
     const hierarchicalPages = buildHierarchy(pages);
+
+    console.log(hierarchicalPages, "HP", pages, "P");
     const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({
       id: "root",
     });
@@ -593,10 +599,11 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
-                    ? "bg-primary/10 ring-2 ring-primary/50"
-                    : ""
-                    }`}
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
+                    isOverRoot && activeId
+                      ? "bg-primary/10 ring-2 ring-primary/50"
+                      : ""
+                  }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -628,8 +635,9 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-            }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
+            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+          }`}
         >
           <SidebarContent />
         </aside>

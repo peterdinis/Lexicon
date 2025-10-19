@@ -4,12 +4,10 @@ import { actionClient } from "@/lib/safe-action";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { getErrorMessage } from "@/constants/applicationConstants";
 
-// Action to fetch the current user and their pages
 export const fetchDashboardDataAction = actionClient.action(async () => {
   try {
     const supabase = await getSupabaseServerClient();
 
-    // Get current user
     const {
       data: { user },
       error: userError,
@@ -18,7 +16,6 @@ export const fetchDashboardDataAction = actionClient.action(async () => {
     if (userError) throw userError;
     if (!user) throw new Error("Unauthorized");
 
-    // Get pages for the user
     const { data: pages, error: pagesError } = await supabase
       .from("pages")
       .select("*")

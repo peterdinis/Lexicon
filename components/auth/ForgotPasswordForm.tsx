@@ -178,7 +178,7 @@ const ForgotPasswordForm: FC = () => {
             >
               {isSubmitting || checkingEmail ? <Spinner /> : "Send reset link"}
             </Button>
-            <Link href="/auth/login" className="w-full">
+            <Link href="/auth/login" className="w-full mt-4">
               <Button variant="ghost" className="w-full">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to login
