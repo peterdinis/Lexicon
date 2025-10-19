@@ -2,22 +2,14 @@ import DashboardTopBar from "./DashboardTopBar";
 import { redirect } from "next/navigation";
 import { AnimatedPageWrapper } from "../shared/AnimatedPageWrapper";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { fetchDashboardDataAction } from "@/actions/dashboardActions";
+import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 
 export default async function DashboardPage() {
   let pages = [];
-  let user;
 
   try {
-    // fetchDashboardDataAction now returns { user, pages }
-    const result = await fetchDashboardDataAction();
-
-    // No need to access result.data — just destructure
-    user = result.user;
-    pages = result.pages;
-
-    // Redirect if user is not found (unauthorized)
-    if (!user) redirect("/auth/login");
+    // Directly call the handler since we're in a server component
+    pages = await getAllPagesHandler();
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
