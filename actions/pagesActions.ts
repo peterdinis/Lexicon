@@ -36,9 +36,10 @@ export const getPageAction = actionClient
 
 export const updatePageAction = actionClient
   .inputSchema(updatePageSchema)
-  .action(async ({ parsedInput: { id, content } }) => {
+  .action(async ({ parsedInput: { id, title, description } }) => {
     try {
-      return await updatePageHandler(id, content);
+      const updatedPage = await updatePageHandler(id, { title, description });
+      return updatedPage;
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }

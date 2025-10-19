@@ -5,11 +5,12 @@ import { TiptapEditor } from "@/components/editor/TipTapEditor";
 import { redirect } from "next/navigation";
 import { getAllPagesAction, getPageAction } from "@/actions/pagesActions";
 
-export default async function PageView({ params }: { params: { id: string } }) {
+export default async function PageView(props: { params: Promise<{ id: string }> }) {
   "use server";
+  const params = await props.params;
 
   const { id } = params;
-  
+
   const pageResult = await getPageAction({ id });
   const page = pageResult.data;
 

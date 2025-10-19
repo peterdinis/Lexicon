@@ -6,6 +6,7 @@ import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 import { ShareDialog } from "../dialogs/ShareDialog";
 import { getPageAction } from "@/actions/pagesActions";
+import { Spinner } from "../ui/spinner";
 
 interface PageHeaderProps {
   pageId: string;
@@ -29,7 +30,6 @@ export function PageHeader({
   const [loading, setLoading] = useState(!initialTitle);
   const [error, setError] = useState<string | null>(null);
 
-  // Načítaj page data pomocou getPageAction
   useEffect(() => {
     const loadPage = async () => {
       try {
@@ -55,7 +55,6 @@ export function PageHeader({
       }
     };
 
-    // Načítaj page iba ak nemáme initial props
     if (!initialTitle) {
       loadPage();
     } else {
@@ -68,7 +67,7 @@ export function PageHeader({
   }, [pageId, initialTitle, initialIcon, initialCoverImage]);
 
   if (error) return <div>Error loading page: {error}</div>;
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Spinner />
 
   return (
     <div className="border-b">

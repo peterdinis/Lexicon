@@ -1,4 +1,7 @@
+import { db } from "@/drizzle/db";
+import { pages } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
+import { eq } from "drizzle-orm";
 
 export async function getPageHandler(id: string) {
   const supabase = await getSupabaseServerClient();
@@ -53,29 +56,23 @@ export async function createPageHandler(
   return data;
 }
 
-export async function updatePageHandler(id: string, content: string) {
-  const supabase = await getSupabaseServerClient();
+export async function updatePageHandler(
+  id: string,
+  data: { title?: string; description?: string }
+) {
+  const updateData: Partial<typeof pages.$inferInsert> = {
+    ...(data.title ? { title: data.title } : {}),
+    ...(data.description ? { description: data.description } : {}),
+    updated_at: new Date(),
+  };
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const [updatedPage] = await db
+    .update(pages)
+    .set(updateData)
+    .where(eq(pages.id, id))
+    .returning();
 
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
-
-  const { data, error } = await supabase
-    .from("pages")
-    .update({ content })
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  if (!data) throw new Error("Failed to update page");
-
-  return data;
+  return updatedPage;
 }
 
 export async function getAllPagesHandler() {
