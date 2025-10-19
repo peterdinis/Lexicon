@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -49,6 +49,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
 import { createPageAction, getAllPagesAction } from "@/actions/pagesActions";
+import { debounce } from "@/lib/debounce";
 
 interface DashboardSidebarProps {
   initialPages: Page[];
@@ -65,55 +66,45 @@ export function DashboardSidebar({
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
+
   const router = useRouter();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor),
+    useSensor(KeyboardSensor)
   );
 
-  // Fetch all pages for current user
-  const refreshPages = async () => {
+  const refreshPages = useCallback(async () => {
     try {
       const result = await getAllPagesAction();
       if (!result?.data) throw new Error("No data returned from server");
-
-      const allPages: Page[] = result.data;
-      setPages(allPages);
+      setPages(result.data);
     } catch (err) {
       console.error("Failed to fetch pages:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshPages();
-  }, []);
+  }, [refreshPages]);
 
-  const buildHierarchy = (pages: Page[]): Page[] => {
+  const buildHierarchy = useCallback((pages: Page[]): Page[] => {
     const pageMap = new Map<string, Page & { children?: Page[] }>();
     const rootPages: Page[] = [];
-
-    pages.forEach((page) => {
-      pageMap.set(page.id, { ...page, children: [] });
+    pages.forEach(p => pageMap.set(p.id, { ...p, children: [] }));
+    pages.forEach(p => {
+      const pageWithChildren = pageMap.get(p.id)!;
+      if (p.parent_id && pageMap.has(p.parent_id)) {
+        pageMap.get(p.parent_id)!.children!.push(pageWithChildren);
+      } else rootPages.push(pageWithChildren);
     });
-
-    pages.forEach((page) => {
-      const pageWithChildren = pageMap.get(page.id)!;
-      if (page.parent_id && pageMap.has(page.parent_id)) {
-        const parent = pageMap.get(page.parent_id)!;
-        parent.children!.push(pageWithChildren);
-      } else {
-        rootPages.push(pageWithChildren);
-      }
-    });
-
     return rootPages;
-  };
+  }, []);
+
+  const hierarchicalPages = useMemo(() => buildHierarchy(pages), [pages, buildHierarchy]);
 
   const createPage = async () => {
     setLoading(true);
@@ -141,102 +132,88 @@ export function DashboardSidebar({
   };
 
   const createFolder = async (parentId?: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/pages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: "Untitled Folder",
-          is_folder: true,
-          parent_id: parentId,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to create folder");
-
-      await refreshPages();
-      if (parentId) setExpandedFolders(new Set([...expandedFolders, parentId]));
-    } catch (error) {
-      console.error("Error creating folder:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const movePage = async (pageId: string, targetFolderId: string | null) => {
-    try {
-      const response = await fetch(`/api/pages/${pageId}/move`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parent_id: targetFolderId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to move page");
-
-      await refreshPages();
-    } catch (error) {
-      console.error("Error moving page:", error);
-    }
+    // TODO
   };
 
   const deletePage = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to move this to trash?")) return;
 
+    const prevPages = [...pages];
+    setPages(prev => prev.filter(p => p.id !== id));
+
     try {
       const response = await fetch(`/api/pages/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Failed to delete page");
-
-      await refreshPages();
-
       if (currentPageId === id) router.push("/");
     } catch (error) {
-      console.error("Error deleting page:", error);
+      console.error(error);
+      setPages(prevPages);
     }
   };
 
-  const toggleFolder = (folderId: string) => {
-    const newExpanded = new Set(expandedFolders);
-    if (newExpanded.has(folderId)) newExpanded.delete(folderId);
-    else newExpanded.add(folderId);
-    setExpandedFolders(newExpanded);
+  const movePage = async (pageId: string, targetFolderId: string | null) => {
+    const prevPages = [...pages];
+    setPages(prev => prev.map(p => (p.id === pageId ? { ...p, parent_id: targetFolderId } : p)));
+    try {
+      const response = await fetch(`/api/pages/${pageId}/move`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parent_id: targetFolderId }),
+      });
+      if (!response.ok) throw new Error("Failed to move page");
+    } catch (error) {
+      console.error(error);
+      setPages(prevPages);
+    }
   };
 
-  const isDescendant = (parentId: string, childId: string): boolean => {
-    const page = pages.find((p) => p.id === childId);
-    if (!page || !page.parent_id) return false;
-    if (page.parent_id === parentId) return true;
-    return isDescendant(parentId, page.parent_id);
-  };
+  const movePageDebounced = useMemo(() => debounce(movePage, 300), [pages]);
 
+  // Drag & drop handlers
   const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id as string);
   const handleDragOver = (event: DragOverEvent) => setOverId(event.over?.id as string || null);
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     setOverId(null);
-
     if (!over || active.id === over.id) return;
 
     const draggedPageId = active.id as string;
     const targetId = over.id as string;
 
-    const draggedPage = pages.find((p) => p.id === draggedPageId);
-    if (draggedPage?.is_folder && (targetId === draggedPageId || isDescendant(draggedPageId, targetId))) return;
+    const draggedPage = pages.find(p => p.id === draggedPageId);
+    if (draggedPage?.is_folder && (targetId === draggedPageId)) return;
 
-    if (targetId === "root") movePage(draggedPageId, null);
+    if (targetId === "root") movePageDebounced(draggedPageId, null);
     else {
-      const targetPage = pages.find((p) => p.id === targetId);
+      const targetPage = pages.find(p => p.id === targetId);
       if (targetPage?.is_folder) {
-        movePage(draggedPageId, targetId);
-        setExpandedFolders(new Set([...expandedFolders, targetId]));
+        movePageDebounced(draggedPageId, targetId);
+        setExpandedFolders(prev => new Set([...prev, targetId]));
       }
     }
   };
 
-  const DraggablePageItem = ({ page, depth = 0 }: { page: Page & { children?: Page[] }; depth?: number }) => {
+  // Folder toggle
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) newSet.delete(folderId);
+      else newSet.add(folderId);
+      return newSet;
+    });
+  };
+
+  const isDescendant = (parentId: string, childId: string) => {
+    const page = pages.find(p => p.id === childId);
+    if (!page || !page.parent_id) return false;
+    if (page.parent_id === parentId) return true;
+    return isDescendant(parentId, page.parent_id);
+  };
+
+  // Components
+  const DraggablePageItem = memo(({ page, depth = 0 }: { page: Page & { children?: Page[] }; depth?: number }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: page.id, data: { page } });
     const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.5 : 1 };
     return (
@@ -244,7 +221,7 @@ export function DashboardSidebar({
         <PageTreeItem page={page} depth={depth} dragHandleProps={{ attributes, listeners }} />
       </div>
     );
-  };
+  });
 
   const DroppableFolder = ({ page, depth = 0, children }: { page: Page & { children?: Page[] }; depth?: number; children: React.ReactNode }) => {
     const { setNodeRef, isOver } = useDroppable({ id: page.id, data: { page } });
@@ -252,7 +229,7 @@ export function DashboardSidebar({
     return <div ref={setNodeRef} className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""}`}>{children}</div>;
   };
 
-  const PageTreeItem = ({ page, depth = 0, dragHandleProps }: { page: Page & { children?: Page[] }; depth?: number; dragHandleProps?: { attributes: DraggableAttributes; listeners: DraggableSyntheticListeners } }) => {
+  const PageTreeItem = memo(({ page, depth = 0, dragHandleProps }: { page: Page & { children?: Page[] }; depth?: number; dragHandleProps?: { attributes: DraggableAttributes; listeners: DraggableSyntheticListeners } }) => {
     const isExpanded = expandedFolders.has(page.id);
     const hasChildren = page.children && page.children.length > 0;
 
@@ -307,10 +284,9 @@ export function DashboardSidebar({
         )}
       </div>
     );
-  };
+  });
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
-    const hierarchicalPages = buildHierarchy(pages);
     const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({ id: "root" });
 
     return (
@@ -336,10 +312,6 @@ export function DashboardSidebar({
                   <button onClick={() => { router.push("/"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"><Home className="h-4 w-4 text-muted-foreground" />Home</button>
                   <button onClick={() => { router.push("/todos"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"><CheckSquare className="h-4 w-4 text-muted-foreground" />Todos</button>
                   <button onClick={() => { router.push("/calendar"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"><Calendar className="h-4 w-4 text-muted-foreground" />Calendar</button>
-                  <button onClick={() => { router.push("/diagrams"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent">
-                    <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                    Diagrams
-                  </button>
                   <button onClick={() => { router.push("/settings"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"><Settings className="h-4 w-4 text-muted-foreground" />Settings</button>
                   <button onClick={() => { router.push("/trash"); if (isMobile) setMobileOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"><Trash2 className="h-4 w-4 text-muted-foreground" />Trash</button>
                 </div>
@@ -370,7 +342,7 @@ export function DashboardSidebar({
     );
   };
 
-  const activePage = activeId ? pages.find((p) => p.id === activeId) : null;
+  const activePage = activeId ? pages.find(p => p.id === activeId) : null;
 
   return (
     <>

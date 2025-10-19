@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 import { ShareDialog } from "../dialogs/ShareDialog";
-import { Spinner } from "../ui/spinner";
+import { debounce } from "@/lib/debounce";
 
 interface PageHeaderProps {
   pageId: string;
@@ -13,7 +13,7 @@ interface PageHeaderProps {
   icon?: string;
   coverImage?: string | null;
   isSaving?: boolean;
-  onTitleChange?: (value: string) => void; // optional, pre zmenu title
+  onTitleChange?: (value: string) => void;
 }
 
 export function PageHeader({
@@ -30,10 +30,25 @@ export function PageHeader({
     setLocalTitle(title);
   }, [title]);
 
+  const debouncedTitleChange = useCallback(
+    debounce((value: string) => {
+      onTitleChange?.(value);
+    }, 500),
+    [onTitleChange]
+  );
+
   const handleTitleChange = (value: string) => {
     setLocalTitle(value);
-    onTitleChange?.(value);
+    debouncedTitleChange(value);
   };
+
+  const handleCoverChange = useCallback((newCover: string) => {
+    console.log("TODO: cover change", newCover);
+  }, []);
+
+  const handleIconChange = useCallback((newIcon: string) => {
+    console.log("TODO: icon change", newIcon);
+  }, []);
 
   return (
     <div className="border-b">
@@ -45,20 +60,17 @@ export function PageHeader({
             className="h-full w-full object-cover"
           />
           <div className="absolute bottom-4 right-4">
-            <CoverImageSelector
-              value={coverImage}
-              onChange={() => console.log("TODO: cover change")}
-            />
+            <CoverImageSelector value={coverImage} onChange={() => {
+              console.log("TODO")
+            }} />
           </div>
         </div>
       )}
+
       <div className="mx-auto max-w-3xl p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <EmojiPicker
-              value={icon}
-              onChange={() => console.log("TODO: icon change")}
-            />
+            <EmojiPicker value={icon} onChange={handleIconChange} />
           </div>
           <ShareDialog pageId={pageId} />
         </div>
