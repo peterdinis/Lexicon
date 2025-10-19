@@ -10,6 +10,7 @@ export const createPageSchema = z.object({
 });
 
 export const updatePageSchema = z.object({
-  id: z.string(),
-  content: z.string(),
+  id: z.string().uuid(),
+  title: z.string().optional(),
+  description: z.string().optional(),
 });
