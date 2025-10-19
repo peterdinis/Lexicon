@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { PageHeader } from "@/components/pages/PageHeader";
 import { TiptapEditor } from "@/components/editor/TipTapEditor";
 import { updatePageAction } from "@/actions/pagesActions";
+import { debounce } from "@/lib/debounce";
 
 export default function PageViewClient({
   id,
@@ -19,29 +20,39 @@ export default function PageViewClient({
   const [title, setTitle] = useState(page.title || "");
   const [isPending, startTransition] = useTransition();
 
-  const handleTitleChange = (value: string) => {
-    setTitle(value);
-    startTransition(() => {
-      void (async () => {
+  const saveTitle = useCallback(
+    debounce((newTitle: string) => {
+      startTransition(async () => {
         try {
-          await updatePageAction({ id, title: value });
+          await updatePageAction({ id, title: newTitle });
         } catch (err) {
           console.error("❌ Failed to update title:", err);
         }
-      })();
-    });
+      });
+    }, 1000),
+    [id]
+  );
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    saveTitle(value);
   };
 
-  const handleDescriptionChange = (description: string) => {
-    startTransition(() => {
-      void (async () => {
+  const saveDescription = useCallback(
+    debounce((description: string) => {
+      startTransition(async () => {
         try {
           await updatePageAction({ id, description });
         } catch (err) {
           console.error("❌ Failed to update description:", err);
         }
-      })();
-    });
+      });
+    }, 1000),
+    [id]
+  );
+
+  const handleDescriptionChange = (description: string) => {
+    saveDescription(description);
   };
 
   return (
