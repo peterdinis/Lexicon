@@ -89,20 +89,19 @@ export function TiptapEditor({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // 🔁 debounce save function
-  const saveContent = useCallback(
-    debounce((content: string) => {
+  const saveDescription = useCallback(
+    debounce((description: string) => {
       startTransition(async () => {
         try {
-          await updatePageAction({ id: pageId, content });
+          await updatePageAction({ id: pageId, description });
           setLastSaved(new Date());
         } catch (err) {
-          console.error("❌ Failed to save content:", err);
+          console.error("❌ Failed to save description:", err);
         }
       });
     }, 1000),
     [pageId],
   );
-
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -139,10 +138,10 @@ export function TiptapEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onUpdate?.(html);
-      saveContent(html);
-    },
+      const description = editor.getHTML();
+      onUpdate?.(description); // volanie parent callbacku, ak existuje
+      saveDescription(description); // uloženie na server
+    }
   });
 
   useEffect(() => {

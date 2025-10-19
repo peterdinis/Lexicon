@@ -5,69 +5,35 @@ import { Input } from "@/components/ui/input";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 import { ShareDialog } from "../dialogs/ShareDialog";
-import { getPageAction } from "@/actions/pagesActions";
 import { Spinner } from "../ui/spinner";
 
 interface PageHeaderProps {
   pageId: string;
-  title?: string;
+  title: string;
   icon?: string;
   coverImage?: string | null;
+  isSaving?: boolean;
+  onTitleChange?: (value: string) => void; // optional, pre zmenu title
 }
 
 export function PageHeader({
   pageId,
-  title: initialTitle,
-  icon: initialIcon,
-  coverImage: initialCoverImage,
+  title,
+  icon,
+  coverImage,
+  isSaving,
+  onTitleChange,
 }: PageHeaderProps) {
-  const [title, setTitle] = useState<string>(initialTitle || "");
-  const [icon, setIcon] = useState<string | undefined>(initialIcon);
-  const [coverImage, setCoverImage] = useState<string | undefined>(
-    initialCoverImage || undefined,
-  );
-  const [page, setPage] = useState<any>(null);
-  const [loading, setLoading] = useState(!initialTitle);
-  const [error, setError] = useState<string | null>(null);
+  const [localTitle, setLocalTitle] = useState(title);
 
   useEffect(() => {
-    const loadPage = async () => {
-      try {
-        setLoading(true);
-        const result = await getPageAction({ id: pageId });
+    setLocalTitle(title);
+  }, [title]);
 
-        if (result?.serverError) {
-          setError(result.serverError);
-          return;
-        }
-
-        if (result?.data) {
-          setPage(result.data);
-          setTitle(result.data.title);
-          setIcon(result.data.icon);
-          setCoverImage(result.data.cover_image || undefined);
-        }
-      } catch (err) {
-        setError("Failed to load page");
-        console.error("Error loading page:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!initialTitle) {
-      loadPage();
-    } else {
-      setPage({
-        title: initialTitle,
-        icon: initialIcon,
-        cover_image: initialCoverImage,
-      });
-    }
-  }, [pageId, initialTitle, initialIcon, initialCoverImage]);
-
-  if (error) return <div>Error loading page: {error}</div>;
-  if (loading) return <Spinner />
+  const handleTitleChange = (value: string) => {
+    setLocalTitle(value);
+    onTitleChange?.(value);
+  };
 
   return (
     <div className="border-b">
@@ -81,9 +47,7 @@ export function PageHeader({
           <div className="absolute bottom-4 right-4">
             <CoverImageSelector
               value={coverImage}
-              onChange={() => {
-                console.log("DO NOTHING");
-              }}
+              onChange={() => console.log("TODO: cover change")}
             />
           </div>
         </div>
@@ -93,27 +57,22 @@ export function PageHeader({
           <div className="flex items-center gap-2">
             <EmojiPicker
               value={icon}
-              onChange={() => {
-                console.log("DO NOTHING");
-              }}
+              onChange={() => console.log("TODO: icon change")}
             />
-            {!coverImage && (
-              <CoverImageSelector
-                value={coverImage}
-                onChange={() => {
-                  console.log("DO NOTHING");
-                }}
-              />
-            )}
           </div>
           <ShareDialog pageId={pageId} />
         </div>
+
         <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={localTitle}
+          onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Untitled"
           className="border-0 text-3xl font-bold focus-visible:ring-0"
         />
+
+        {isSaving && (
+          <p className="mt-1 text-sm text-muted-foreground">Saving...</p>
+        )}
       </div>
     </div>
   );
