@@ -9,14 +9,17 @@ export default async function DashboardPage() {
   let user;
 
   try {
+    // fetchDashboardDataAction now returns { user, pages }
     const result = await fetchDashboardDataAction();
 
-    const data = result.data; 
-    if (!data) throw new Error("Unauthorized");
+    // No need to access result.data — just destructure
+    user = result.user;
+    pages = result.pages;
 
-    user = data.user;
-    pages = data.pages;
+    // Redirect if user is not found (unauthorized)
+    if (!user) redirect("/auth/login");
   } catch (err) {
+    console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
   }
 
