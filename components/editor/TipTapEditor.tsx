@@ -18,7 +18,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { common, createLowlight } from "lowlight";
-import { useEffect, useCallback, useState, useTransition } from "react";
+import { useEffect, useCallback, useState, useTransition, useRef } from "react";
 import {
   Bold, Italic, Strikethrough, Code, Heading1, Heading2, Heading3,
   List, ListOrdered, Quote, Undo, Redo, CheckSquare, ImageIcon, Link2,
@@ -30,6 +30,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { updatePageAction } from "@/actions/pagesActions";
+import { debounce } from "@/lib/debounce";
 
 const lowlight = createLowlight(common);
 
@@ -47,6 +48,17 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  const saveRef = useRef<((content: string) => void) | null>(null);
+  
+  saveRef.current = debounce(async (description: string) => {
+    try {
+      await updatePageAction({ id: pageId, description });
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error("❌ Failed to save description:", err);
+    }
+  }, 1500);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -67,24 +79,28 @@ export function TiptapEditor({ pageId, initialContent = "", onUpdate }: TiptapEd
       const description = editor.getHTML();
       onUpdate?.(description);
 
+      // Debounced uloženie
       startTransition(() => {
-        void (async () => {
-          try {
-            await updatePageAction({ id: pageId, description });
-            setLastSaved(new Date());
-          } catch (err) {
-            console.error("❌ Failed to save description:", err);
-          }
-        })();
+        saveRef.current?.(description);
       });
     }
   });
 
   useEffect(() => {
+    // Pri mount nastav obsah ak sa líši od inicializovaného
     if (editor && initialContent && editor.getHTML() !== initialContent) {
       editor.commands.setContent(initialContent);
     }
   }, [editor, initialContent]);
+
+  // Volanie API pri unmount / focus loss
+  useEffect(() => {
+    return () => {
+      if (editor) {
+        saveRef.current?.(editor.getHTML());
+      }
+    };
+  }, [editor]);
 
   const addLink = useCallback(() => {
     if (linkUrl && editor) {
