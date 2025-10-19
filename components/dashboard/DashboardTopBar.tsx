@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,50 +18,37 @@ import { Spinner } from "../ui/spinner";
 
 const supabase = getSupabaseBrowserClient();
 
+const fetchUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error("No user");
+  return data.user;
+};
+
 const DashboardTopBar = () => {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  // ✅ Načítanie používateľa po prihlásení
-  useEffect(() => {
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data.user) {
-        router.push("/auth/login");
-        return;
-      }
-      setUser(data.user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    // ✅ Reaguj na zmenu session (logout/login v inom tabe)
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      getUser();
-    });
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, [router]);
+  const { data: user, error, mutate } = useSWR("user", fetchUser, {
+    revalidateOnFocus: false, 
+    dedupingInterval: 60000, 
+  });
+  
+  if (error) {
+    router.push("/auth/login");
+    return null;
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    mutate(null, false); // vymaže cache užívateľa
     router.push("/auth/login");
-    router.refresh();
   };
 
-  if (loading) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center h-14">
         <Spinner />
       </div>
     );
   }
-
-  if (!user) return null;
 
   return (
     <header className="border-b bg-background">
