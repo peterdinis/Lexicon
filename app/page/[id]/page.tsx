@@ -1,43 +1,22 @@
-import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
-import { getSupabaseServerClient } from "@/supabase/server";
 import { PageHeader } from "@/components/pages/PageHeader";
 import { TiptapEditor } from "@/components/editor/TipTapEditor";
+import { redirect } from "next/navigation";
+import { getAllPagesAction, getPageAction } from "@/actions/pagesActions";
 
-export default async function PageView({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await getSupabaseServerClient();
+export default async function PageView({ params }: { params: { id: string } }) {
+  "use server";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { id } = params;
+  
+  const pageResult = await getPageAction({ id });
+  const page = pageResult.data;
 
-  if (!user) {
-    redirect("/auth/login");
-  }
+  if (!page) redirect("/");
 
-  const { data: page } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!page) {
-    redirect("/");
-  }
-
-  const { data: pages } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("user_id", user.id)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
+  const pagesResult = await getAllPagesAction();
+  const pages = pagesResult.data;
 
   return (
     <div className="flex h-screen flex-col">
@@ -51,7 +30,7 @@ export default async function PageView({
             icon={page.icon}
             coverImage={page.cover_image}
           />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto p-4">
             <TiptapEditor pageId={id} initialContent={page.content || ""} />
           </main>
         </div>
