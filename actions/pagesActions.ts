@@ -9,6 +9,7 @@ import {
 } from "./schemas/pagesSchemas";
 import {
   createPageHandler,
+  getAllPagesHandler,
   getPageHandler,
   updatePageHandler,
 } from "./handlers/pageHandlers";
@@ -42,3 +43,13 @@ export const updatePageAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
+
+
+export const getAllPagesAction = actionClient.action(async () => {
+  try {
+    const pages = await getAllPagesHandler();
+    return pages;
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+});

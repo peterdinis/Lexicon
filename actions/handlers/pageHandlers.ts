@@ -77,3 +77,24 @@ export async function updatePageHandler(id: string, content: string) {
 
   return data;
 }
+
+export async function getAllPagesHandler() {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: pages, error } = await supabase
+    .from("pages")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return pages || [];
+}
