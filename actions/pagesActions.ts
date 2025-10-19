@@ -2,8 +2,8 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { createPageSchema, pageIdSchema } from "./schemas/pagesSchemas";
-import { createPageHandler, getPageHandler } from "./handlers/pageHandlers";
+import { createPageSchema, pageIdSchema, updatePageSchema } from "./schemas/pagesSchemas";
+import { createPageHandler, getPageHandler, updatePageHandler } from "./handlers/pageHandlers";
 
 export const createPageAction = actionClient
   .inputSchema(createPageSchema)
@@ -20,6 +20,17 @@ export const getPageAction = actionClient
   .action(async ({ parsedInput: { id } }) => {
     try {
       return await getPageHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+
+export const updatePageAction = actionClient
+  .inputSchema(updatePageSchema)
+  .action(async ({ parsedInput: { id, content } }) => {
+    try {
+      return await updatePageHandler(id, content);
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
