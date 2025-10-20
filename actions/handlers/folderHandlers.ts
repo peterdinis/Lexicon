@@ -12,11 +12,10 @@ export async function createFolderHandler(parentId?: string | null) {
   if (!user) throw new Error("Unauthorized");
 
   const { data, error } = await supabase
-    .from("pages")
+    .from("folders")
     .insert({
       user_id: user.id,
       title: "New Folder",
-      is_folder: true,
       parent_id: parentId || null,
     })
     .select("*")
