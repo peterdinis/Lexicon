@@ -5,6 +5,7 @@ import {
   jsonb,
   integer,
   timestamp,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -36,6 +37,34 @@ export const folders = pgTable("folders", {
   title: text("title").notNull().default("New Folder"),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const todos = pgTable("todos", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  completed: boolean("completed").default(false),
+  priority: text("priority").default("low"),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ----------------------
+// Calendar Events Table
+// ----------------------
+export const calendarEvents = pgTable("calendar_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  allDay: boolean("all_day").default(false),
+  color: text("color"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const pagesRelations = {
