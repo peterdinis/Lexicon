@@ -26,11 +26,15 @@ const fetchUser = async () => {
 
 const DashboardTopBar = () => {
   const router = useRouter();
-  const { data: user, error, mutate } = useSWR("user", fetchUser, {
-    revalidateOnFocus: false, 
-    dedupingInterval: 60000, 
+  const {
+    data: user,
+    error,
+    mutate,
+  } = useSWR("user", fetchUser, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
   });
-  
+
   if (error) {
     router.push("/auth/login");
     return null;

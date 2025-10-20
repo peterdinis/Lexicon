@@ -6,6 +6,7 @@ import {
   integer,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const pages = pgTable("pages", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -22,6 +23,17 @@ export const blocks = pgTable("blocks", {
   type: text("type").notNull(),
   content: jsonb("content").notNull().default("{}"),
   position: integer("position").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+const foldersId = () => folders.id;
+
+export const folders = pgTable("folders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  parent_id: uuid("parent_id").references(foldersId).default(sql`NULL`),
+  title: text("title").notNull().default("New Folder"),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });

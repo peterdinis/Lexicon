@@ -12,7 +12,7 @@ export function ThemeProvider({
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   if (!mounted) return null;
 
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;

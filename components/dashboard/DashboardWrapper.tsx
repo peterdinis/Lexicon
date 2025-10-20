@@ -2,21 +2,15 @@ import DashboardTopBar from "./DashboardTopBar";
 import { redirect } from "next/navigation";
 import { AnimatedPageWrapper } from "../shared/AnimatedPageWrapper";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { fetchDashboardDataAction } from "@/actions/dashboardActions";
+import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 
 export default async function DashboardPage() {
   let pages = [];
-  let user;
 
   try {
-    const result = await fetchDashboardDataAction();
-
-    const data = result.data; 
-    if (!data) throw new Error("Unauthorized");
-
-    user = data.user;
-    pages = data.pages;
+    pages = await getAllPagesHandler();
   } catch (err) {
+    console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
   }
 

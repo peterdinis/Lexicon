@@ -149,7 +149,11 @@ const LoginForm: FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full mt-4"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? <Spinner /> : "Sign in"}
             </Button>
 

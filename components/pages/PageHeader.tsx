@@ -34,7 +34,7 @@ export function PageHeader({
     debounce((value: string) => {
       onTitleChange?.(value);
     }, 500),
-    [onTitleChange]
+    [onTitleChange],
   );
 
   const handleTitleChange = (value: string) => {
@@ -60,9 +60,12 @@ export function PageHeader({
             className="h-full w-full object-cover"
           />
           <div className="absolute bottom-4 right-4">
-            <CoverImageSelector value={coverImage} onChange={() => {
-              console.log("TODO")
-            }} />
+            <CoverImageSelector
+              value={coverImage}
+              onChange={() => {
+                console.log("TODO");
+              }}
+            />
           </div>
         </div>
       )}

@@ -30,7 +30,7 @@ export default function PageViewClient({
         }
       });
     }, 1000),
-    [id]
+    [id],
   );
 
   const handleTitleChange = (value: string) => {
@@ -48,7 +48,7 @@ export default function PageViewClient({
         }
       });
     }, 1000),
-    [id]
+    [id],
   );
 
   const handleDescriptionChange = (description: string) => {
