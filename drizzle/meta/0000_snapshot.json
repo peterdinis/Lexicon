@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "44aa2bac-970f-45a6-9789-ba3715e08f43",
+  "id": "207fd6f7-4949-4a0e-919a-0a180f5fa950",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "blocks": {
@@ -12,8 +12,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "page_id": {
           "name": "page_id",
@@ -62,7 +61,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "blocks_page_id_pages_id_fk": {
+          "name": "blocks_page_id_pages_id_fk",
+          "tableFrom": "blocks",
+          "tableTo": "pages",
+          "columnsFrom": [
+            "page_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -75,8 +88,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -159,8 +171,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -208,8 +219,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -265,8 +275,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
