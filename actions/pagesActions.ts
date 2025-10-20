@@ -9,11 +9,14 @@ import {
 } from "./schemas/pagesSchemas";
 import {
   createPageHandler,
+  deletePageHandler,
+  movePageHandler,
   getAllPagesHandler,
   getPageHandler,
   updatePageHandler,
 } from "./handlers/pageHandlers";
 
+// CREATE
 export const createPageAction = actionClient
   .inputSchema(createPageSchema)
   .action(async ({ parsedInput: { title = "Untitled", description = "" } }) => {
@@ -24,6 +27,7 @@ export const createPageAction = actionClient
     }
   });
 
+// GET SINGLE
 export const getPageAction = actionClient
   .inputSchema(pageIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -34,17 +38,18 @@ export const getPageAction = actionClient
     }
   });
 
+// UPDATE
 export const updatePageAction = actionClient
   .inputSchema(updatePageSchema)
   .action(async ({ parsedInput: { id, title, description } }) => {
     try {
-      const updatedPage = await updatePageHandler(id, { title, description });
-      return updatedPage;
+      return await updatePageHandler(id, { title, description });
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
   });
 
+// GET ALL
 export const getAllPagesAction = actionClient.action(async () => {
   try {
     const pages = await getAllPagesHandler();
@@ -53,3 +58,13 @@ export const getAllPagesAction = actionClient.action(async () => {
     throw new Error(getErrorMessage(err));
   }
 });
+
+// DELETE
+export const deletePageAction = actionClient.inputSchema(pageIdSchema)
+  .action(async ({ parsedInput: { id } }) => {
+  try {
+    return await deletePageHandler(id);
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+})

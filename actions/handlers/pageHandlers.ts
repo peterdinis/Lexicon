@@ -95,3 +95,24 @@ export async function getAllPagesHandler() {
   if (error) throw error;
   return pages || [];
 }
+
+export async function deletePageHandler(pageId: string) {
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase.from("pages").delete().eq("id", pageId);
+  if (error) throw error;
+  return { success: true };
+}
+
+export async function movePageHandler(pageId: string, parentId: string | null) {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("pages")
+    .update({ parent_id: parentId })
+    .eq("id", pageId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error("Failed to move page");
+  return data;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -48,7 +48,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction, getAllPagesAction } from "@/actions/pagesActions";
+import { createPageAction, deletePageAction, getAllPagesAction } from "@/actions/pagesActions";
 import { createFolderAction, getFoldersAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 
@@ -70,8 +70,6 @@ export function DashboardSidebar({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
-
-  // Folder modal
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [folderParentId, setFolderParentId] = useState<string | null>(null);
@@ -96,7 +94,7 @@ export function DashboardSidebar({
       const folderPages = foldersResult.data!.map((f: any) => ({
         id: f.id,
         title: f.title,
-        icon: "📁",
+        icon: "",
         parent_id: f.parent_id,
         is_folder: true,
       }));
@@ -176,7 +174,7 @@ export function DashboardSidebar({
     }
   };
 
-  const deletePage = async (id: string, e: React.MouseEvent) => {
+    const deletePage = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to move this to trash?")) return;
 
@@ -184,12 +182,14 @@ export function DashboardSidebar({
     setPages((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      const response = await fetch(`/api/pages/${id}`, { method: "DELETE" });
-      if (!response.ok) throw new Error("Failed to delete page");
+      const result = await deletePageAction({ id });
+      if (!result?.data) throw new Error("Failed to delete page");
+
       if (currentPageId === id) router.push("/");
     } catch (error) {
       console.error(error);
       setPages(prevPages);
+      alert(error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -290,7 +290,7 @@ export function DashboardSidebar({
   }: {
     page: Page & { children?: Page[] };
     depth?: number;
-    children: React.ReactNode;
+    children: ReactNode;
   }) => {
     const { setNodeRef, isOver } = useDroppable({
       id: page.id,
