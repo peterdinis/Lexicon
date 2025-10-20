@@ -1,1 +1,0 @@
-ALTER TABLE "folders" ALTER COLUMN "parent_id" SET DEFAULT NULL;
