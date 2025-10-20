@@ -26,3 +26,23 @@ export async function createFolderHandler(parentId: string | null, title: string
 
   return data;
 }
+
+export async function getFoldersHandler() {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const { data, error } = await supabase
+    .from("folders")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
