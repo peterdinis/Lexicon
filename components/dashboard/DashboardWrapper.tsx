@@ -8,7 +8,6 @@ export default async function DashboardPage() {
   let pages = [];
 
   try {
-    // Directly call the handler since we're in a server component
     pages = await getAllPagesHandler();
   } catch (err) {
     console.error("Dashboard fetch error:", err);

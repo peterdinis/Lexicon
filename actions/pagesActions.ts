@@ -45,7 +45,6 @@ export const updatePageAction = actionClient
     }
   });
 
-
 export const getAllPagesAction = actionClient.action(async () => {
   try {
     const pages = await getAllPagesHandler();

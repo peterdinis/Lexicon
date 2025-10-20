@@ -58,7 +58,7 @@ export async function createPageHandler(
 
 export async function updatePageHandler(
   id: string,
-  data: { title?: string; description?: string }
+  data: { title?: string; description?: string },
 ) {
   const updateData: Partial<typeof pages.$inferInsert> = {
     ...(data.title ? { title: data.title } : {}),
