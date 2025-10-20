@@ -49,7 +49,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
 import { createPageAction, getAllPagesAction } from "@/actions/pagesActions";
-import { createFolderAction } from "@/actions/folderActions";
+import { createFolderAction, getFoldersAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 
 interface DashboardSidebarProps {
@@ -83,19 +83,34 @@ export function DashboardSidebar({
     useSensor(KeyboardSensor)
   );
 
-  const refreshPages = useCallback(async () => {
+  const refreshPagesAndFolders = useCallback(async () => {
     try {
-      const result = await getAllPagesAction();
-      if (!result?.data) throw new Error("No data returned from server");
-      setPages(result.data);
+      const [pagesResult, foldersResult] = await Promise.all([
+        getAllPagesAction(),
+        getFoldersAction(),
+      ]);
+
+      if (!pagesResult?.data) throw new Error("No pages returned");
+      if (!foldersResult) throw new Error("No folders returned");
+
+      const folderPages = foldersResult.data!.map((f: any) => ({
+        id: f.id,
+        title: f.title,
+        icon: "📁",
+        parent_id: f.parent_id,
+        is_folder: true,
+      }));
+
+
+      setPages([...pagesResult.data, ...folderPages]);
     } catch (err) {
-      console.error("Failed to fetch pages:", err);
+      console.error("Failed to fetch pages/folders:", err);
     }
   }, []);
 
   useEffect(() => {
-    refreshPages();
-  }, [refreshPages]);
+    refreshPagesAndFolders();
+  }, [refreshPagesAndFolders]);
 
   const buildHierarchy = useCallback((pages: Page[]): Page[] => {
     const pageMap = new Map<string, Page & { children?: Page[] }>();
@@ -125,12 +140,11 @@ export function DashboardSidebar({
       if (!result?.data) throw new Error("No data returned from server");
       router.push(`/page/${result.data.id}`);
       setMobileOpen(false);
-      await refreshPages();
+      await refreshPagesAndFolders();
     } catch (error) {
       console.error("Error creating page:", error);
       alert(
-        `Failed to create page: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     } finally {
@@ -138,14 +152,12 @@ export function DashboardSidebar({
     }
   };
 
-  // Open folder modal
   const createFolder = (parentId?: string | null) => {
     setFolderParentId(parentId || null);
     setNewFolderName("");
     setFolderModalOpen(true);
   };
 
-  // Submit folder via server action
   const handleFolderSubmit = async () => {
     if (!newFolderName.trim()) return;
     setLoading(true);
@@ -154,7 +166,7 @@ export function DashboardSidebar({
         title: newFolderName,
         parent_id: folderParentId,
       });
-      await refreshPages();
+      await refreshPagesAndFolders();
       setFolderModalOpen(false);
     } catch (err) {
       console.error(err);
@@ -289,9 +301,8 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${
-          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-        }`}
+        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+          }`}
       >
         {children}
       </div>
@@ -316,9 +327,8 @@ export function DashboardSidebar({
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
-            currentPageId === page.id ? "bg-accent" : ""
-          }`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
+            }`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
           <button
@@ -558,11 +568,10 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                  }`}
+                    }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -594,9 +603,8 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
-            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-          }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+            }`}
         >
           <SidebarContent />
         </aside>
