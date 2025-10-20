@@ -49,6 +49,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
 import { createPageAction, getAllPagesAction } from "@/actions/pagesActions";
+import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 
 interface DashboardSidebarProps {
@@ -66,17 +67,20 @@ export function DashboardSidebar({
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
+
+  // Folder modal
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [folderParentId, setFolderParentId] = useState<string | null>(null);
 
   const router = useRouter();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor),
+    useSensor(KeyboardSensor)
   );
 
   const refreshPages = useCallback(async () => {
@@ -108,7 +112,7 @@ export function DashboardSidebar({
 
   const hierarchicalPages = useMemo(
     () => buildHierarchy(pages),
-    [pages, buildHierarchy],
+    [pages, buildHierarchy]
   );
 
   const createPage = async () => {
@@ -118,27 +122,46 @@ export function DashboardSidebar({
         title: "Untitled",
         description: "",
       });
-
       if (!result?.data) throw new Error("No data returned from server");
-
       router.push(`/page/${result.data.id}`);
       setMobileOpen(false);
-
       await refreshPages();
     } catch (error) {
       console.error("Error creating page:", error);
       alert(
         `Failed to create page: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`,
+        }`
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const createFolder = async (parentId?: string) => {
-    // TODO
+  // Open folder modal
+  const createFolder = (parentId?: string | null) => {
+    setFolderParentId(parentId || null);
+    setNewFolderName("");
+    setFolderModalOpen(true);
+  };
+
+  // Submit folder via server action
+  const handleFolderSubmit = async () => {
+    if (!newFolderName.trim()) return;
+    setLoading(true);
+    try {
+      await createFolderAction({
+        title: newFolderName,
+        parent_id: folderParentId,
+      });
+      await refreshPages();
+      setFolderModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deletePage = async (id: string, e: React.MouseEvent) => {
@@ -162,8 +185,8 @@ export function DashboardSidebar({
     const prevPages = [...pages];
     setPages((prev) =>
       prev.map((p) =>
-        p.id === pageId ? { ...p, parent_id: targetFolderId } : p,
-      ),
+        p.id === pageId ? { ...p, parent_id: targetFolderId } : p
+      )
     );
     try {
       const response = await fetch(`/api/pages/${pageId}/move`, {
@@ -180,7 +203,6 @@ export function DashboardSidebar({
 
   const movePageDebounced = useMemo(() => debounce(movePage, 300), [pages]);
 
-  // Drag & drop handlers
   const handleDragStart = (event: DragStartEvent) =>
     setActiveId(event.active.id as string);
   const handleDragOver = (event: DragOverEvent) =>
@@ -207,7 +229,6 @@ export function DashboardSidebar({
     }
   };
 
-  // Folder toggle
   const toggleFolder = (folderId: string) => {
     setExpandedFolders((prev) => {
       const newSet = new Set(prev);
@@ -224,7 +245,6 @@ export function DashboardSidebar({
     return isDescendant(parentId, page.parent_id);
   };
 
-  // Components
   const DraggablePageItem = memo(
     ({
       page,
@@ -248,7 +268,7 @@ export function DashboardSidebar({
           />
         </div>
       );
-    },
+    }
   );
 
   const DroppableFolder = ({
@@ -269,7 +289,9 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""}`}
+        className={`rounded-lg transition-colors ${
+          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+        }`}
       >
         {children}
       </div>
@@ -294,7 +316,9 @@ export function DashboardSidebar({
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""}`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
+            currentPageId === page.id ? "bg-accent" : ""
+          }`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
           <button
@@ -391,17 +415,13 @@ export function DashboardSidebar({
           {page.is_folder && isExpanded && hasChildren && (
             <div>
               {page.children!.map((child: Page) => (
-                <DraggablePageItem
-                  key={child.id}
-                  page={child}
-                  depth={depth + 1}
-                />
+                <DraggablePageItem key={child.id} page={child} depth={depth + 1} />
               ))}
             </div>
           )}
         </div>
       );
-    },
+    }
   );
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
@@ -431,6 +451,7 @@ export function DashboardSidebar({
 
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-2">
+            {/* Workspace shortcuts */}
             <div className="mb-2">
               <button
                 onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
@@ -499,6 +520,7 @@ export function DashboardSidebar({
               )}
             </div>
 
+            {/* Pages */}
             <div>
               <div className="flex items-center justify-between px-2 py-1.5">
                 <button
@@ -536,7 +558,11 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId ? "bg-primary/10 ring-2 ring-primary/50" : ""}`}
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
+                    isOverRoot && activeId
+                      ? "bg-primary/10 ring-2 ring-primary/50"
+                      : ""
+                  }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -568,7 +594,9 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"}`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
+            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+          }`}
         >
           <SidebarContent />
         </aside>
@@ -581,41 +609,54 @@ export function DashboardSidebar({
               ) : (
                 <FileText className="h-4 w-4 text-muted-foreground" />
               )}
-              <span className="text-sm">
-                {activePage.icon} {activePage.title}
-              </span>
+              <span className="truncate">{activePage.title}</span>
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      {desktopCollapsed && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setDesktopCollapsed(false)}
-          className="fixed left-4 top-4 z-50 hidden md:flex"
-        >
-          <PanelLeft className="h-5 w-5" />
-        </Button>
-      )}
-
+      {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger asChild className="md:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
+        <SheetTrigger asChild>
+          <Button variant="ghost" className="md:hidden">
+            <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="p-0 w-64">
           <SidebarContent isMobile />
+        </SheetContent>
+      </Sheet>
+
+      {/* Folder modal */}
+      <Sheet open={folderModalOpen} onOpenChange={setFolderModalOpen}>
+        <SheetContent side="right" className="max-w-md">
+          <div className="flex items-center justify-between border-b p-4">
+            <h2 className="text-lg font-semibold">New Folder</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setFolderModalOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="p-4">
+            <input
+              type="text"
+              placeholder="Folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setFolderModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleFolderSubmit} disabled={loading}>
+                Create
+              </Button>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     </>

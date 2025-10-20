@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/supabase/server";
 
-export async function createFolderHandler(parentId?: string | null) {
+export async function createFolderHandler(parentId: string | null, title: string) {
   const supabase = await getSupabaseServerClient();
 
   const {
@@ -15,7 +15,7 @@ export async function createFolderHandler(parentId?: string | null) {
     .from("folders")
     .insert({
       user_id: user.id,
-      title: "New Folder",
+      title,
       parent_id: parentId || null,
     })
     .select("*")
