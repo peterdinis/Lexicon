@@ -97,6 +97,10 @@ export function DashboardSidebar({
         icon: "",
         parent_id: f.parent_id,
         is_folder: true,
+        user_id: "",
+        description: "",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }));
 
 

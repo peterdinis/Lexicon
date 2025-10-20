@@ -1,40 +1,12 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1760628330328,
-      "tag": "0000_easy_puppet_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1760797391539,
-      "tag": "0001_tiresome_cammi",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1760947892397,
-      "tag": "0002_bumpy_darkhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1760947990672,
-      "tag": "0003_ordinary_mattie_franklin",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1760955875391,
-      "tag": "0004_organic_albert_cleary",
+      "version": "6",
+      "when": 1760987804671,
+      "tag": "0000_slim_master_mold",
       "breakpoints": true
     }
   ]

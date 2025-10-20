@@ -1,8 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
 
-// Create a single shared Postgres client (recommended in serverless envs)
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+const sqliteDb = new Database("dev.db");
 
-// Export drizzle instance
-export const db = drizzle(client);
+export const db = drizzle(sqliteDb);

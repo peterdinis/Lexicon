@@ -1,4 +1,11 @@
+import { db } from "@/drizzle/db";
+import { folders } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
+import { eq, asc } from "drizzle-orm";
+
+export function generateId() {
+  return crypto.randomUUID().replace(/-/g, "");
+}
 
 export async function createFolderHandler(parentId: string | null, title: string) {
   const supabase = await getSupabaseServerClient();
@@ -11,20 +18,25 @@ export async function createFolderHandler(parentId: string | null, title: string
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const { data, error } = await supabase
-    .from("folders")
-    .insert({
-      user_id: user.id,
-      title,
-      parent_id: parentId || null,
-    })
-    .select("*")
-    .single();
+  const newFolder = {
+    id: generateId(),
+    user_id: user.id,
+    title,
+    parent_id: parentId,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
-  if (error) throw error;
-  if (!data) throw new Error("Failed to create folder");
+  await db.insert(folders).values(newFolder);
 
-  return data;
+  const [created] = await db
+    .select()
+    .from(folders)
+    .where(eq(folders.id, newFolder.id));
+
+  if (!created) throw new Error("Failed to create folder");
+
+  return created;
 }
 
 export async function getFoldersHandler() {
@@ -37,12 +49,12 @@ export async function getFoldersHandler() {
 
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
+  
+  const data = await db
+    .select()
+    .from(folders)
+    .where(eq(folders.user_id, user.id))
+    .orderBy(asc(folders.created_at));
 
-  const { data, error } = await supabase
-    .from("folders")
-    .select("*")
-    .order("created_at", { ascending: true });
-
-  if (error) throw error;
   return data;
 }

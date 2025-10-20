@@ -42,7 +42,7 @@ const DashboardTopBar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    mutate(null, false); // vymaže cache užívateľa
+    mutate(null, false);
     router.push("/auth/login");
   };
 

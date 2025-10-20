@@ -1,8 +1,12 @@
 import { db } from "@/drizzle/db";
 import { pages } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
-import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { eq, asc } from "drizzle-orm";
 
+// ----------------------
+// Get Single Page
+// ----------------------
 export async function getPageHandler(id: string) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -13,25 +17,23 @@ export async function getPageHandler(id: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const { data: page, error } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const [page] = await db
+    .select()
+    .from(pages)
+    .where(eq(pages.user_id, user.id));
 
-  if (error) throw error;
   if (!page) throw new Error("Page not found");
-
   return page;
 }
 
+// ----------------------
+// Create Page
+// ----------------------
 export async function createPageHandler(
   title: string = "Untitled",
   description: string = "",
 ) {
   const supabase = await getSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
@@ -40,22 +42,25 @@ export async function createPageHandler(
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const { data, error } = await supabase
-    .from("pages")
-    .insert({
+  const [newPage] = await db
+    .insert(pages)
+    .values({
+      id: randomUUID(),
       user_id: user.id,
       title,
       description,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
-    .select("*")
-    .single();
+    .returning();
 
-  if (error) throw error;
-  if (!data) throw new Error("Failed to create page");
-
-  return data;
+  if (!newPage) throw new Error("Failed to create page");
+  return newPage;
 }
 
+// ----------------------
+// Update Page
+// ----------------------
 export async function updatePageHandler(
   id: string,
   data: { title?: string; description?: string },
@@ -63,7 +68,7 @@ export async function updatePageHandler(
   const updateData: Partial<typeof pages.$inferInsert> = {
     ...(data.title ? { title: data.title } : {}),
     ...(data.description ? { description: data.description } : {}),
-    updated_at: new Date(),
+    updated_at: new Date().toISOString(),
   };
 
   const [updatedPage] = await db
@@ -72,12 +77,15 @@ export async function updatePageHandler(
     .where(eq(pages.id, id))
     .returning();
 
+  if (!updatedPage) throw new Error("Page not found");
   return updatedPage;
 }
 
+// ----------------------
+// Get All Pages
+// ----------------------
 export async function getAllPagesHandler() {
   const supabase = await getSupabaseServerClient();
-
   const {
     data: { user },
     error: userError,
@@ -86,33 +94,53 @@ export async function getAllPagesHandler() {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const { data: pages, error } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
+  const allPages = await db
+    .select()
+    .from(pages)
+    .where(eq(pages.user_id, user.id))
+    .orderBy(asc(pages.created_at));
 
-  if (error) throw error;
-  return pages || [];
+  return allPages || [];
 }
 
+// ----------------------
+// Delete Page
+// ----------------------
 export async function deletePageHandler(pageId: string) {
   const supabase = await getSupabaseServerClient();
-  const { error } = await supabase.from("pages").delete().eq("id", pageId);
-  if (error) throw error;
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const deleted = await db.delete(pages).where(eq(pages.id, pageId));
+  if (!deleted) throw new Error("Failed to delete page");
+
   return { success: true };
 }
 
-export async function movePageHandler(pageId: string, parentId: string | null) {
+// ----------------------
+// Move Page
+// ----------------------
+export async function movePageHandler(pageId: string) {
   const supabase = await getSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("pages")
-    .update({ parent_id: parentId })
-    .eq("id", pageId)
-    .select()
-    .single();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (error) throw error;
-  if (!data) throw new Error("Failed to move page");
-  return data;
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const [updatedPage] = await db
+    .update(pages)
+    .set({ updated_at: new Date().toISOString() }) // len aktualizujeme timestamp
+    .where(eq(pages.id, pageId))
+    .returning();
+
+  if (!updatedPage) throw new Error("Failed to update page");
+  return updatedPage;
 }
