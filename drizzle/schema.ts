@@ -26,6 +26,17 @@ export const blocks = pgTable("blocks", {
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
+const foldersId = () => folders.id;
+
+export const folders = pgTable("folders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  parent_id: uuid("parent_id").references(foldersId).default(""),
+  title: text("title").notNull().default("New Folder"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const pagesRelations = {
   user_id: {
     references: "auth.users",
