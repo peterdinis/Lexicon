@@ -20,6 +20,7 @@ import {
   FolderPlus,
   MoreHorizontal,
   GripVertical,
+  ChartNoAxesColumnIncreasing,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -499,6 +500,16 @@ export function DashboardSidebar({
                   >
                     <CheckSquare className="h-4 w-4 text-muted-foreground" />
                     Todos
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/diagrams");
+                      if (isMobile) setMobileOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  >
+                    <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
+                    Diagrams
                   </button>
                   <button
                     onClick={() => {
