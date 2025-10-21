@@ -60,11 +60,12 @@ export const getAllPagesAction = actionClient.action(async () => {
 });
 
 // DELETE
-export const deletePageAction = actionClient.inputSchema(pageIdSchema)
+export const deletePageAction = actionClient
+  .inputSchema(pageIdSchema)
   .action(async ({ parsedInput: { id } }) => {
-  try {
-    return await deletePageHandler(id);
-  } catch (err) {
-    throw new Error(getErrorMessage(err));
-  }
-})
+    try {
+      return await deletePageHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });

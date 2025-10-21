@@ -15,7 +15,7 @@ export default async function CalendarPage() {
   }
 
   return (
-     <div className="flex h-screen">
+    <div className="flex h-screen">
       <DashboardSidebar initialPages={pages || []} />
       <div className="flex flex-1 flex-col">
         <DashboardTopBar />

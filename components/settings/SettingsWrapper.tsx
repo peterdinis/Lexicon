@@ -1,28 +1,28 @@
-import { redirect } from "next/navigation"
-import { getAllPagesHandler } from "@/actions/handlers/pageHandlers"
-import { getSupabaseServerClient } from "@/supabase/server"
-import DashboardTopBar from "../dashboard/DashboardTopBar"
-import { DashboardSidebar } from "../dashboard/DashboardSidebar"
+import { redirect } from "next/navigation";
+import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
+import { getSupabaseServerClient } from "@/supabase/server";
+import DashboardTopBar from "../dashboard/DashboardTopBar";
+import { DashboardSidebar } from "../dashboard/DashboardSidebar";
 
 export default async function SettingsWrapper() {
-  const supabase = await getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   let pages = [];
-  
-    try {
-      pages = await getAllPagesHandler();
-    } catch (err) {
-      console.error("Dashboard fetch error:", err);
-      redirect("/auth/login");
-    }
+
+  try {
+    pages = await getAllPagesHandler();
+  } catch (err) {
+    console.error("Dashboard fetch error:", err);
+    redirect("/auth/login");
+  }
 
   return (
     <div className="flex h-screen">
@@ -35,12 +35,14 @@ export default async function SettingsWrapper() {
             <div className="space-y-6">
               <div className="rounded-lg border p-6">
                 <h2 className="mb-2 text-xl font-semibold">Account</h2>
-                <p className="text-sm text-muted-foreground">Email: {user.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Email: {user.email}
+                </p>
               </div>
             </div>
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }

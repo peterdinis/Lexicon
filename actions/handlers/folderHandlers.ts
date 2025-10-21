@@ -7,7 +7,10 @@ export function generateId() {
   return crypto.randomUUID().replace(/-/g, "");
 }
 
-export async function createFolderHandler(parentId: string | null, title: string) {
+export async function createFolderHandler(
+  parentId: string | null,
+  title: string,
+) {
   const supabase = await getSupabaseServerClient();
 
   const {
@@ -49,7 +52,7 @@ export async function getFoldersHandler() {
 
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
-  
+
   const data = await db
     .select()
     .from(folders)
