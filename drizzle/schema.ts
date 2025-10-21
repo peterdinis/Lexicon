@@ -5,10 +5,14 @@ import { sql } from "drizzle-orm";
 // Pages Table
 // ----------------------
 export const pages = sqliteTable("pages", {
-  id: text("id").primaryKey(), // removed default(sql`lower(hex(randomblob(16)))`)
+  id: text("id").primaryKey(),
   user_id: text("user_id").notNull(),
   title: text("title").notNull().default("Untitled"),
   description: text("description").notNull().default(""),
+  parent_id: text("parent_id").references((): any => pages.id, {
+    onDelete: "cascade",
+  }),
+  is_folder: integer("is_folder").notNull().default(0),
   created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
@@ -20,7 +24,7 @@ export const blocks = sqliteTable("blocks", {
   id: text("id").primaryKey(),
   page_id: text("page_id")
     .notNull()
-    .references((): (typeof pages)["id"] => pages.id),
+    .references((): any => pages.id),
   type: text("type").notNull(),
   content: text("content").notNull().default("{}"),
   position: integer("position").notNull(),
@@ -69,3 +73,45 @@ export const calendarEvents = sqliteTable("calendar_events", {
   created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
+
+// ----------------------
+// Diagrams Table
+// ----------------------
+export const diagrams = sqliteTable("diagrams", {
+  id: text("id").primaryKey(),
+  user_id: text("user_id").notNull(),
+  title: text("title").notNull().default("Untitled Diagram"),
+  description: text("description"),
+  nodes: text("nodes").notNull().default("[]"),
+  edges: text("edges").notNull().default("[]"),
+  viewport: text("viewport").notNull().default('{"x":0,"y":0,"zoom":1}'),
+  deleted_at: text("deleted_at"),
+  created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ----------------------
+// Notifications Table
+// ----------------------
+export const notifications = sqliteTable("notifications", {
+  id: text("id").primaryKey(),
+  user_id: text("user_id").notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message"),
+  link: text("link"),
+  read: integer("read").notNull().default(0),
+  created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ----------------------
+// Indexes
+// ----------------------
+export const indexes = sql`
+  CREATE INDEX IF NOT EXISTS idx_pages_parent_id ON pages(parent_id);
+  CREATE INDEX IF NOT EXISTS idx_pages_is_folder ON pages(is_folder);
+  CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+  CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read);
+  CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+`;

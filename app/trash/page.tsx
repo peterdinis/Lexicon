@@ -1,19 +1,19 @@
-import { getAllPagesHandler } from "@/actions/handlers/pageHandlers"
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
-import DashboardTopBar from "@/components/dashboard/DashboardTopBar"
-import { TrashWrapper } from "@/components/trash/TrashWrapper"
-import { getSupabaseServerClient } from "@/supabase/server"
-import { redirect } from "next/navigation"
+import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import { TrashWrapper } from "@/components/trash/TrashWrapper";
+import { getSupabaseServerClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function TrashPage() {
-  const supabase = await getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   let pages = [];
@@ -38,5 +38,5 @@ export default async function TrashPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
