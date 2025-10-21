@@ -9,7 +9,9 @@ export const pages = sqliteTable("pages", {
   user_id: text("user_id").notNull(),
   title: text("title").notNull().default("Untitled"),
   description: text("description").notNull().default(""),
-  parent_id: text("parent_id").references((): any => pages.id, { onDelete: "cascade" }),
+  parent_id: text("parent_id").references((): any => pages.id, {
+    onDelete: "cascade",
+  }),
   is_folder: integer("is_folder").notNull().default(0),
   created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),

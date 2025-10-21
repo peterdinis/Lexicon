@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
+import { useState, useMemo } from "react";
 import {
   Plus,
   Trash2,
@@ -14,9 +14,9 @@ import {
   TagIcon,
   X,
   Edit,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -25,12 +25,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import type { Todo } from "@/lib/types"
-import { format } from "date-fns"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import type { Todo } from "@/lib/types";
+import { format } from "date-fns";
 import {
   DndContext,
   closestCenter,
@@ -39,23 +45,23 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TodoWrapperProps {
-  initialTodos: Todo[]
+  initialTodos: Todo[];
 }
 
-type ViewMode = "list" | "board" | "table"
-type FilterStatus = "all" | "not_started" | "in_progress" | "done"
-type FilterPriority = "all" | "low" | "medium" | "high"
+type ViewMode = "list" | "board" | "table";
+type FilterStatus = "all" | "not_started" | "in_progress" | "done";
+type FilterPriority = "all" | "low" | "medium" | "high";
 
 function SortableTodoItem({
   todo,
@@ -63,44 +69,51 @@ function SortableTodoItem({
   onDelete,
   onEdit,
 }: {
-  todo: Todo
-  onToggle: (id: string, completed: boolean) => void
-  onDelete: (id: string) => void
-  onEdit: (todo: Todo) => void
+  todo: Todo;
+  onToggle: (id: string, completed: boolean) => void;
+  onDelete: (id: string) => void;
+  onEdit: (todo: Todo) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: todo.id })
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-red-500/10 text-red-500 border-red-500/20"
+        return "bg-red-500/10 text-red-500 border-red-500/20";
       case "medium":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "low":
-        return "bg-green-500/10 text-green-500 border-green-500/20"
+        return "bg-green-500/10 text-green-500 border-green-500/20";
       default:
-        return "bg-muted text-muted-foreground"
+        return "bg-muted text-muted-foreground";
     }
-  }
+  };
 
   const getStatusColor = (status?: string) => {
     switch (status) {
       case "done":
-        return "bg-green-500/10 text-green-500 border-green-500/20"
+        return "bg-green-500/10 text-green-500 border-green-500/20";
       case "in_progress":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20"
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
       case "not_started":
-        return "bg-gray-500/10 text-gray-500 border-gray-500/20"
+        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
       default:
-        return "bg-muted text-muted-foreground"
+        return "bg-muted text-muted-foreground";
     }
-  }
+  };
 
   return (
     <div
@@ -110,10 +123,17 @@ function SortableTodoItem({
         todo.completed ? "opacity-60" : ""
       }`}
     >
-      <button {...attributes} {...listeners} className="mt-1 cursor-grab active:cursor-grabbing">
+      <button
+        {...attributes}
+        {...listeners}
+        className="mt-1 cursor-grab active:cursor-grabbing"
+      >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
-      <button onClick={() => onToggle(todo.id, todo.completed)} className="mt-0.5">
+      <button
+        onClick={() => onToggle(todo.id, todo.completed)}
+        className="mt-0.5"
+      >
         {todo.completed ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (
@@ -121,11 +141,20 @@ function SortableTodoItem({
         )}
       </button>
       <div className="flex-1">
-        <h3 className={`font-medium ${todo.completed ? "line-through" : ""}`}>{todo.title}</h3>
-        {todo.description && <p className="mt-1 text-sm text-muted-foreground">{todo.description}</p>}
+        <h3 className={`font-medium ${todo.completed ? "line-through" : ""}`}>
+          {todo.title}
+        </h3>
+        {todo.description && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {todo.description}
+          </p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {todo.priority && (
-            <Badge variant="outline" className={getPriorityColor(todo.priority)}>
+            <Badge
+              variant="outline"
+              className={getPriorityColor(todo.priority)}
+            >
               {todo.priority.toUpperCase()}
             </Badge>
           )}
@@ -145,7 +174,9 @@ function SortableTodoItem({
             </>
           )}
           {todo.due_date && (
-            <span className="text-xs text-muted-foreground">Due: {format(new Date(todo.due_date), "MMM d, yyyy")}</span>
+            <span className="text-xs text-muted-foreground">
+              Due: {format(new Date(todo.due_date), "MMM d, yyyy")}
+            </span>
           )}
         </div>
       </div>
@@ -158,17 +189,17 @@ function SortableTodoItem({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
-  const [todos, setTodos] = useState<Todo[]>(initialTodos)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>("list")
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all")
-  const [filterPriority, setFilterPriority] = useState<FilterPriority>("all")
-  const [filterTag, setFilterTag] = useState<string>("all")
+  const [todos, setTodos] = useState<Todo[]>(initialTodos);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterPriority, setFilterPriority] = useState<FilterPriority>("all");
+  const [filterTag, setFilterTag] = useState<string>("all");
   const [newTodo, setNewTodo] = useState({
     title: "",
     description: "",
@@ -177,42 +208,43 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
     due_date: "",
     tags: [] as string[],
     notes: "",
-  })
-  const [tagInput, setTagInput] = useState("")
+  });
+  const [tagInput, setTagInput] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
-  )
+  );
 
   const allTags = useMemo(() => {
-    const tags = new Set<string>()
+    const tags = new Set<string>();
     todos.forEach((todo) => {
-      todo.tags?.forEach((tag) => tags.add(tag))
-    })
-    return Array.from(tags)
-  }, [todos])
+      todo.tags?.forEach((tag) => tags.add(tag));
+    });
+    return Array.from(tags);
+  }, [todos]);
 
   const filteredTodos = useMemo(() => {
     return todos.filter((todo) => {
-      if (filterStatus !== "all" && todo.status !== filterStatus) return false
-      if (filterPriority !== "all" && todo.priority !== filterPriority) return false
-      if (filterTag !== "all" && !todo.tags?.includes(filterTag)) return false
-      return true
-    })
-  }, [todos, filterStatus, filterPriority, filterTag])
+      if (filterStatus !== "all" && todo.status !== filterStatus) return false;
+      if (filterPriority !== "all" && todo.priority !== filterPriority)
+        return false;
+      if (filterTag !== "all" && !todo.tags?.includes(filterTag)) return false;
+      return true;
+    });
+  }, [todos, filterStatus, filterPriority, filterTag]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = todos.findIndex((t) => t.id === active.id)
-      const newIndex = todos.findIndex((t) => t.id === over.id)
+      const oldIndex = todos.findIndex((t) => t.id === active.id);
+      const newIndex = todos.findIndex((t) => t.id === over.id);
 
-      const newTodos = arrayMove(todos, oldIndex, newIndex)
-      setTodos(newTodos)
+      const newTodos = arrayMove(todos, oldIndex, newIndex);
+      setTodos(newTodos);
 
       // Update positions in the backend
       try {
@@ -223,16 +255,16 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
             todoId: active.id,
             newPosition: newIndex,
           }),
-        })
+        });
       } catch (error) {
-        console.error("Error reordering todos:", error)
-        setTodos(todos) // Revert on error
+        console.error("Error reordering todos:", error);
+        setTodos(todos); // Revert on error
       }
     }
-  }
+  };
 
   const createOrUpdateTodo = async () => {
-    if (!newTodo.title.trim()) return
+    if (!newTodo.title.trim()) return;
 
     try {
       if (editingTodo) {
@@ -241,24 +273,24 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newTodo),
-        })
+        });
 
-        if (!response.ok) throw new Error("Failed to update todo")
+        if (!response.ok) throw new Error("Failed to update todo");
 
-        const updatedTodo = await response.json()
-        setTodos(todos.map((t) => (t.id === editingTodo.id ? updatedTodo : t)))
+        const updatedTodo = await response.json();
+        setTodos(todos.map((t) => (t.id === editingTodo.id ? updatedTodo : t)));
       } else {
         // Create new todo
         const response = await fetch("/api/todos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newTodo),
-        })
+        });
 
-        if (!response.ok) throw new Error("Failed to create todo")
+        if (!response.ok) throw new Error("Failed to create todo");
 
-        const todo = await response.json()
-        setTodos([...todos, todo])
+        const todo = await response.json();
+        setTodos([...todos, todo]);
       }
 
       setNewTodo({
@@ -269,13 +301,13 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
         due_date: "",
         tags: [],
         notes: "",
-      })
-      setEditingTodo(null)
-      setDialogOpen(false)
+      });
+      setEditingTodo(null);
+      setDialogOpen(false);
     } catch (error) {
-      console.error("Error saving todo:", error)
+      console.error("Error saving todo:", error);
     }
-  }
+  };
 
   const toggleTodo = async (id: string, completed: boolean) => {
     try {
@@ -283,35 +315,35 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed: !completed }),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to update todo")
+      if (!response.ok) throw new Error("Failed to update todo");
 
-      const updatedTodo = await response.json()
-      setTodos(todos.map((t) => (t.id === id ? updatedTodo : t)))
+      const updatedTodo = await response.json();
+      setTodos(todos.map((t) => (t.id === id ? updatedTodo : t)));
     } catch (error) {
-      console.error("Error updating todo:", error)
+      console.error("Error updating todo:", error);
     }
-  }
+  };
 
   const deleteTodo = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this todo?")) return
+    if (!confirm("Are you sure you want to delete this todo?")) return;
 
     try {
       const response = await fetch(`/api/todos/${id}`, {
         method: "DELETE",
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to delete todo")
+      if (!response.ok) throw new Error("Failed to delete todo");
 
-      setTodos(todos.filter((t) => t.id !== id))
+      setTodos(todos.filter((t) => t.id !== id));
     } catch (error) {
-      console.error("Error deleting todo:", error)
+      console.error("Error deleting todo:", error);
     }
-  }
+  };
 
   const openEditDialog = (todo: Todo) => {
-    setEditingTodo(todo)
+    setEditingTodo(todo);
     setNewTodo({
       title: todo.title,
       description: todo.description || "",
@@ -320,35 +352,39 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
       due_date: todo.due_date || "",
       tags: todo.tags || [],
       notes: todo.notes || "",
-    })
-    setDialogOpen(true)
-  }
+    });
+    setDialogOpen(true);
+  };
 
   const addTag = () => {
     if (tagInput.trim() && !newTodo.tags.includes(tagInput.trim())) {
-      setNewTodo({ ...newTodo, tags: [...newTodo.tags, tagInput.trim()] })
-      setTagInput("")
+      setNewTodo({ ...newTodo, tags: [...newTodo.tags, tagInput.trim()] });
+      setTagInput("");
     }
-  }
+  };
 
   const removeTag = (tag: string) => {
-    setNewTodo({ ...newTodo, tags: newTodo.tags.filter((t) => t !== tag) })
-  }
+    setNewTodo({ ...newTodo, tags: newTodo.tags.filter((t) => t !== tag) });
+  };
 
   const groupedByStatus = useMemo(() => {
     const groups = {
       not_started: filteredTodos.filter((t) => t.status === "not_started"),
       in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
       done: filteredTodos.filter((t) => t.status === "done"),
-    }
-    return groups
-  }, [filteredTodos])
+    };
+    return groups;
+  }, [filteredTodos]);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Button variant={viewMode === "list" ? "default" : "outline"} size="icon" onClick={() => setViewMode("list")}>
+          <Button
+            variant={viewMode === "list" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("list")}
+          >
             <LayoutList className="h-4 w-4" />
           </Button>
           <Button
@@ -368,7 +404,10 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+          <Select
+            value={filterStatus}
+            onValueChange={(value: any) => setFilterStatus(value)}
+          >
             <SelectTrigger className="w-[140px]">
               <Filter className="mr-2 h-4 w-4" />
               <SelectValue />
@@ -381,7 +420,10 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
             </SelectContent>
           </Select>
 
-          <Select value={filterPriority} onValueChange={(value: any) => setFilterPriority(value)}>
+          <Select
+            value={filterPriority}
+            onValueChange={(value: any) => setFilterPriority(value)}
+          >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
@@ -413,9 +455,9 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
           <Dialog
             open={dialogOpen}
             onOpenChange={(open) => {
-              setDialogOpen(open)
+              setDialogOpen(open);
               if (!open) {
-                setEditingTodo(null)
+                setEditingTodo(null);
                 setNewTodo({
                   title: "",
                   description: "",
@@ -424,7 +466,7 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                   due_date: "",
                   tags: [],
                   notes: "",
-                })
+                });
               }
             }}
           >
@@ -436,34 +478,50 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingTodo ? "Edit Todo" : "Create New Todo"}</DialogTitle>
+                <DialogTitle>
+                  {editingTodo ? "Edit Todo" : "Create New Todo"}
+                </DialogTitle>
                 <DialogDescription>
-                  {editingTodo ? "Update your task details" : "Add a new task to your todo list"}
+                  {editingTodo
+                    ? "Update your task details"
+                    : "Add a new task to your todo list"}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Title</label>
+                  <label className="mb-2 block text-sm font-medium">
+                    Title
+                  </label>
                   <Input
                     placeholder="Enter todo title"
                     value={newTodo.title}
-                    onChange={(e) => setNewTodo({ ...newTodo, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewTodo({ ...newTodo, title: e.target.value })
+                    }
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Description</label>
+                  <label className="mb-2 block text-sm font-medium">
+                    Description
+                  </label>
                   <Input
                     placeholder="Enter description (optional)"
                     value={newTodo.description}
-                    onChange={(e) => setNewTodo({ ...newTodo, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewTodo({ ...newTodo, description: e.target.value })
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Priority</label>
+                    <label className="mb-2 block text-sm font-medium">
+                      Priority
+                    </label>
                     <Select
                       value={newTodo.priority}
-                      onValueChange={(value: any) => setNewTodo({ ...newTodo, priority: value })}
+                      onValueChange={(value: any) =>
+                        setNewTodo({ ...newTodo, priority: value })
+                      }
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
@@ -476,10 +534,14 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                     </Select>
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium">Status</label>
+                    <label className="mb-2 block text-sm font-medium">
+                      Status
+                    </label>
                     <Select
                       value={newTodo.status}
-                      onValueChange={(value: any) => setNewTodo({ ...newTodo, status: value })}
+                      onValueChange={(value: any) =>
+                        setNewTodo({ ...newTodo, status: value })
+                      }
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue />
@@ -493,11 +555,15 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                   </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Due Date</label>
+                  <label className="mb-2 block text-sm font-medium">
+                    Due Date
+                  </label>
                   <Input
                     type="date"
                     value={newTodo.due_date}
-                    onChange={(e) => setNewTodo({ ...newTodo, due_date: e.target.value })}
+                    onChange={(e) =>
+                      setNewTodo({ ...newTodo, due_date: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -509,8 +575,8 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          e.preventDefault()
-                          addTag()
+                          e.preventDefault();
+                          addTag();
                         }
                       }}
                     />
@@ -523,7 +589,10 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                       {newTodo.tags.map((tag) => (
                         <Badge key={tag} variant="secondary" className="gap-1">
                           {tag}
-                          <button onClick={() => removeTag(tag)} className="ml-1">
+                          <button
+                            onClick={() => removeTag(tag)}
+                            className="ml-1"
+                          >
                             <X className="h-3 w-3" />
                           </button>
                         </Badge>
@@ -532,11 +601,15 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                   )}
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium">Notes</label>
+                  <label className="mb-2 block text-sm font-medium">
+                    Notes
+                  </label>
                   <Textarea
                     placeholder="Add additional notes (optional)"
                     value={newTodo.notes}
-                    onChange={(e) => setNewTodo({ ...newTodo, notes: e.target.value })}
+                    onChange={(e) =>
+                      setNewTodo({ ...newTodo, notes: e.target.value })
+                    }
                     rows={4}
                   />
                 </div>
@@ -545,13 +618,15 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setDialogOpen(false)
-                    setEditingTodo(null)
+                    setDialogOpen(false);
+                    setEditingTodo(null);
                   }}
                 >
                   Cancel
                 </Button>
-                <Button onClick={createOrUpdateTodo}>{editingTodo ? "Update Todo" : "Create Todo"}</Button>
+                <Button onClick={createOrUpdateTodo}>
+                  {editingTodo ? "Update Todo" : "Create Todo"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -559,12 +634,21 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
       </div>
 
       {viewMode === "list" && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={filteredTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredTodos.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-2">
               {filteredTodos.length === 0 ? (
                 <div className="rounded-lg border border-dashed p-8 text-center">
-                  <p className="text-muted-foreground">No todos match your filters. Create your first todo!</p>
+                  <p className="text-muted-foreground">
+                    No todos match your filters. Create your first todo!
+                  </p>
                 </div>
               ) : (
                 filteredTodos.map((todo) => (
@@ -586,7 +670,9 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {(["not_started", "in_progress", "done"] as const).map((status) => (
             <div key={status} className="rounded-lg border p-4">
-              <h3 className="mb-4 font-semibold capitalize">{status.replace("_", " ")}</h3>
+              <h3 className="mb-4 font-semibold capitalize">
+                {status.replace("_", " ")}
+              </h3>
               <div className="space-y-2">
                 {groupedByStatus[status].map((todo) => (
                   <div
@@ -596,7 +682,10 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                     }`}
                   >
                     <div className="flex items-start gap-2">
-                      <button onClick={() => toggleTodo(todo.id, todo.completed)} className="mt-0.5">
+                      <button
+                        onClick={() => toggleTodo(todo.id, todo.completed)}
+                        className="mt-0.5"
+                      >
                         {todo.completed ? (
                           <Check className="h-4 w-4 text-primary" />
                         ) : (
@@ -604,8 +693,16 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                         )}
                       </button>
                       <div className="flex-1">
-                        <h4 className={`text-sm font-medium ${todo.completed ? "line-through" : ""}`}>{todo.title}</h4>
-                        {todo.description && <p className="mt-1 text-xs text-muted-foreground">{todo.description}</p>}
+                        <h4
+                          className={`text-sm font-medium ${todo.completed ? "line-through" : ""}`}
+                        >
+                          {todo.title}
+                        </h4>
+                        {todo.description && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {todo.description}
+                          </p>
+                        )}
                         <div className="mt-2 flex flex-wrap gap-1">
                           {todo.priority && (
                             <Badge variant="outline" className="text-xs">
@@ -613,17 +710,31 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                             </Badge>
                           )}
                           {todo.tags?.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {tag}
                             </Badge>
                           ))}
                         </div>
                       </div>
                       <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(todo)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => openEditDialog(todo)}
+                        >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteTodo(todo.id)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => deleteTodo(todo.id)}
+                        >
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>
@@ -631,7 +742,9 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                   </div>
                 ))}
                 {groupedByStatus[status].length === 0 && (
-                  <p className="py-4 text-center text-sm text-muted-foreground">No todos</p>
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    No todos
+                  </p>
                 )}
               </div>
             </div>
@@ -655,15 +768,23 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
             <tbody>
               {filteredTodos.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={6}
+                    className="p-8 text-center text-muted-foreground"
+                  >
                     No todos match your filters
                   </td>
                 </tr>
               ) : (
                 filteredTodos.map((todo) => (
-                  <tr key={todo.id} className="border-b transition-colors hover:bg-muted/50">
+                  <tr
+                    key={todo.id}
+                    className="border-b transition-colors hover:bg-muted/50"
+                  >
                     <td className="p-3">
-                      <button onClick={() => toggleTodo(todo.id, todo.completed)}>
+                      <button
+                        onClick={() => toggleTodo(todo.id, todo.completed)}
+                      >
                         {todo.completed ? (
                           <Check className="h-4 w-4 text-primary" />
                         ) : (
@@ -673,8 +794,16 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                     </td>
                     <td className="p-3">
                       <div>
-                        <p className={`font-medium ${todo.completed ? "line-through" : ""}`}>{todo.title}</p>
-                        {todo.description && <p className="text-xs text-muted-foreground">{todo.description}</p>}
+                        <p
+                          className={`font-medium ${todo.completed ? "line-through" : ""}`}
+                        >
+                          {todo.title}
+                        </p>
+                        {todo.description && (
+                          <p className="text-xs text-muted-foreground">
+                            {todo.description}
+                          </p>
+                        )}
                       </div>
                     </td>
                     <td className="p-3">
@@ -687,21 +816,37 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1">
                         {todo.tags?.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}
                       </div>
                     </td>
                     <td className="p-3 text-sm">
-                      {todo.due_date ? format(new Date(todo.due_date), "MMM d, yyyy") : "-"}
+                      {todo.due_date
+                        ? format(new Date(todo.due_date), "MMM d, yyyy")
+                        : "-"}
                     </td>
                     <td className="p-3">
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(todo)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(todo)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTodo(todo.id)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => deleteTodo(todo.id)}
+                        >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -714,5 +859,5 @@ export function TodoWrapper({ initialTodos }: TodoWrapperProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

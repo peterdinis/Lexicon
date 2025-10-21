@@ -1,18 +1,18 @@
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
-import DashboardTopBar from "@/components/dashboard/DashboardTopBar"
-import { TodoWrapper } from "@/components/todos/TodosWrapper"
-import { getSupabaseServerClient } from "@/supabase/server"
-import { redirect } from "next/navigation"
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import { TodoWrapper } from "@/components/todos/TodosWrapper";
+import { getSupabaseServerClient } from "@/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function TodosPage() {
-  const supabase = await getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   const { data: pages } = await supabase
@@ -20,13 +20,13 @@ export default async function TodosPage() {
     .select("*")
     .eq("user_id", user.id)
     .is("deleted_at", null)
-    .order("updated_at", { ascending: false })
+    .order("updated_at", { ascending: false });
 
   const { data: todos } = await supabase
     .from("todos")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false });
 
   return (
     <div className="flex h-screen">
@@ -41,5 +41,5 @@ export default async function TodosPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
