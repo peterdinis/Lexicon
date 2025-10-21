@@ -2,7 +2,10 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { createFolderHandler, getFoldersHandler } from "./handlers/folderHandlers";
+import {
+  createFolderHandler,
+  getFoldersHandler,
+} from "./handlers/folderHandlers";
 import { createFolderSchema } from "./schemas/folderSchemas";
 
 export const createFolderAction = actionClient
@@ -14,7 +17,6 @@ export const createFolderAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
-
 
 export const getFoldersAction = actionClient.action(async () => {
   try {

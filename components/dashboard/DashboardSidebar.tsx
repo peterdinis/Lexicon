@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo, ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  memo,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -20,6 +27,7 @@ import {
   FolderPlus,
   MoreHorizontal,
   GripVertical,
+  ChartNoAxesColumnIncreasing,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,7 +56,11 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction, deletePageAction, getAllPagesAction } from "@/actions/pagesActions";
+import {
+  createPageAction,
+  deletePageAction,
+  getAllPagesAction,
+} from "@/actions/pagesActions";
 import { createFolderAction, getFoldersAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 
@@ -67,7 +79,9 @@ export function DashboardSidebar({
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -78,7 +92,7 @@ export function DashboardSidebar({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor),
   );
 
   const refreshPagesAndFolders = useCallback(async () => {
@@ -102,7 +116,6 @@ export function DashboardSidebar({
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }));
-
 
       setPages([...pagesResult.data, ...folderPages]);
     } catch (err) {
@@ -129,7 +142,7 @@ export function DashboardSidebar({
 
   const hierarchicalPages = useMemo(
     () => buildHierarchy(pages),
-    [pages, buildHierarchy]
+    [pages, buildHierarchy],
   );
 
   const createPage = async () => {
@@ -146,8 +159,9 @@ export function DashboardSidebar({
     } catch (error) {
       console.error("Error creating page:", error);
       alert(
-        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"
-        }`
+        `Failed to create page: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       );
     } finally {
       setLoading(false);
@@ -178,7 +192,7 @@ export function DashboardSidebar({
     }
   };
 
-    const deletePage = async (id: string, e: React.MouseEvent) => {
+  const deletePage = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to move this to trash?")) return;
 
@@ -201,8 +215,8 @@ export function DashboardSidebar({
     const prevPages = [...pages];
     setPages((prev) =>
       prev.map((p) =>
-        p.id === pageId ? { ...p, parent_id: targetFolderId } : p
-      )
+        p.id === pageId ? { ...p, parent_id: targetFolderId } : p,
+      ),
     );
     try {
       const response = await fetch(`/api/pages/${pageId}/move`, {
@@ -284,7 +298,7 @@ export function DashboardSidebar({
           />
         </div>
       );
-    }
+    },
   );
 
   const DroppableFolder = ({
@@ -305,8 +319,9 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-          }`}
+        className={`rounded-lg transition-colors ${
+          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+        }`}
       >
         {children}
       </div>
@@ -331,8 +346,9 @@ export function DashboardSidebar({
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
-            }`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
+            currentPageId === page.id ? "bg-accent" : ""
+          }`}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
           <button
@@ -429,13 +445,17 @@ export function DashboardSidebar({
           {page.is_folder && isExpanded && hasChildren && (
             <div>
               {page.children!.map((child: Page) => (
-                <DraggablePageItem key={child.id} page={child} depth={depth + 1} />
+                <DraggablePageItem
+                  key={child.id}
+                  page={child}
+                  depth={depth + 1}
+                />
               ))}
             </div>
           )}
         </div>
       );
-    }
+    },
   );
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
@@ -482,7 +502,7 @@ export function DashboardSidebar({
                 <div className="ml-2 mt-1 space-y-1">
                   <button
                     onClick={() => {
-                      router.push("/");
+                      router.push("/dashboard");
                       if (isMobile) setMobileOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
@@ -499,6 +519,16 @@ export function DashboardSidebar({
                   >
                     <CheckSquare className="h-4 w-4 text-muted-foreground" />
                     Todos
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/diagrams");
+                      if (isMobile) setMobileOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  >
+                    <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
+                    Diagrams
                   </button>
                   <button
                     onClick={() => {
@@ -572,10 +602,11 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
+                    isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                    }`}
+                  }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -607,8 +638,9 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-            }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
+            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+          }`}
         >
           <SidebarContent />
         </aside>
@@ -661,7 +693,10 @@ export function DashboardSidebar({
               className="w-full rounded border px-3 py-2 text-sm"
             />
             <div className="mt-4 flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setFolderModalOpen(false)}>
+              <Button
+                variant="secondary"
+                onClick={() => setFolderModalOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleFolderSubmit} disabled={loading}>

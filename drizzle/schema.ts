@@ -18,7 +18,9 @@ export const pages = sqliteTable("pages", {
 // ----------------------
 export const blocks = sqliteTable("blocks", {
   id: text("id").primaryKey(),
-  page_id: text("page_id").notNull().references((): typeof pages["id"] => pages.id),
+  page_id: text("page_id")
+    .notNull()
+    .references((): (typeof pages)["id"] => pages.id),
   type: text("type").notNull(),
   content: text("content").notNull().default("{}"),
   position: integer("position").notNull(),
