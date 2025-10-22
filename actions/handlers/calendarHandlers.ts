@@ -5,7 +5,10 @@ import { calendarEvents } from "@/drizzle/schema";
 import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-import { CreateCalendarEventSchema, UpdateCalendarEventSchema } from "../schemas/calendarSchemas";
+import {
+  CreateCalendarEventSchema,
+  UpdateCalendarEventSchema,
+} from "../schemas/calendarSchemas";
 
 async function getUserId() {
   const supabase = await getSupabaseServerClient();
@@ -17,7 +20,9 @@ async function getUserId() {
 }
 
 // CREATE
-export async function createCalendarEventHandler(data: CreateCalendarEventSchema) {
+export async function createCalendarEventHandler(
+  data: CreateCalendarEventSchema,
+) {
   const userId = await getUserId();
   const newEvent = {
     id: crypto.randomUUID(),
@@ -46,12 +51,17 @@ export async function getCalendarEventHandler(id: string) {
 }
 
 // UPDATE
-export async function updateCalendarEventHandler(id: string, data: UpdateCalendarEventSchema) {
+export async function updateCalendarEventHandler(
+  id: string,
+  data: UpdateCalendarEventSchema,
+) {
   const userId = await getUserId();
   const updateData: any = { ...data, updated_at: new Date().toISOString() };
   if (data.all_day !== undefined) updateData.all_day = data.all_day ? 1 : 0;
 
-  await db.update(calendarEvents).set(updateData)
+  await db
+    .update(calendarEvents)
+    .set(updateData)
     .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)));
 
   revalidatePath("/calendar");
@@ -61,7 +71,8 @@ export async function updateCalendarEventHandler(id: string, data: UpdateCalenda
 // DELETE
 export async function deleteCalendarEventHandler(id: string) {
   const userId = await getUserId();
-  await db.delete(calendarEvents)
+  await db
+    .delete(calendarEvents)
     .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)));
 
   revalidatePath("/calendar");
@@ -71,23 +82,32 @@ export async function deleteCalendarEventHandler(id: string) {
 // GET ALL
 export async function getAllCalendarEventsHandler() {
   const userId = await getUserId();
-  const events = await db.select().from(calendarEvents)
+  const events = await db
+    .select()
+    .from(calendarEvents)
     .where(eq(calendarEvents.user_id, userId))
     .orderBy(desc(calendarEvents.created_at));
 
-  return events.map(event => ({ ...event, all_day: event.all_day === 1 }));
+  return events.map((event) => ({ ...event, all_day: event.all_day === 1 }));
 }
 
 // GET BY DATE RANGE
-export async function getCalendarEventsByDateRangeHandler(startDate: string, endDate: string) {
+export async function getCalendarEventsByDateRangeHandler(
+  startDate: string,
+  endDate: string,
+) {
   const userId = await getUserId();
-  const events = await db.select().from(calendarEvents)
-    .where(and(
-      eq(calendarEvents.user_id, userId),
-      gte(calendarEvents.start_time, startDate),
-      lte(calendarEvents.start_time, endDate)
-    ))
+  const events = await db
+    .select()
+    .from(calendarEvents)
+    .where(
+      and(
+        eq(calendarEvents.user_id, userId),
+        gte(calendarEvents.start_time, startDate),
+        lte(calendarEvents.start_time, endDate),
+      ),
+    )
     .orderBy(calendarEvents.start_time);
 
-  return events.map(event => ({ ...event, all_day: event.all_day === 1 }));
+  return events.map((event) => ({ ...event, all_day: event.all_day === 1 }));
 }

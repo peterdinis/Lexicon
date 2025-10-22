@@ -7,12 +7,25 @@ import { CalendarEvent } from "@/types/applicationTypes";
 
 export default async function CalendarPage() {
   let pages = [];
-  let events: { all_day: boolean; id: string; user_id: string; title: string; description: string | null; start_time: string; end_time: string; color: string | null; created_at: string | null; updated_at: string | null; }[] | CalendarEvent[] = [];
+  let events:
+    | {
+        all_day: boolean;
+        id: string;
+        user_id: string;
+        title: string;
+        description: string | null;
+        start_time: string;
+        end_time: string;
+        color: string | null;
+        created_at: string | null;
+        updated_at: string | null;
+      }[]
+    | CalendarEvent[] = [];
 
   try {
     // Načtení pages pro sidebar
     pages = await getAllPagesHandler();
-    
+
     // Načtení calendar events
     const eventsResult = await getCalendarEventsAction();
     if (eventsResult.success && eventsResult.data) {

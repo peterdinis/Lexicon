@@ -14,5 +14,9 @@ export const createCalendarEventSchema = z.object({
 export const updateCalendarEventSchema = createCalendarEventSchema.partial();
 
 // TYPES
-export type CreateCalendarEventSchema = z.infer<typeof createCalendarEventSchema>;
-export type UpdateCalendarEventSchema = z.infer<typeof updateCalendarEventSchema>;
+export type CreateCalendarEventSchema = z.infer<
+  typeof createCalendarEventSchema
+>;
+export type UpdateCalendarEventSchema = z.infer<
+  typeof updateCalendarEventSchema
+>;
