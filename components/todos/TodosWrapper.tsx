@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useTodos } from "@/hooks/useTodos";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +33,8 @@ import {
   createTodoSchema,
   type CreateTodoSchema,
 } from "@/actions/schemas/todosSchemas";
+import { useRouter } from "next/navigation";
+import { createTodoAction, deleteTodoAction, updateTodoAction, getTodosAction } from "@/actions/todosActions";
 
 // ----------------------
 // Typy
@@ -43,52 +44,124 @@ export type Todo = {
   user_id: string;
   title: string;
   description: string | null;
-  completed: number;
-  priority: string;
+  completed: number | null;
+  priority: string | null;
   due_date: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 // ----------------------
 // Komponent
 // ----------------------
-export default function TodoWrapper({ userId }: { userId: string }) {
-  const { todos, loading, createTodo, updateTodo, deleteTodo } = useTodos(userId);
-
+export default function TodoWrapper() {
+  const router = useRouter();
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
-  const form = useForm({
-    resolver: zodResolver(createTodoSchema),
+  const form = useForm<CreateTodoSchema>({
+    resolver: zodResolver(createTodoSchema) as unknown as Resolver<CreateTodoSchema>,
     defaultValues: {
       title: "",
       description: "",
-      priority: "medium",
+      priority: "medium" as const,
       due_date: "",
     },
   });
 
+  // Načtení todo při inicializaci komponenty
+  useEffect(() => {
+    const loadTodos = async () => {
+      try {
+        setLoading(true);
+        const result = await getTodosAction();
+        if (result.success && result.data) {
+          setTodos(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to load todos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTodos();
+  }, []);
+
   const handleSubmit = async (data: CreateTodoSchema) => {
     try {
       if (editingTodo) {
-        await updateTodo(editingTodo.id, data);
+        const result = await updateTodoAction(editingTodo.id, data);
+        if (result.success) {
+          setTodos((prev) =>
+            prev.map((todo) =>
+              todo.id === editingTodo.id
+                ? {
+                    ...todo,
+                    ...data,
+                    description: data.description ?? null,
+                    due_date: data.due_date ?? null,
+                  }
+                : todo
+            )
+          );
+        }
       } else {
-        await createTodo(data);
+        const result = await createTodoAction(data);
+        if (result.success && result.data) {
+          const newTodo: Todo = {
+            ...result.data,
+            description: result.data.description ?? null,
+            due_date: result.data.due_date ?? null,
+          };
+          setTodos((prev) => [newTodo, ...prev]);
+        }
       }
       setDialogOpen(false);
       setEditingTodo(null);
       form.reset();
+      router.refresh();
     } catch (error) {
       console.error("Failed to save todo:", error);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this todo?")) {
+      const result = await deleteTodoAction(id);
+      if (result.success) {
+        setTodos((prev) => prev.filter((t) => t.id !== id));
+        router.refresh();
+      }
+    }
+  };
+
+  const handleToggleComplete = async (todo: Todo) => {
+    const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
+    const result = await updateTodoAction(todo.id, { completed: newCompleted });
+    if (result.success) {
+      setTodos((prev) =>
+        prev.map((t) =>
+          t.id === todo.id ? { ...t, completed: newCompleted } : t
+        )
+      );
+      router.refresh();
+    }
+  };
+
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center">
-        <p className="text-muted-foreground">Loading todos...</p>
+      <div className="p-6">
+        <div className="flex justify-between mb-4">
+          <h1 className="text-2xl font-bold">Todos</h1>
+          <Button disabled>New Task</Button>
+        </div>
+        <div className="text-center py-12 text-muted-foreground">
+          <p>Loading todos...</p>
+        </div>
       </div>
     );
   }
@@ -130,21 +203,15 @@ export default function TodoWrapper({ userId }: { userId: string }) {
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  checked={todo.completed === 1}
+                  checked={(todo.completed ?? 0) === 1}
                   onChange={(e) => {
                     e.stopPropagation();
-                    // toggle completed: assert the payload includes completed so TS accepts it
-                    updateTodo(
-                      todo.id,
-                      { completed: todo.completed === 1 ? 0 : 1 } as Partial<
-                        CreateTodoSchema & { completed?: number }
-                      >
-                    );
+                    handleToggleComplete(todo);
                   }}
                   className="w-4 h-4"
                 />
                 <div>
-                  <p className={`font-medium ${todo.completed === 1 ? 'line-through text-muted-foreground' : ''}`}>
+                  <p className={`font-medium ${(todo.completed ?? 0) === 1 ? 'line-through text-muted-foreground' : ''}`}>
                     {todo.title}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -161,7 +228,7 @@ export default function TodoWrapper({ userId }: { userId: string }) {
                     form.reset({
                       title: todo.title,
                       description: todo.description || "",
-                      priority: todo.priority,
+                      priority: (todo.priority as "low" | "medium" | "high") || "medium",
                       due_date: todo.due_date || "",
                     });
                     setDialogOpen(true);
@@ -172,11 +239,7 @@ export default function TodoWrapper({ userId }: { userId: string }) {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this todo?")) {
-                      deleteTodo(todo.id);
-                    }
-                  }}
+                  onClick={() => handleDelete(todo.id)}
                 >
                   Delete
                 </Button>
@@ -277,13 +340,13 @@ export default function TodoWrapper({ userId }: { userId: string }) {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <p className="text-sm capitalize">
-                  {selectedTodo.completed === 1 ? "Completed" : "Not Completed"}
+                  {(selectedTodo.completed ?? 0) === 1 ? "Completed" : "Not Completed"}
                 </p>
               </div>
               
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Priority</p>
-                <p className="text-sm capitalize">{selectedTodo.priority}</p>
+                <p className="text-sm capitalize">{selectedTodo.priority || "Not set"}</p>
               </div>
               
               <div>
@@ -297,10 +360,10 @@ export default function TodoWrapper({ userId }: { userId: string }) {
 
               <div className="pt-2 border-t">
                 <p className="text-xs text-muted-foreground">
-                  Created: {format(new Date(selectedTodo.created_at), "MMM d, yyyy HH:mm")}
+                  Created: {format(new Date(selectedTodo.created_at as unknown as string), "MMM d, yyyy HH:mm")}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Updated: {format(new Date(selectedTodo.updated_at), "MMM d, yyyy HH:mm")}
+                  Updated: {format(new Date(selectedTodo.updated_at as unknown as string), "MMM d, yyyy HH:mm")}
                 </p>
               </div>
             </div>
@@ -314,7 +377,7 @@ export default function TodoWrapper({ userId }: { userId: string }) {
                   form.reset({
                     title: selectedTodo.title,
                     description: selectedTodo.description || "",
-                    priority: selectedTodo.priority as "low" | "medium" | "high",
+                    priority: (selectedTodo.priority as "low" | "medium" | "high") || "medium",
                     due_date: selectedTodo.due_date || "",
                   });
                   setSelectedTodo(null);
