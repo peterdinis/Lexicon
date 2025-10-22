@@ -1,11 +1,5 @@
 "use client";
 
-<<<<<<< Updated upstream
-import { useState, useEffect } from "react";
-import { Resolver, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-=======
 import { useState, useEffect, useMemo } from "react";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +18,6 @@ import {
   X,
   Edit,
 } from "lucide-react";
->>>>>>> Stashed changes
 import {
   Dialog,
   DialogContent,
@@ -43,8 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-<<<<<<< Updated upstream
-=======
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
@@ -58,21 +49,24 @@ import {
   type CreateTodoSchema,
 } from "@/actions/schemas/todosSchemas";
 import { useRouter } from "next/navigation";
-import { createTodoAction, deleteTodoAction, updateTodoAction, getTodosAction } from "@/actions/todosActions";
->>>>>>> Stashed changes
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import {
-  createTodoSchema,
-  type CreateTodoSchema,
-} from "@/actions/schemas/todosSchemas";
-import { useRouter } from "next/navigation";
-import { createTodoAction, deleteTodoAction, updateTodoAction, getTodosAction } from "@/actions/todosActions";
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { createTodoAction, deleteTodoAction, getTodosAction, updateTodoAction } from "@/actions/todosActions";
 
 // ----------------------
 // Typy
@@ -85,14 +79,6 @@ export type Todo = {
   completed: number | null;
   priority: string | null;
   due_date: string | null;
-<<<<<<< Updated upstream
-  created_at: string | null;
-  updated_at: string | null;
-};
-
-// ----------------------
-// Komponent
-=======
   created_at: string;
   updated_at: string;
   status?: string;
@@ -238,7 +224,6 @@ function SortableTodoItem({
 
 // ----------------------
 // Hlavní komponent
->>>>>>> Stashed changes
 // ----------------------
 export default function TodoWrapper() {
   const router = useRouter();
@@ -247,11 +232,6 @@ export default function TodoWrapper() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-<<<<<<< Updated upstream
-
-  const form = useForm<CreateTodoSchema>({
-    resolver: zodResolver(createTodoSchema) as unknown as Resolver<CreateTodoSchema>,
-=======
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterPriority, setFilterPriority] = useState<FilterPriority>("all");
@@ -259,26 +239,11 @@ export default function TodoWrapper() {
 
   const form = useForm<CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }>({
     resolver: zodResolver(createTodoSchema) as unknown as Resolver<CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }>,
->>>>>>> Stashed changes
     defaultValues: {
       title: "",
       description: "",
       priority: "medium" as const,
       due_date: "",
-<<<<<<< Updated upstream
-    },
-  });
-
-  // Načtení todo při inicializaci komponenty
-  useEffect(() => {
-    const loadTodos = async () => {
-      try {
-        setLoading(true);
-        const result = await getTodosAction();
-        if (result.success && result.data) {
-          setTodos(result.data);
-        }
-=======
       status: "not_started",
       tags: [],
       notes: "",
@@ -346,22 +311,14 @@ export default function TodoWrapper() {
       // Update positions in the backend - můžete implementovat podle potřeby
       try {
         // await updateTodoPosition(active.id, newIndex);
->>>>>>> Stashed changes
       } catch (error) {
-        console.error("Failed to load todos:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error reordering todos:", error);
+        setTodos(todos); // Revert on error
       }
-    };
+    }
+  };
 
-<<<<<<< Updated upstream
-    loadTodos();
-  }, []);
-
-  const handleSubmit = async (data: CreateTodoSchema) => {
-=======
   const handleSubmit = async (data: CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }) => {
->>>>>>> Stashed changes
     try {
       if (editingTodo) {
         const result = await updateTodoAction(editingTodo.id, data);
@@ -386,12 +343,9 @@ export default function TodoWrapper() {
             ...result.data,
             description: result.data.description ?? null,
             due_date: result.data.due_date ?? null,
-<<<<<<< Updated upstream
-=======
             status: data.status,
             tags: data.tags,
             notes: data.notes,
->>>>>>> Stashed changes
           };
           setTodos((prev) => [newTodo, ...prev]);
         }
@@ -417,13 +371,6 @@ export default function TodoWrapper() {
 
   const handleToggleComplete = async (todo: Todo) => {
     const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
-<<<<<<< Updated upstream
-    const result = await updateTodoAction(todo.id, { completed: newCompleted });
-    if (result.success) {
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === todo.id ? { ...t, completed: newCompleted } : t
-=======
     const result = await updateTodoAction(todo.id, { 
       completed: newCompleted,
     });
@@ -431,15 +378,12 @@ export default function TodoWrapper() {
       setTodos((prev) =>
         prev.map((t) =>
           t.id === todo.id ? { ...t, completed: newCompleted, status: newCompleted === 1 ? "done" : "not_started" } : t
->>>>>>> Stashed changes
         )
       );
       router.refresh();
     }
   };
 
-<<<<<<< Updated upstream
-=======
   const openEditDialog = (todo: Todo) => {
     setEditingTodo(todo);
     form.reset({
@@ -476,18 +420,12 @@ export default function TodoWrapper() {
     return groups;
   }, [filteredTodos]);
 
->>>>>>> Stashed changes
   if (loading) {
     return (
       <div className="p-6">
         <div className="flex justify-between mb-4">
           <h1 className="text-2xl font-bold">Todos</h1>
           <Button disabled>New Task</Button>
-<<<<<<< Updated upstream
-        </div>
-        <div className="text-center py-12 text-muted-foreground">
-          <p>Loading todos...</p>
-=======
         </div>
         <div className="text-center py-12 text-muted-foreground">
           <p>Loading todos...</p>
@@ -591,91 +529,9 @@ export default function TodoWrapper() {
             <Plus className="mr-2 h-4 w-4" />
             New Task
           </Button>
->>>>>>> Stashed changes
         </div>
       </div>
-    );
-  }
 
-<<<<<<< Updated upstream
-  return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Todos</h1>
-        <Button
-          onClick={() => {
-            setEditingTodo(null);
-            form.reset({
-              title: "",
-              description: "",
-              priority: "medium",
-              due_date: "",
-            });
-            setDialogOpen(true);
-          }}
-        >
-          New Task
-        </Button>
-      </div>
-
-      {/* Todo List */}
-      {todos.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>No todos yet. Create your first task!</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {todos.map((todo) => (
-            <div
-              key={todo.id}
-              className="flex justify-between items-center border rounded-lg p-3 hover:bg-muted cursor-pointer"
-              onClick={() => setSelectedTodo(todo)}
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={(todo.completed ?? 0) === 1}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    handleToggleComplete(todo);
-                  }}
-                  className="w-4 h-4"
-                />
-                <div>
-                  <p className={`font-medium ${(todo.completed ?? 0) === 1 ? 'line-through text-muted-foreground' : ''}`}>
-                    {todo.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {todo.description || "No description"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setEditingTodo(todo);
-                    form.reset({
-                      title: todo.title,
-                      description: todo.description || "",
-                      priority: (todo.priority as "low" | "medium" | "high") || "medium",
-                      due_date: todo.due_date || "",
-                    });
-                    setDialogOpen(true);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(todo.id)}
-                >
-                  Delete
-                </Button>
-=======
       {/* Todo List View s Drag & Drop */}
       {viewMode === "list" && (
         <DndContext
@@ -799,36 +655,12 @@ export default function TodoWrapper() {
                     No todos
                   </p>
                 )}
->>>>>>> Stashed changes
               </div>
             </div>
           ))}
         </div>
       )}
 
-<<<<<<< Updated upstream
-      {/* Dialog: Create/Edit */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingTodo ? "Edit Task" : "New Task"}</DialogTitle>
-            <DialogDescription>
-              {editingTodo
-                ? "Update your existing task"
-                : "Create a new task to track"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <Input {...form.register("title")} placeholder="Task title" />
-              {form.formState.errors.title && (
-                <p className="text-sm text-destructive mt-1">
-                  {form.formState.errors.title.message}
-                </p>
-              )}
-=======
       {/* Table View */}
       {viewMode === "table" && (
         <div className="overflow-x-auto rounded-lg border">
@@ -958,7 +790,6 @@ export default function TodoWrapper() {
                   {form.formState.errors.title.message}
                 </p>
               )}
->>>>>>> Stashed changes
             </div>
 
             <div>
@@ -989,8 +820,6 @@ export default function TodoWrapper() {
               </div>
 
               <div>
-<<<<<<< Updated upstream
-=======
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <Select
                   value={form.watch("status")}
@@ -1010,7 +839,6 @@ export default function TodoWrapper() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
->>>>>>> Stashed changes
                 <label className="block text-sm font-medium mb-1">Due Date</label>
                 <Input 
                   {...form.register("due_date")} 
@@ -1018,8 +846,6 @@ export default function TodoWrapper() {
                   placeholder="Select date" 
                 />
               </div>
-<<<<<<< Updated upstream
-=======
 
               <div>
                 <label className="block text-sm font-medium mb-1">Tags</label>
@@ -1063,7 +889,6 @@ export default function TodoWrapper() {
                 placeholder="Additional notes..." 
                 rows={4}
               />
->>>>>>> Stashed changes
             </div>
 
             <DialogFooter>
@@ -1097,11 +922,7 @@ export default function TodoWrapper() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <p className="text-sm capitalize">
-<<<<<<< Updated upstream
-                  {(selectedTodo.completed ?? 0) === 1 ? "Completed" : "Not Completed"}
-=======
                   {(selectedTodo.completed ?? 0) === 1 ? "Completed" : selectedTodo.status || "Not Started"}
->>>>>>> Stashed changes
                 </p>
               </div>
               
@@ -1119,14 +940,6 @@ export default function TodoWrapper() {
                 </p>
               </div>
 
-<<<<<<< Updated upstream
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Created: {format(new Date(selectedTodo.created_at as unknown as string), "MMM d, yyyy HH:mm")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Updated: {format(new Date(selectedTodo.updated_at as unknown as string), "MMM d, yyyy HH:mm")}
-=======
               {selectedTodo.tags && selectedTodo.tags.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Tags</p>
@@ -1153,7 +966,6 @@ export default function TodoWrapper() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Updated: {format(new Date(selectedTodo.updated_at), "MMM d, yyyy HH:mm")}
->>>>>>> Stashed changes
                 </p>
               </div>
             </div>
@@ -1169,12 +981,9 @@ export default function TodoWrapper() {
                     description: selectedTodo.description || "",
                     priority: (selectedTodo.priority as "low" | "medium" | "high") || "medium",
                     due_date: selectedTodo.due_date || "",
-<<<<<<< Updated upstream
-=======
                     status: selectedTodo.status || "not_started",
                     tags: selectedTodo.tags || [],
                     notes: selectedTodo.notes || "",
->>>>>>> Stashed changes
                   });
                   setSelectedTodo(null);
                   setDialogOpen(true);
