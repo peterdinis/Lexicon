@@ -1,4 +1,3 @@
-// app/calendar/page.tsx
 import { redirect } from "next/navigation";
 import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { getCalendarEventsAction } from "@/actions/calendarActions";
