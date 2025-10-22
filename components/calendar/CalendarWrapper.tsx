@@ -1,6 +1,7 @@
+// components/calendar/CalendarView.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   format,
@@ -26,6 +26,12 @@ import {
   endOfWeek,
 } from "date-fns";
 import { CalendarEvent } from "@/types/applicationTypes";
+import {
+  getCalendarEventsAction,
+  createCalendarEventAction,
+  deleteCalendarEventAction,
+  type CreateCalendarEventSchema
+} from "@/actions/calendarActions";
 
 interface CalendarViewProps {
   initialEvents: CalendarEvent[];
@@ -35,6 +41,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
@@ -43,6 +50,28 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     all_day: false,
     color: "#3b82f6",
   });
+
+  // Načtení eventů při změně měsíce
+  useEffect(() => {
+    loadEventsForMonth();
+  }, [currentDate]);
+
+  const loadEventsForMonth = async () => {
+    try {
+      setLoading(true);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const result = await getCalendarEventsAction();
+      
+      if (result.success && result.data) {
+        setEvents(result.data);
+      }
+    } catch (error) {
+      console.error("Error loading events:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -58,25 +87,29 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
-      const response = await fetch("/api/calendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEvent),
-      });
+      const eventData: CreateCalendarEventSchema = {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_time: newEvent.start_time,
+        end_time: newEvent.end_time,
+        all_day: newEvent.all_day,
+        color: newEvent.color,
+      };
 
-      if (!response.ok) throw new Error("Failed to create event");
-
-      const event = await response.json();
-      setEvents([...events, event]);
-      setNewEvent({
-        title: "",
-        description: "",
-        start_time: "",
-        end_time: "",
-        all_day: false,
-        color: "#3b82f6",
-      });
-      setDialogOpen(false);
+      const result = await createCalendarEventAction(eventData);
+      
+      if (result.success && result.data) {
+        setEvents(prev => [result.data!, ...prev]);
+        setNewEvent({
+          title: "",
+          description: "",
+          start_time: "",
+          end_time: "",
+          all_day: false,
+          color: "#3b82f6",
+        });
+        setDialogOpen(false);
+      }
     } catch (error) {
       console.error("Error creating event:", error);
     }
@@ -86,20 +119,34 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const response = await fetch(`/api/calendar/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete event");
-
-      setEvents(events.filter((e) => e.id !== id));
+      const result = await deleteCalendarEventAction(id);
+      
+      if (result.success) {
+        setEvents(prev => prev.filter((e) => e.id !== id));
+      }
     } catch (error) {
       console.error("Error deleting event:", error);
     }
   };
 
   const getEventsForDay = (day: Date) => {
-    return events.filter((event) => isSameDay(new Date(event.start_time), day));
+    return events.filter((event) => {
+      const eventDate = new Date(event.start_time);
+      return isSameDay(eventDate, day);
+    });
+  };
+
+  const formatDateTimeForInput = (date: Date) => {
+    return format(date, "yyyy-MM-dd'T'HH:mm");
+  };
+
+  const handleStartTimeChange = (value: string) => {
+    setNewEvent(prev => ({
+      ...prev,
+      start_time: value,
+      // Automaticky nastavit end_time na start_time + 1 hodina, pokud není nastaveno
+      end_time: prev.end_time || formatDateTimeForInput(new Date(new Date(value).getTime() + 60 * 60 * 1000))
+    }));
   };
 
   return (
@@ -124,43 +171,44 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Event
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Event</DialogTitle>
-              <DialogDescription>
-                Add a new event to your calendar
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium">Title</label>
-                <Input
-                  placeholder="Enter event title"
-                  value={newEvent.title}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, title: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Description
-                </label>
-                <Input
-                  placeholder="Enter description (optional)"
-                  value={newEvent.description}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, description: e.target.value })
-                  }
-                />
-              </div>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Event
+        </Button>
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Event</DialogTitle>
+            <DialogDescription>
+              Add a new event to your calendar
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium">Title</label>
+              <Input
+                placeholder="Enter event title"
+                value={newEvent.title}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, title: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Description
+              </label>
+              <Input
+                placeholder="Enter description (optional)"
+                value={newEvent.description}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, description: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">
                   Start Time
@@ -168,9 +216,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 <Input
                   type="datetime-local"
                   value={newEvent.start_time}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, start_time: e.target.value })
-                  }
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
                 />
               </div>
               <div>
@@ -185,26 +231,40 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   }
                 />
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium">Color</label>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium">Color</label>
+              <div className="flex items-center gap-2">
                 <Input
                   type="color"
                   value={newEvent.color}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, color: e.target.value })
                   }
+                  className="w-16 h-10 p-1"
                 />
+                <span className="text-sm text-muted-foreground">
+                  {newEvent.color}
+                </span>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={createEvent}>Create Event</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createEvent} disabled={!newEvent.title.trim()}>
+              Create Event
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {loading && (
+        <div className="text-center py-4 text-muted-foreground">
+          Loading events...
+        </div>
+      )}
 
       <div className="grid grid-cols-7 gap-2">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
@@ -224,11 +284,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <div
               key={index}
               className={`min-h-[100px] rounded-lg border p-2 ${
-                isCurrentMonth ? "bg-background" : "bg-muted/30"
-              } ${isToday ? "border-primary" : ""}`}
+                isCurrentMonth 
+                  ? "bg-background hover:bg-muted/50" 
+                  : "bg-muted/30 text-muted-foreground"
+              } ${isToday ? "border-2 border-primary" : "border-border"}`}
             >
               <div
-                className={`mb-1 text-sm ${isToday ? "font-bold text-primary" : "text-muted-foreground"}`}
+                className={`mb-1 text-sm ${
+                  isToday 
+                    ? "font-bold text-primary" 
+                    : isCurrentMonth 
+                    ? "text-foreground" 
+                    : "text-muted-foreground"
+                }`}
               >
                 {format(day, "d")}
               </div>
@@ -238,15 +306,22 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                     key={event.id}
                     className="group relative cursor-pointer rounded px-1 py-0.5 text-xs"
                     style={{
-                      backgroundColor: event.color + "20",
+                      backgroundColor: `${event.color}20`,
                       borderLeft: `3px solid ${event.color}`,
                     }}
                   >
                     <div className="truncate font-medium">{event.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {format(new Date(event.start_time), 'HH:mm')}
+                      {event.end_time && ` - ${format(new Date(event.end_time), 'HH:mm')}`}
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteEvent(event.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteEvent(event.id);
+                      }}
                       className="absolute -right-1 -top-1 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />
