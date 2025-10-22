@@ -6,7 +6,7 @@ export interface Page {
   icon?: string;
   cover_image?: string;
   parent_id?: string | null;
-  is_folder?: boolean;
+  is_folder?: number;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;

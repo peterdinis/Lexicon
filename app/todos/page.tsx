@@ -1,3 +1,4 @@
+import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { TodoWrapper } from "@/components/todos/TodosWrapper";
@@ -15,9 +16,18 @@ export default async function TodosPage() {
     redirect("/auth/login");
   }
 
+   let pages = [];
+  
+    try {
+      pages = await getAllPagesHandler();
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+      redirect("/auth/login");
+    }
+
   return (
     <div className="flex h-screen">
-      <DashboardSidebar initialPages={[]} />
+      <DashboardSidebar initialPages={pages ?? []} />
       <div className="flex flex-1 flex-col">
         <DashboardTopBar />
         <main className="flex-1 overflow-auto">
