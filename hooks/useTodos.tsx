@@ -1,8 +1,8 @@
 import { CreateTodoSchema } from "@/actions/schemas/todosSchemas";
 import { db } from "@/drizzle/db";
 import { useState, useEffect } from "react";
-import { todos as todosTable } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { todos as todosTable } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export function useTodos(userId: string) {
   const [todos, setTodos] = useState<any[]>([]);
@@ -52,7 +52,7 @@ export function useTodos(userId: string) {
       .where(eq(todosTable.id, id));
 
     setTodos((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, ...data } : todo))
+      prev.map((todo) => (todo.id === id ? { ...todo, ...data } : todo)),
     );
   };
 
