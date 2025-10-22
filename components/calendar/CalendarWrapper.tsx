@@ -24,13 +24,8 @@ import {
   startOfWeek,
   endOfWeek,
 } from "date-fns";
-import { CalendarEvent } from "@/types/applicationTypes";
-import {
-  getCalendarEventsByDateRangeAction,
-  createCalendarEventAction,
-  deleteCalendarEventAction,
-  type CreateCalendarEventSchema
-} from "@/actions/calendarActions";
+import { getCalendarEventsByDateRangeAction, createCalendarEventAction, deleteCalendarEventAction } from "@/actions/calendarActions";
+import { CreateCalendarEventSchema } from "@/actions/schemas/calendarSchemas";
 
 interface CalendarViewProps {
   initialEvents: any[];

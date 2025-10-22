@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
-import { getCalendarEventsAction } from "@/actions/calendarActions";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { CalendarView } from "@/components/calendar/CalendarWrapper";
