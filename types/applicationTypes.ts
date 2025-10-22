@@ -42,19 +42,18 @@ export interface Todo {
   updated_at: string;
 }
 
-export interface CalendarEvent {
+export type CalendarEvent = {
   id: string;
   user_id: string;
   title: string;
-  description?: string;
+  description: string | null; // změnit z string | undefined
   start_time: string;
   end_time: string;
   all_day: boolean;
-  color?: string;
+  color: string | null; // změnit z string | undefined
   created_at: string;
   updated_at: string;
-}
-
+};
 export interface PageShare {
   id: string;
   page_id: string;

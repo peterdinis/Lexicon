@@ -59,8 +59,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const loadEventsForMonth = async () => {
     try {
       setLoading(true);
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1;
       const result = await getCalendarEventsAction();
       
       if (result.success && result.data) {
@@ -99,7 +97,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       const result = await createCalendarEventAction(eventData);
       
       if (result.success && result.data) {
-        setEvents(prev => [result.data!, ...prev]);
+        setEvents(prev => [result.data, ...prev]);
         setNewEvent({
           title: "",
           description: "",
@@ -306,8 +304,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                     key={event.id}
                     className="group relative cursor-pointer rounded px-1 py-0.5 text-xs"
                     style={{
-                      backgroundColor: `${event.color}20`,
-                      borderLeft: `3px solid ${event.color}`,
+                      backgroundColor: `${event.color || '#3b82f6'}20`,
+                      borderLeft: `3px solid ${event.color || '#3b82f6'}`,
                     }}
                   >
                     <div className="truncate font-medium">{event.title}</div>
