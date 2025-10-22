@@ -19,3 +19,6 @@ export const updateTodoSchema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional(),
   due_date: z.string().optional(),
 });
+
+export type CreateTodoSchema = z.infer<typeof createTodoSchema>;
+export type UpdateTodoSchema = z.infer<typeof updateTodoSchema>;

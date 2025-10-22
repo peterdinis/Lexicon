@@ -1,7 +1,7 @@
 import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
-import { TodoWrapper } from "@/components/todos/TodosWrapper";
+import TodoWrapper from "@/components/todos/TodosWrapper";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -33,7 +33,7 @@ export default async function TodosPage() {
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-4xl p-8">
             <h1 className="mb-8 text-4xl font-bold">Todos</h1>
-            <TodoWrapper initialTodos={[]} />
+            <TodoWrapper />
           </div>
         </main>
       </div>
