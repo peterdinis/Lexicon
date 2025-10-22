@@ -33,7 +33,7 @@ export default async function TodosPage() {
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-4xl p-8">
             <h1 className="mb-8 text-4xl font-bold">Todos</h1>
-            <TodoWrapper />
+            <TodoWrapper userId={user.id}/>
           </div>
         </main>
       </div>
