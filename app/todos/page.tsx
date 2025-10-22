@@ -6,10 +6,12 @@ import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 
 export default async function TodosPage() {
   const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   const { data: pages } = await supabase

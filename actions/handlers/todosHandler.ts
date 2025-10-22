@@ -6,12 +6,15 @@ import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 // CREATE
-export async function createTodoHandler(userId: string, data: {
-  title: string;
-  description?: string;
-  priority?: string;
-  due_date?: string;
-}) {
+export async function createTodoHandler(
+  userId: string,
+  data: {
+    title: string;
+    description?: string;
+    priority?: string;
+    due_date?: string;
+  },
+) {
   const id = nanoid();
   await db.insert(todos).values({
     id,
@@ -41,7 +44,10 @@ export async function getAllTodosHandler(userId: string) {
 }
 
 // UPDATE
-export async function updateTodoHandler(id: string, updates: Record<string, any>) {
+export async function updateTodoHandler(
+  id: string,
+  updates: Record<string, any>,
+) {
   await db.update(todos).set(updates).where(eq(todos.id, id));
   const [updated] = await db.select().from(todos).where(eq(todos.id, id));
   return updated;

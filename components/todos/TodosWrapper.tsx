@@ -17,6 +17,7 @@ import {
   TagIcon,
   X,
   Edit,
+  Calendar,
 } from "lucide-react";
 import {
   Dialog,
@@ -66,7 +67,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { createTodoAction, deleteTodoAction, getTodosAction, updateTodoAction } from "@/actions/todosActions";
+import {
+  createTodoAction,
+  deleteTodoAction,
+  getTodosAction,
+  updateTodoAction,
+} from "@/actions/todosActions";
 
 // ----------------------
 // Typy
@@ -160,10 +166,7 @@ function SortableTodoItem({
       >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
-      <button
-        onClick={() => onToggle(todo)}
-        className="mt-0.5"
-      >
+      <button onClick={() => onToggle(todo)} className="mt-0.5">
         {(todo.completed ?? 0) === 1 ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (
@@ -171,7 +174,9 @@ function SortableTodoItem({
         )}
       </button>
       <div className="flex-1">
-        <h3 className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}>
+        <h3
+          className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
+        >
           {todo.title}
         </h3>
         {todo.description && (
@@ -237,8 +242,12 @@ export default function TodoWrapper() {
   const [filterPriority, setFilterPriority] = useState<FilterPriority>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
 
-  const form = useForm<CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }>({
-    resolver: zodResolver(createTodoSchema) as unknown as Resolver<CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }>,
+  const form = useForm<
+    CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }
+  >({
+    resolver: zodResolver(createTodoSchema) as unknown as Resolver<
+      CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }
+    >,
     defaultValues: {
       title: "",
       description: "",
@@ -264,11 +273,13 @@ export default function TodoWrapper() {
         setLoading(true);
         const result = await getTodosAction();
         if (result.success && result.data) {
-          setTodos(result.data.map(todo => ({
-            ...todo,
-            created_at: todo.created_at ?? new Date().toISOString(),
-            updated_at: todo.updated_at ?? new Date().toISOString()
-          })));
+          setTodos(
+            result.data.map((todo) => ({
+              ...todo,
+              created_at: todo.created_at ?? new Date().toISOString(),
+              updated_at: todo.updated_at ?? new Date().toISOString(),
+            })),
+          );
         }
       } catch (error) {
         console.error("Failed to load todos:", error);
@@ -318,7 +329,13 @@ export default function TodoWrapper() {
     }
   };
 
-  const handleSubmit = async (data: CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }) => {
+  const handleSubmit = async (
+    data: CreateTodoSchema & {
+      status?: string;
+      tags?: string[];
+      notes?: string;
+    },
+  ) => {
     try {
       if (editingTodo) {
         const result = await updateTodoAction(editingTodo.id, data);
@@ -332,8 +349,8 @@ export default function TodoWrapper() {
                     description: data.description ?? null,
                     due_date: data.due_date ?? null,
                   }
-                : todo
-            )
+                : todo,
+            ),
           );
         }
       } else {
@@ -371,14 +388,20 @@ export default function TodoWrapper() {
 
   const handleToggleComplete = async (todo: Todo) => {
     const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
-    const result = await updateTodoAction(todo.id, { 
+    const result = await updateTodoAction(todo.id, {
       completed: newCompleted,
     });
     if (result.success) {
       setTodos((prev) =>
         prev.map((t) =>
-          t.id === todo.id ? { ...t, completed: newCompleted, status: newCompleted === 1 ? "done" : "not_started" } : t
-        )
+          t.id === todo.id
+            ? {
+                ...t,
+                completed: newCompleted,
+                status: newCompleted === 1 ? "done" : "not_started",
+              }
+            : t,
+        ),
       );
       router.refresh();
     }
@@ -400,7 +423,7 @@ export default function TodoWrapper() {
 
   const addTag = () => {
     const tagInput = form.getValues("tags") || [];
-    const newTag = form.getValues("title").split(' ')[0]; // Simple tag from title
+    const newTag = form.getValues("title").split(" ")[0]; // Simple tag from title
     if (newTag && !tagInput.includes(newTag)) {
       form.setValue("tags", [...tagInput, newTag]);
     }
@@ -408,14 +431,21 @@ export default function TodoWrapper() {
 
   const removeTag = (tagToRemove: string) => {
     const currentTags = form.getValues("tags") || [];
-    form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
+    form.setValue(
+      "tags",
+      currentTags.filter((tag) => tag !== tagToRemove),
+    );
   };
 
   const groupedByStatus = useMemo(() => {
     const groups = {
-      not_started: filteredTodos.filter((t) => t.status === "not_started" || !t.status),
+      not_started: filteredTodos.filter(
+        (t) => t.status === "not_started" || !t.status,
+      ),
       in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
-      done: filteredTodos.filter((t) => t.status === "done" || (t.completed ?? 0) === 1),
+      done: filteredTodos.filter(
+        (t) => t.status === "done" || (t.completed ?? 0) === 1,
+      ),
     };
     return groups;
   }, [filteredTodos]);
@@ -692,9 +722,7 @@ export default function TodoWrapper() {
                     className="border-b transition-colors hover:bg-muted/50"
                   >
                     <td className="p-3">
-                      <button
-                        onClick={() => handleToggleComplete(todo)}
-                      >
+                      <button onClick={() => handleToggleComplete(todo)}>
                         {(todo.completed ?? 0) === 1 ? (
                           <Check className="h-4 w-4 text-primary" />
                         ) : (
@@ -781,7 +809,10 @@ export default function TodoWrapper() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
               <Input {...form.register("title")} placeholder="Task title" />
@@ -793,20 +824,26 @@ export default function TodoWrapper() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <Textarea 
-                {...form.register("description")} 
-                placeholder="Details..." 
+              <label className="block text-sm font-medium mb-1">
+                Description
+              </label>
+              <Textarea
+                {...form.register("description")}
+                placeholder="Details..."
                 rows={3}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Priority</label>
+                <label className="block text-sm font-medium mb-1">
+                  Priority
+                </label>
                 <Select
                   value={form.watch("priority")}
-                  onValueChange={(v: "low" | "medium" | "high") => form.setValue("priority", v)}
+                  onValueChange={(v: "low" | "medium" | "high") =>
+                    form.setValue("priority", v)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
@@ -823,7 +860,9 @@ export default function TodoWrapper() {
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <Select
                   value={form.watch("status")}
-                  onValueChange={(v: "not_started" | "in_progress" | "done") => form.setValue("status", v)}
+                  onValueChange={(v: "not_started" | "in_progress" | "done") =>
+                    form.setValue("status", v)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -839,11 +878,13 @@ export default function TodoWrapper() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Due Date</label>
-                <Input 
-                  {...form.register("due_date")} 
+                <label className="block text-sm font-medium mb-1">
+                  Due Date
+                </label>
+                <Input
+                  {...form.register("due_date")}
                   type="date"
-                  placeholder="Select date" 
+                  placeholder="Select date"
                 />
               </div>
 
@@ -884,9 +925,9 @@ export default function TodoWrapper() {
 
             <div>
               <label className="block text-sm font-medium mb-1">Notes</label>
-              <Textarea 
-                {...form.register("notes")} 
-                placeholder="Additional notes..." 
+              <Textarea
+                {...form.register("notes")}
+                placeholder="Additional notes..."
                 rows={4}
               />
             </div>
@@ -908,44 +949,146 @@ export default function TodoWrapper() {
         </DialogContent>
       </Dialog>
 
-      {/* Sheet: Detail view */}
       <Sheet open={!!selectedTodo} onOpenChange={() => setSelectedTodo(null)}>
         <SheetContent side="right" className="w-[400px] sm:w-[500px]">
-          <SheetHeader>
-            <SheetTitle>{selectedTodo?.title}</SheetTitle>
-            <SheetDescription>
-              {selectedTodo?.description || "No description"}
-            </SheetDescription>
+          <SheetHeader className="pb-4 border-b">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <SheetTitle className="text-xl font-bold break-words">
+                  {selectedTodo?.title}
+                </SheetTitle>
+                <SheetDescription className="mt-2 text-base">
+                  {selectedTodo?.description || "No description provided"}
+                </SheetDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  if (selectedTodo) {
+                    setEditingTodo(selectedTodo);
+                    form.reset({
+                      title: selectedTodo.title,
+                      description: selectedTodo.description || "",
+                      priority:
+                        (selectedTodo.priority as "low" | "medium" | "high") ||
+                        "medium",
+                      due_date: selectedTodo.due_date || "",
+                      status: selectedTodo.status || "not_started",
+                      tags: selectedTodo.tags || [],
+                      notes: selectedTodo.notes || "",
+                    });
+                    setSelectedTodo(null);
+                    setDialogOpen(true);
+                  }
+                }}
+                className="flex-shrink-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </div>
           </SheetHeader>
+
           {selectedTodo && (
-            <div className="mt-6 space-y-3">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <p className="text-sm capitalize">
-                  {(selectedTodo.completed ?? 0) === 1 ? "Completed" : selectedTodo.status || "Not Started"}
-                </p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Priority</p>
-                <p className="text-sm capitalize">{selectedTodo.priority || "Not set"}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Due Date</p>
-                <p className="text-sm">
-                  {selectedTodo.due_date
-                    ? format(new Date(selectedTodo.due_date), "MMM d, yyyy")
-                    : "No due date"}
-                </p>
+            <div className="mt-6 space-y-6">
+              {/* Status & Priority Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Circle
+                      className={`h-3 w-3 ${
+                        (selectedTodo.completed ?? 0) === 1
+                          ? "text-green-500 fill-green-500"
+                          : selectedTodo.status === "in_progress"
+                            ? "text-blue-500 fill-blue-500"
+                            : "text-gray-500 fill-gray-500"
+                      }`}
+                    />
+                    Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={`
+                  ${
+                    (selectedTodo.completed ?? 0) === 1
+                      ? "bg-green-500/10 text-green-600 border-green-500/20"
+                      : selectedTodo.status === "in_progress"
+                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                        : "bg-gray-500/10 text-gray-600 border-gray-500/20"
+                  }
+                  capitalize
+                `}
+                    >
+                      {(selectedTodo.completed ?? 0) === 1
+                        ? "Completed"
+                        : selectedTodo.status?.replace("_", " ") ||
+                          "Not Started"}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Priority
+                  </p>
+                  <Badge
+                    variant="outline"
+                    className={`
+                ${
+                  selectedTodo.priority === "high"
+                    ? "bg-red-500/10 text-red-600 border-red-500/20"
+                    : selectedTodo.priority === "medium"
+                      ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                      : "bg-green-500/10 text-green-600 border-green-500/20"
+                }
+                capitalize
+              `}
+                  >
+                    {selectedTodo.priority || "Not set"}
+                  </Badge>
+                </div>
               </div>
 
+              {/* Due Date */}
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  Due Date
+                </p>
+                <div className="flex items-center gap-2">
+                  {selectedTodo.due_date ? (
+                    <>
+                      <Badge variant="secondary" className="font-normal">
+                        {format(new Date(selectedTodo.due_date), "MMM d, yyyy")}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(selectedTodo.due_date), "EEEE")}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      No due date set
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tags */}
               {selectedTodo.tags && selectedTodo.tags.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tags</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <TagIcon className="h-4 w-4 text-muted-foreground" />
+                    Tags
+                  </p>
+                  <div className="flex flex-wrap gap-2">
                     {selectedTodo.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="px-2 py-1 text-xs font-medium"
+                      >
+                        <TagIcon className="h-3 w-3 mr-1" />
                         {tag}
                       </Badge>
                     ))}
@@ -953,33 +1096,76 @@ export default function TodoWrapper() {
                 </div>
               )}
 
+              {/* Notes */}
               {selectedTodo.notes && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Notes</p>
-                  <p className="text-sm mt-1">{selectedTodo.notes}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground">Notes</p>
+                  <div className="rounded-lg border bg-muted/20 p-3">
+                    <p className="text-sm whitespace-pre-wrap">
+                      {selectedTodo.notes}
+                    </p>
+                  </div>
                 </div>
               )}
 
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Created: {format(new Date(selectedTodo.created_at), "MMM d, yyyy HH:mm")}
+              {/* Metadata */}
+              <div className="pt-4 border-t space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Task Information
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Updated: {format(new Date(selectedTodo.updated_at), "MMM d, yyyy HH:mm")}
-                </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">Created</span>
+                    <span className="font-medium">
+                      {format(
+                        new Date(selectedTodo.created_at),
+                        "MMM d, yyyy 'at' HH:mm",
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">Last Updated</span>
+                    <span className="font-medium">
+                      {format(
+                        new Date(selectedTodo.updated_at),
+                        "MMM d, yyyy 'at' HH:mm",
+                      )}
+                    </span>
+                  </div>
+                  {selectedTodo.due_date && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground">
+                        Days Remaining
+                      </span>
+                      <span className="font-medium">
+                        {Math.ceil(
+                          (new Date(selectedTodo.due_date).getTime() -
+                            new Date().getTime()) /
+                            (1000 * 60 * 60 * 24),
+                        )}{" "}
+                        days
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
-          <div className="mt-6 flex justify-end gap-2">
-            <Button 
-              variant="outline" 
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              className="flex-1"
               onClick={() => {
                 if (selectedTodo) {
                   setEditingTodo(selectedTodo);
                   form.reset({
                     title: selectedTodo.title,
                     description: selectedTodo.description || "",
-                    priority: (selectedTodo.priority as "low" | "medium" | "high") || "medium",
+                    priority:
+                      (selectedTodo.priority as "low" | "medium" | "high") ||
+                      "medium",
                     due_date: selectedTodo.due_date || "",
                     status: selectedTodo.status || "not_started",
                     tags: selectedTodo.tags || [],
@@ -990,9 +1176,14 @@ export default function TodoWrapper() {
                 }
               }}
             >
-              Edit
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Task
             </Button>
-            <Button variant="outline" onClick={() => setSelectedTodo(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedTodo(null)}
+              className="flex-1"
+            >
               Close
             </Button>
           </div>

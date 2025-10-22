@@ -52,7 +52,7 @@ export async function createTodoAction(data: CreateTodoSchema) {
 
 export async function updateTodoAction(
   id: string,
-  data: Partial<CreateTodoSchema & { completed?: number }>
+  data: Partial<CreateTodoSchema & { completed?: number }>,
 ) {
   try {
     const userId = await getUserId();
