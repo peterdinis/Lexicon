@@ -1,6 +1,8 @@
 import { getSupabaseServerClient } from "@/supabase/server";
 import { redirect } from "next/navigation";
 import TodoWrapper from "@/components/todos/TodosWrapper";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 
 export default async function TodosPage() {
   const supabase = await getSupabaseServerClient();
@@ -10,5 +12,31 @@ export default async function TodosPage() {
     redirect('/auth/login');
   }
 
-  return <TodoWrapper />;
+  const { data: pages } = await supabase
+    .from("pages")
+    .select("*")
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false });
+
+  const { data: todos } = await supabase
+    .from("todos")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return (
+    <div className="flex h-screen">
+      <DashboardSidebar initialPages={pages || []} />
+      <div className="flex flex-1 flex-col">
+        <DashboardTopBar />
+        <main className="flex-1 overflow-auto">
+          <div className="mx-auto max-w-4xl p-8">
+            <h1 className="mb-8 text-4xl font-bold">Todos</h1>
+            <TodoWrapper />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
