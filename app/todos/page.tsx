@@ -16,14 +16,14 @@ export default async function TodosPage() {
     redirect("/auth/login");
   }
 
-   let pages = [];
-  
-    try {
-      pages = await getAllPagesHandler();
-    } catch (err) {
-      console.error("Dashboard fetch error:", err);
-      redirect("/auth/login");
-    }
+  let pages = [];
+
+  try {
+    pages = await getAllPagesHandler();
+  } catch (err) {
+    console.error("Dashboard fetch error:", err);
+    redirect("/auth/login");
+  }
 
   return (
     <div className="flex h-screen">
