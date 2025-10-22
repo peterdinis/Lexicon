@@ -110,7 +110,7 @@ export function DashboardSidebar({
         title: f.title,
         icon: "",
         parent_id: f.parent_id,
-        is_folder: true,
+        is_folder: 0,
         user_id: "",
         description: "",
         created_at: new Date().toISOString(),
