@@ -11,16 +11,12 @@ export default async function CalendarPage() {
   let events: CalendarEvent[] = [];
 
   try {
-    // Načtení pages pro sidebar
     pages = await getAllPagesHandler();
-    
-    // Načtení calendar events s robustným error handlingom
+
     const eventsResult = await getAllCalendarEventsAction();
     events = Array.isArray(eventsResult) ? eventsResult : [];
     
   } catch (err) {
-    console.error("Calendar page fetch error:", err);
-    // Nepresmerujeme hneď, len nastavíme prázdne polia
     pages = [];
     events = [];
   }

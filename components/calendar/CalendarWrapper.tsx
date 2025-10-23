@@ -34,7 +34,6 @@ interface CalendarViewProps {
   initialEvents: any[];
 }
 
-// Definujte typ pre nový event lokálne
 interface CreateCalendarEventData {
   title: string;
   description?: string | null;
@@ -58,9 +57,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     color: "#3b82f6",
   });
 
-  // ----------------------
-  // Načtení eventů pro aktuální měsíc
-  // ----------------------
   useEffect(() => {
     loadEventsForMonth();
   }, [currentDate]);
@@ -79,7 +75,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
         endDate,
       });
 
-      // Server action vráti priamo data, nie objekt s success
       if (result) {
         setEvents(result.data || []);
       }
@@ -90,9 +85,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
   };
 
-  // ----------------------
-  // Pomocné funkce
-  // ----------------------
   const getEventsForDay = (day: Date) => {
     return events.filter((event) => {
       if (!event.start_time) return false;
@@ -106,7 +98,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
   const handleStartTimeChange = (value: string) => {
     const start = new Date(value);
-    const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
 
     setNewEvent((prev) => ({
       ...prev,
@@ -128,7 +120,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
       const result = await createCalendarEventAction(eventData);
 
-      // Server action vráti nový event priamo
       if (result) {
         setEvents((prev) => [result, ...prev]);
         setNewEvent({
@@ -152,7 +143,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     try {
       const result = await deleteCalendarEventAction({ id });
 
-      // Server action vráti true/false alebo void
       if (result.data !== false) {
         setEvents((prev) => prev.filter((e) => e.id !== id));
       }
@@ -161,9 +151,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
   };
 
-  // ----------------------
-  // Calendar calculations
-  // ----------------------
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart);
@@ -173,9 +160,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     end: calendarEnd,
   });
 
-  // ----------------------
-  // Render
-  // ----------------------
   return (
     <div className="space-y-4">
       {/* Header */}
