@@ -4,6 +4,7 @@ import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { CalendarView } from "@/components/calendar/CalendarWrapper";
 import { CalendarEvent } from "@/types/applicationTypes";
+import { getCalendarEventAction } from "@/actions/calendarActions";
 
 export default async function CalendarPage() {
   let pages = [];
@@ -27,7 +28,7 @@ export default async function CalendarPage() {
     pages = await getAllPagesHandler();
 
     // Načtení calendar events
-    const eventsResult = await getCalendarEventsAction();
+    const eventsResult = await getCalendarEventAction();
     if (eventsResult.success && eventsResult.data) {
       events = eventsResult.data;
     }
