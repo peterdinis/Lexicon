@@ -9,6 +9,7 @@ import {
   CreateCalendarEventSchema,
   UpdateCalendarEventSchema,
 } from "../schemas/calendarSchemas";
+import z from "zod";
 
 async function getUserId() {
   const supabase = await getSupabaseServerClient();
@@ -19,9 +20,8 @@ async function getUserId() {
   return user.id;
 }
 
-// CREATE
 export async function createCalendarEventHandler(
-  data: CreateCalendarEventSchema,
+  data: any, // TODO: Fix me
 ) {
   const userId = await getUserId();
   const newEvent = {
@@ -32,6 +32,7 @@ export async function createCalendarEventHandler(
     ...data,
     all_day: data.all_day ? 1 : 0,
   };
+
   await db.insert(calendarEvents).values(newEvent);
   revalidatePath("/calendar");
   return { ...newEvent, all_day: newEvent.all_day === 1 };
@@ -53,10 +54,30 @@ export async function getCalendarEventHandler(id: string) {
 // UPDATE
 export async function updateCalendarEventHandler(
   id: string,
-  data: UpdateCalendarEventSchema,
+  data: {
+    title?: string;
+    description?: string | null;
+    start_time?: string;
+    end_time?: string;
+    all_day?: boolean;
+    color?: string | null;
+  },
 ) {
   const userId = await getUserId();
-  const updateData: any = { ...data, updated_at: new Date().toISOString() };
+
+  // Konvertujeme null na undefined pre databázu
+  const updateData: any = {
+    updated_at: new Date().toISOString(),
+  };
+
+  // Pridáme polia s konverziou null na undefined
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.description !== undefined)
+    updateData.description = data.description ?? undefined;
+  if (data.start_time !== undefined) updateData.start_time = data.start_time;
+  if (data.end_time !== undefined) updateData.end_time = data.end_time;
+  if (data.color !== undefined) updateData.color = data.color ?? undefined;
+
   if (data.all_day !== undefined) updateData.all_day = data.all_day ? 1 : 0;
 
   await db

@@ -29,10 +29,18 @@ import {
   createCalendarEventAction,
   deleteCalendarEventAction,
 } from "@/actions/calendarActions";
-import { CreateCalendarEventSchema } from "@/actions/schemas/calendarSchemas";
 
 interface CalendarViewProps {
   initialEvents: any[];
+}
+
+interface CreateCalendarEventData {
+  title: string;
+  description?: string | null;
+  start_time: string;
+  end_time: string;
+  all_day: boolean;
+  color?: string | null;
 }
 
 export function CalendarView({ initialEvents }: CalendarViewProps) {
@@ -40,7 +48,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [newEvent, setNewEvent] = useState<CreateCalendarEventSchema>({
+  const [newEvent, setNewEvent] = useState<CreateCalendarEventData>({
     title: "",
     description: "",
     start_time: "",
@@ -49,9 +57,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     color: "#3b82f6",
   });
 
-  // ----------------------
-  // Načtení eventů pro aktuální měsíc
-  // ----------------------
   useEffect(() => {
     loadEventsForMonth();
   }, [currentDate]);
@@ -65,13 +70,13 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       );
       const endDate = format(endOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss");
 
-      const result = await getCalendarEventsByDateRangeAction(
+      const result = await getCalendarEventsByDateRangeAction({
         startDate,
         endDate,
-      );
+      });
 
-      if (result.success && result.data) {
-        setEvents(result.data);
+      if (result) {
+        setEvents(result.data || []);
       }
     } catch (error) {
       console.error("Error loading events:", error);
@@ -80,11 +85,11 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
   };
 
-  // ----------------------
-  // Pomocné funkce
-  // ----------------------
   const getEventsForDay = (day: Date) => {
-    return events.filter((event) => isSameDay(new Date(event.start_time), day));
+    return events.filter((event) => {
+      if (!event.start_time) return false;
+      return isSameDay(new Date(event.start_time), day);
+    });
   };
 
   const formatDateTimeForInput = (date: Date) => {
@@ -93,7 +98,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
   const handleStartTimeChange = (value: string) => {
     const start = new Date(value);
-    const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
 
     setNewEvent((prev) => ({
       ...prev,
@@ -107,11 +112,16 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
-      const eventData: CreateCalendarEventSchema = { ...newEvent };
+      const eventData: CreateCalendarEventData = {
+        ...newEvent,
+        description: newEvent.description || null,
+        color: newEvent.color || null,
+      };
+
       const result = await createCalendarEventAction(eventData);
 
-      if (result.success && result.data) {
-        setEvents((prev) => [result.data, ...prev]);
+      if (result) {
+        setEvents((prev) => [result, ...prev]);
         setNewEvent({
           title: "",
           description: "",
@@ -131,9 +141,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const result = await deleteCalendarEventAction(id);
+      const result = await deleteCalendarEventAction({ id });
 
-      if (result.success) {
+      if (result.data !== false) {
         setEvents((prev) => prev.filter((e) => e.id !== id));
       }
     } catch (error) {
@@ -141,9 +151,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
   };
 
-  // ----------------------
-  // Calendar calculations
-  // ----------------------
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart);
@@ -153,9 +160,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     end: calendarEnd,
   });
 
-  // ----------------------
-  // Render
-  // ----------------------
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -211,7 +215,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
               </label>
               <Input
                 placeholder="Enter description (optional)"
-                value={newEvent.description}
+                value={newEvent.description || ""}
                 onChange={(e) =>
                   setNewEvent({ ...newEvent, description: e.target.value })
                 }
@@ -246,7 +250,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
               <div className="flex items-center gap-2">
                 <Input
                   type="color"
-                  value={newEvent.color}
+                  value={newEvent.color || "#3b82f6"}
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, color: e.target.value })
                   }
@@ -262,7 +266,14 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={createEvent} disabled={!newEvent.title.trim()}>
+            <Button
+              onClick={createEvent}
+              disabled={
+                !newEvent.title.trim() ||
+                !newEvent.start_time ||
+                !newEvent.end_time
+              }
+            >
               Create Event
             </Button>
           </DialogFooter>
@@ -302,7 +313,13 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
               } ${isToday ? "border-2 border-primary" : "border-border"}`}
             >
               <div
-                className={`mb-1 text-sm ${isToday ? "font-bold text-primary" : isCurrentMonth ? "text-foreground" : "text-muted-foreground"}`}
+                className={`mb-1 text-sm ${
+                  isToday
+                    ? "font-bold text-primary"
+                    : isCurrentMonth
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                }`}
               >
                 {format(day, "d")}
               </div>
@@ -318,8 +335,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   >
                     <div className="truncate font-medium">{event.title}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {format(new Date(event.start_time), "HH:mm")}
-                      {event.end_time
+                      {event.start_time
+                        ? format(new Date(event.start_time), "HH:mm")
+                        : ""}
+                      {event.end_time && event.start_time
                         ? ` - ${format(new Date(event.end_time), "HH:mm")}`
                         : ""}
                     </div>

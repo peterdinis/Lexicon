@@ -3,42 +3,27 @@ import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { CalendarView } from "@/components/calendar/CalendarWrapper";
-import { CalendarEvent } from "@/types/applicationTypes";
+import { CalendarEvent, Page } from "@/types/applicationTypes";
+import { getAllCalendarEventsAction } from "@/actions/calendarActions";
 
 export default async function CalendarPage() {
-  let pages = [];
-  let events:
-    | {
-        all_day: boolean;
-        id: string;
-        user_id: string;
-        title: string;
-        description: string | null;
-        start_time: string;
-        end_time: string;
-        color: string | null;
-        created_at: string | null;
-        updated_at: string | null;
-      }[]
-    | CalendarEvent[] = [];
+  let pages: { id: string; user_id: string; title: string; description: string; parent_id: string | null; is_folder: number; created_at: string; updated_at: string; }[] | Page[] = [];
+  let events: CalendarEvent[] = [];
 
   try {
-    // Načtení pages pro sidebar
     pages = await getAllPagesHandler();
 
-    // Načtení calendar events
-    const eventsResult = await getCalendarEventsAction();
-    if (eventsResult.success && eventsResult.data) {
-      events = eventsResult.data;
-    }
+    const eventsResult = await getAllCalendarEventsAction();
+    events = Array.isArray(eventsResult) ? eventsResult : [];
+    
   } catch (err) {
-    console.error("Calendar page fetch error:", err);
-    redirect("/auth/login");
+    pages = [];
+    events = [];
   }
 
   return (
     <div className="flex h-screen">
-      <DashboardSidebar initialPages={pages || []} />
+      <DashboardSidebar initialPages={Array.isArray(pages) ? pages : []} />
       <div className="flex flex-1 flex-col">
         <DashboardTopBar />
         <main className="flex-1 overflow-auto">
