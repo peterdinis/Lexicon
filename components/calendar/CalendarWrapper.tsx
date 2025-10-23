@@ -120,12 +120,12 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
-      const eventData: CreateCalendarEventData = { 
+      const eventData: CreateCalendarEventData = {
         ...newEvent,
         description: newEvent.description || null,
-        color: newEvent.color || null
+        color: newEvent.color || null,
       };
-      
+
       const result = await createCalendarEventAction(eventData);
 
       // Server action vráti nový event priamo
@@ -282,9 +282,13 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={createEvent} 
-              disabled={!newEvent.title.trim() || !newEvent.start_time || !newEvent.end_time}
+            <Button
+              onClick={createEvent}
+              disabled={
+                !newEvent.title.trim() ||
+                !newEvent.start_time ||
+                !newEvent.end_time
+              }
             >
               Create Event
             </Button>
@@ -326,10 +330,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             >
               <div
                 className={`mb-1 text-sm ${
-                  isToday 
-                    ? "font-bold text-primary" 
-                    : isCurrentMonth 
-                      ? "text-foreground" 
+                  isToday
+                    ? "font-bold text-primary"
+                    : isCurrentMonth
+                      ? "text-foreground"
                       : "text-muted-foreground"
                 }`}
               >
@@ -347,7 +351,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   >
                     <div className="truncate font-medium">{event.title}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {event.start_time ? format(new Date(event.start_time), "HH:mm") : ""}
+                      {event.start_time
+                        ? format(new Date(event.start_time), "HH:mm")
+                        : ""}
                       {event.end_time && event.start_time
                         ? ` - ${format(new Date(event.end_time), "HH:mm")}`
                         : ""}

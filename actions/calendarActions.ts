@@ -44,9 +44,11 @@ export const createCalendarEventAction = actionClient
 
 // GET SINGLE
 export const getCalendarEventAction = actionClient
-  .schema(z.object({ 
-    id: z.string().min(1, "ID is required") 
-  }))
+  .schema(
+    z.object({
+      id: z.string().min(1, "ID is required"),
+    }),
+  )
   .action(async ({ parsedInput: { id } }) => {
     try {
       return await getCalendarEventHandler(id);
@@ -58,9 +60,9 @@ export const getCalendarEventAction = actionClient
 // UPDATE
 export const updateCalendarEventAction = actionClient
   .schema(
-    UpdateCalendarEventSchema.extend({ 
-      id: z.string().min(1, "ID is required") 
-    })
+    UpdateCalendarEventSchema.extend({
+      id: z.string().min(1, "ID is required"),
+    }),
   )
   .action(async ({ parsedInput: { id, ...data } }) => {
     try {
@@ -72,9 +74,11 @@ export const updateCalendarEventAction = actionClient
 
 // DELETE
 export const deleteCalendarEventAction = actionClient
-  .schema(z.object({ 
-    id: z.string().min(1, "ID is required") 
-  }))
+  .schema(
+    z.object({
+      id: z.string().min(1, "ID is required"),
+    }),
+  )
   .action(async ({ parsedInput: { id } }) => {
     try {
       return await deleteCalendarEventHandler(id);
@@ -94,10 +98,12 @@ export const getAllCalendarEventsAction = actionClient.action(async () => {
 
 // GET BY DATE RANGE
 export const getCalendarEventsByDateRangeAction = actionClient
-  .schema(z.object({ 
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().min(1, "End date is required")
-  }))
+  .schema(
+    z.object({
+      startDate: z.string().min(1, "Start date is required"),
+      endDate: z.string().min(1, "End date is required"),
+    }),
+  )
   .action(async ({ parsedInput: { startDate, endDate } }) => {
     try {
       return await getCalendarEventsByDateRangeHandler(startDate, endDate);
