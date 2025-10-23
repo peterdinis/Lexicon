@@ -10,6 +10,7 @@ import {
   getAllCalendarEventsHandler,
   getCalendarEventsByDateRangeHandler,
 } from "./handlers/calendarHandlers";
+import { CreateCalendarEventSchema } from "./schemas/calendarSchemas";
 
 // CREATE
 export const createCalendarEventAction = actionClient
