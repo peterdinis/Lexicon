@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDiagramAction, updateDiagramAction, deleteDiagramAction } from "@/actions/diagramActions";
-import { Diagram } from "@/types/applicationTypes";
 
 const DiagramInfo: FC = () => {
   const params = useParams();
