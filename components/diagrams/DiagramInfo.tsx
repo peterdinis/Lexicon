@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { FC, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDiagramAction, updateDiagramAction, deleteDiagramAction } from "@/actions/diagramActions";
-
-// TODO: Use react-flow library for this
+import { ReactFlow, Background, Controls, MiniMap } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 
 const DiagramInfo: FC = () => {
   const params = useParams();
   const router = useRouter();
+
+  console.log("Params:", params);
+
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [diagram, setDiagram] = useState<any | null>(null);
@@ -20,9 +23,6 @@ const DiagramInfo: FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  // ----------------------
-  // Load diagram on mount
-  // ----------------------
   useEffect(() => {
     if (!id) return;
 
@@ -38,9 +38,6 @@ const DiagramInfo: FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // ----------------------
-  // Save updates
-  // ----------------------
   const saveDiagram = async () => {
     if (!diagram) return;
 
@@ -50,6 +47,8 @@ const DiagramInfo: FC = () => {
         id: diagram.id,
         title,
         description,
+        nodes: diagram.nodes,
+        edges: diagram.edges,
       });
       setDiagram(updated);
     } catch (err) {
@@ -59,9 +58,6 @@ const DiagramInfo: FC = () => {
     }
   };
 
-  // ----------------------
-  // Delete diagram
-  // ----------------------
   const deleteDiagram = async () => {
     if (!diagram) return;
     if (!confirm("Are you sure you want to delete this diagram?")) return;
@@ -78,7 +74,7 @@ const DiagramInfo: FC = () => {
   if (!diagram) return <p>Diagram not found.</p>;
 
   return (
-    <div className="max-w-3xl mx-auto py-8 space-y-6">
+    <div className="max-w-5xl mx-auto py-8 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Diagram Detail</h1>
         <Button variant="destructive" onClick={deleteDiagram}>
@@ -110,15 +106,15 @@ const DiagramInfo: FC = () => {
         </Button>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-2">Diagram Data</h2>
-        <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
-          {JSON.stringify(diagram, null, 2)}
-        </pre>
+      <div className="mt-8 h-[500px] border rounded">
+        <ReactFlow nodes={diagram.nodes} edges={diagram.edges}>
+          <MiniMap />
+          <Controls />
+          <Background />
+        </ReactFlow>
       </div>
     </div>
   );
-}
+};
 
-
-export default DiagramInfo
+export default DiagramInfo;
