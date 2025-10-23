@@ -542,16 +542,6 @@ export function DashboardSidebar({
                   </button>
                   <button
                     onClick={() => {
-                      router.push("/settings");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <Settings className="h-4 w-4 text-muted-foreground" />
-                    Settings
-                  </button>
-                  <button
-                    onClick={() => {
                       router.push("/trash");
                       if (isMobile) setMobileOpen(false);
                     }}
