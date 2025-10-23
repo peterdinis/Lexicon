@@ -13,6 +13,10 @@ import {
 import { Plus, Trash2, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { Diagram } from "@/types/applicationTypes";
+import {
+  createDiagramAction,
+  deleteDiagramAction,
+} from "@/actions/diagramActions";
 
 interface DiagramListProps {
   initialDiagrams: Diagram[];
@@ -23,18 +27,19 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // ----------------------
+  // CREATE DIAGRAM
+  // ----------------------
   const createDiagram = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/diagrams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Untitled Diagram" }),
+      const result = await createDiagramAction({
+        title: "Untitled Diagram",
       });
 
-      if (!response.ok) throw new Error("Failed to create diagram");
+      // createDiagramAction returns a SafeActionResult; cast to Diagram to satisfy the component state
+      const newDiagram = result as unknown as Diagram;
 
-      const newDiagram = await response.json();
       setDiagrams([newDiagram, ...diagrams]);
       router.push(`/diagrams/${newDiagram.id}`);
     } catch (error) {
@@ -44,18 +49,16 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
     }
   };
 
+  // ----------------------
+  // DELETE DIAGRAM
+  // ----------------------
   const deleteDiagram = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!confirm("Are you sure you want to delete this diagram?")) return;
 
     try {
-      const response = await fetch(`/api/diagrams/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete diagram");
-
+      await deleteDiagramAction({ id });
       setDiagrams(diagrams.filter((d) => d.id !== id));
     } catch (error) {
       console.error("Error deleting diagram:", error);
