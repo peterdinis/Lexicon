@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getDiagramAction, updateDiagramAction, deleteDiagramAction } from "@/actions/diagramActions";
 
+// TODO: Use react-flow library for this
+
 const DiagramInfo: FC = () => {
   const params = useParams();
   const router = useRouter();
