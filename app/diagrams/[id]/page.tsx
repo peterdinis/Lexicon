@@ -1,11 +1,8 @@
+import DiagramInfo from "@/components/diagrams/DiagramInfo";
 import { NextPage } from "next";
 
 const DiagramDetailPage: NextPage = () => {
-    return (
-        <>
-            ABCD
-        </>
-    )
+    return <DiagramInfo />;
 }
 
 export default DiagramDetailPage;
