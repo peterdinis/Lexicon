@@ -21,9 +21,9 @@ import {
 import { Spinner } from "../ui/spinner";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { getErrorMessage } from "@/constants/applicationConstants";
-import { Eye, EyeOff } from "lucide-react"; // 👈 pridané
+import { Eye, EyeOff } from "lucide-react";
 
-// ✅ Zod schema
+// Zod schema
 const LoginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
@@ -34,8 +34,10 @@ type LoginFormValues = z.infer<typeof LoginSchema>;
 const LoginForm: FC = () => {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
+
   const [serverError, setServerError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👈 pridané
+  const [showPassword, setShowPassword] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const {
     register,
@@ -48,7 +50,6 @@ const LoginForm: FC = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     setServerError("");
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -58,6 +59,9 @@ const LoginForm: FC = () => {
       if (error) throw error;
 
       toast.success("Successfully signed in!");
+      setRedirecting(true);
+
+      // malé oneskorenie, aby používateľ videl loader
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
@@ -70,7 +74,7 @@ const LoginForm: FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
@@ -95,12 +99,10 @@ const LoginForm: FC = () => {
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || redirecting}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
 
@@ -116,14 +118,13 @@ const LoginForm: FC = () => {
                 </Link>
               </div>
 
-              {/* 👇 Password Input s toggle buttonom */}
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("password")}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || redirecting}
                   className="pr-10"
                 />
                 <button
@@ -132,18 +133,12 @@ const LoginForm: FC = () => {
                   className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
               {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
           </CardContent>
@@ -152,9 +147,15 @@ const LoginForm: FC = () => {
             <Button
               type="submit"
               className="w-full mt-4"
-              disabled={isSubmitting}
+              disabled={isSubmitting || redirecting}
             >
-              {isSubmitting ? <Spinner /> : "Sign in"}
+              {isSubmitting || redirecting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner /> {redirecting ? "Redirecting..." : "Signing in..."}
+                </span>
+              ) : (
+                "Sign in"
+              )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
@@ -169,6 +170,12 @@ const LoginForm: FC = () => {
           </CardFooter>
         </form>
       </Card>
+
+      {(isSubmitting || redirecting) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-white text-lg font-medium">
+          <Spinner /> {redirecting ? "Redirecting..." : "Signing in..."}
+        </div>
+      )}
     </div>
   );
 };

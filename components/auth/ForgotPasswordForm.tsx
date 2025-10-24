@@ -24,6 +24,7 @@ import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
 import { CheckEmailResponse } from "@/types/applicationTypes";
 
+// Zod schema
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
@@ -35,9 +36,7 @@ const ForgotPasswordForm: FC = () => {
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
-  const [emailExists, setEmailExists] = useState<boolean | undefined>(
-    undefined,
-  );
+  const [emailExists, setEmailExists] = useState<boolean | undefined>(undefined);
 
   const {
     register,
@@ -49,7 +48,7 @@ const ForgotPasswordForm: FC = () => {
     defaultValues: { email: "" },
   });
 
-  // ✅ Kontrola emailu pri opustení inputu
+  // Kontrola emailu pri opustení inputu
   const handleEmailBlur = async () => {
     const email = getValues("email");
     if (!email || !/\S+@\S+\.\S+/.test(email)) return;
@@ -83,6 +82,7 @@ const ForgotPasswordForm: FC = () => {
     } catch (err) {
       const message = getErrorMessage(err);
       setServerError(message || "Failed to send reset email");
+      toast.error(message || "Failed to send reset email");
     }
   };
 
@@ -94,25 +94,20 @@ const ForgotPasswordForm: FC = () => {
             <div className="flex items-center justify-center mb-4">
               <CheckCircle2 className="h-12 w-12 text-green-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-center">
-              Check your email
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Check your email</CardTitle>
             <CardDescription className="text-center">
-              We've sent a password reset link to{" "}
-              <strong>{getValues("email")}</strong>
+              We've sent a password reset link to <strong>{getValues("email")}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Click the link in the email to reset your password. The link will
-              expire in 1 hour.
+              Click the link in the email to reset your password. The link will expire in 1 hour.
             </p>
           </CardContent>
           <CardFooter>
             <Link href="/auth/login" className="w-full">
               <Button variant="outline" className="w-full bg-transparent">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to login
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to login
               </Button>
             </Link>
           </CardFooter>
@@ -125,12 +120,9 @@ const ForgotPasswordForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Reset your password
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">Reset your password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your
-            password
+            Enter your email address and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
 
@@ -153,19 +145,15 @@ const ForgotPasswordForm: FC = () => {
                 disabled={isSubmitting || checkingEmail}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
               {checkingEmail && (
-                <p className="text-sm text-muted-foreground">
-                  Checking email...
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Spinner className="h-4 w-4" /> Checking email...
                 </p>
               )}
               {emailExists === false && (
-                <p className="text-sm text-destructive">
-                  This email is not registered
-                </p>
+                <p className="text-sm text-destructive">This email is not registered</p>
               )}
             </div>
           </CardContent>
@@ -176,12 +164,17 @@ const ForgotPasswordForm: FC = () => {
               className="w-full"
               disabled={isSubmitting || checkingEmail}
             >
-              {isSubmitting || checkingEmail ? <Spinner /> : "Send reset link"}
+              {isSubmitting || checkingEmail ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner /> {checkingEmail ? "Checking email..." : "Sending..."}
+                </span>
+              ) : (
+                "Send reset link"
+              )}
             </Button>
             <Link href="/auth/login" className="w-full mt-4">
               <Button variant="ghost" className="w-full">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to login
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to login
               </Button>
             </Link>
           </CardFooter>
