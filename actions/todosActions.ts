@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { todos as todosTable } from "@/drizzle/schema";
+import { todos, todos as todosTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 import { CreateTodoSchema } from "./schemas/todosSchemas";
+import { Todo } from "@/types/applicationTypes";
 
 async function getUserId() {
   const supabase = await getSupabaseServerClient();
@@ -50,20 +51,29 @@ export async function createTodoAction(data: CreateTodoSchema) {
   }
 }
 
-export async function updateTodoAction(
-  id: string,
-  data: Partial<CreateTodoSchema & { completed?: number }>,
-) {
+export async function updateTodoAction(id: string, data: Partial<Todo>) {
   try {
-    const userId = await getUserId();
-    await db
-      .update(todosTable)
-      .set({ ...data, updated_at: new Date().toISOString() })
-      .where(eq(todosTable.id, id));
-    revalidatePath("/todos");
-    return { success: true };
+    const { title, description, priority, due_date, completed, status, tags, notes } = data;
+
+    const result = await db
+      .update(todos)
+      .set({
+        title,
+        description,
+        priority,
+        due_date,
+        completed: completed ? 1 : 0,
+        status,
+        tags: tags ? JSON.stringify(tags) : null,
+        notes,
+        updated_at: new Date().toISOString(),
+      })
+      .where(eq(todos.id, id))
+      .returning();
+
+    return { success: true, data: result[0] };
   } catch (error) {
-    console.error("Failed to update todo:", error);
+    console.error("Error updating todo:", error);
     return { success: false, error: "Failed to update todo" };
   }
 }

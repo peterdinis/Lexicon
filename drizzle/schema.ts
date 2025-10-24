@@ -54,6 +54,9 @@ export const todos = sqliteTable("todos", {
   completed: integer("completed").default(0),
   priority: text("priority").default("low"),
   due_date: text("due_date"),
+  status: text("status").default("pending"),
+  notes: text("notes"),
+  tags: text("tags"), 
   created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
