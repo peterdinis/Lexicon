@@ -62,9 +62,9 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
         description,
         priority,
         due_date,
-        completed,
-        status, // ✅ Dôležité — musí sa updateovať aj status
-        tags,
+        completed: completed ? 1 : 0,
+        status,
+        tags: tags ? JSON.stringify(tags) : null,
         notes,
         updated_at: new Date().toISOString(),
       })
