@@ -13,6 +13,35 @@ import {
 import { getSupabaseServerClient } from "@/supabase/server";
 import { eq, and } from "drizzle-orm";
 
+export async function movePageToTrashHandler(table: string, id: string) {
+  let targetTable;
+  switch (table) {
+    case "pages":
+      targetTable = pages;
+      break;
+    case "todos":
+      targetTable = todos;
+      break;
+    case "folders":
+      targetTable = folders;
+      break;
+    case "blocks":
+      targetTable = blocks;
+      break;
+    default:
+      throw new Error("Invalid table name");
+  }
+
+  const [updated] = await db
+    .update(targetTable)
+    .set({ in_trash: 1, updated_at: new Date().toISOString() })
+    .where(eq(targetTable.id, id))
+    .returning();
+
+  if (!updated) throw new Error("Failed to move item to trash");
+  return updated;
+}
+
 async function getUserOrThrow() {
   const supabase = await getSupabaseServerClient();
   const {

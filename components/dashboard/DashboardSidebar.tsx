@@ -60,6 +60,7 @@ import {
 } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
+import { moveToTrashAction } from "@/actions/trashActions";
 
 interface DashboardSidebarProps {
   initialPages: Page[];
@@ -95,10 +96,10 @@ export function DashboardSidebar({
   const buildHierarchy = useCallback((pages: Page[]): any[] => {
     const pageMap = new Map<string, any>();
     const rootPages: any[] = [];
-    
+
     // Initialize all pages
     pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
-    
+
     // Build hierarchy
     pages.forEach((p) => {
       const pageWithChildren = pageMap.get(p.id)!;
@@ -108,7 +109,7 @@ export function DashboardSidebar({
         rootPages.push(pageWithChildren);
       }
     });
-    
+
     return rootPages;
   }, []);
 
@@ -152,8 +153,7 @@ export function DashboardSidebar({
       console.error("Error creating page:", error);
       setPages((prev) => prev.filter((p) => p.id !== tempId));
       alert(
-        `Failed to create page: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     } finally {
@@ -193,10 +193,9 @@ export function DashboardSidebar({
     setPages((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      const result = await deletePageAction({ id });
-      if (!result?.data) throw new Error("Failed to delete page");
+      const result = await moveToTrashAction({ id, table: "pages" });
 
-      if (currentPageId === id) router.push("/");
+      if (!result.data) throw new Error("Failed to move page to trash");
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -304,9 +303,8 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${
-          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-        }`}
+        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+          }`}
       >
         {children}
       </div>
@@ -329,9 +327,8 @@ export function DashboardSidebar({
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
-            currentPageId === page.id ? "bg-accent" : ""
-          }`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
+            }`}
         >
           <button
             {...dragHandleProps}
@@ -571,11 +568,10 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                  }`}
+                    }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -607,9 +603,8 @@ export function DashboardSidebar({
         onDragEnd={handleDragEnd}
       >
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
-            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-          }`}
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+            }`}
         >
           <SidebarContent />
         </aside>

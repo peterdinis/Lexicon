@@ -2,7 +2,8 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { getAllNonTrashedItemsHandler, restoreFromTrashHandler } from "./handlers/trashHandlers";
+import { getAllNonTrashedItemsHandler, movePageToTrashHandler, restoreFromTrashHandler } from "./handlers/trashHandlers";
+import z from "zod";
 
 export const getAllNonTrashedItemsAction = actionClient.action(async () => {
   try {
@@ -12,6 +13,23 @@ export const getAllNonTrashedItemsAction = actionClient.action(async () => {
     throw new Error(getErrorMessage(err));
   }
 });
+
+export const moveToTrashAction = actionClient
+  .inputSchema(
+    z.object({
+      id: z.string(),
+      table: z.string(),
+    })
+  )
+  .action(async ({ parsedInput }) => {
+    const { id, table } = parsedInput;
+    try {
+      await movePageToTrashHandler(table, id);
+      return { success: true };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
 
 export async function restoreFromTrashAction(formData: FormData) {
   const id = formData.get("id") as string;
