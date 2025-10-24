@@ -54,10 +54,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import {
-  createPageAction,
-  deletePageAction,
-} from "@/actions/pagesActions";
+import { createPageAction } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
@@ -71,15 +68,13 @@ export function DashboardSidebar({
   initialPages,
   currentPageId,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<Page[]>(initialPages);
+  const [pages, setPages] = useState<Page[]>(initialPages.filter(p => !p.in_trash));
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -97,10 +92,7 @@ export function DashboardSidebar({
     const pageMap = new Map<string, any>();
     const rootPages: any[] = [];
 
-    // Initialize all pages
     pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
-
-    // Build hierarchy
     pages.forEach((p) => {
       const pageWithChildren = pageMap.get(p.id)!;
       if (p.parent_id && pageMap.has(p.parent_id)) {
@@ -131,6 +123,7 @@ export function DashboardSidebar({
       user_id: "",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      in_trash: 0,
     };
 
     setPages((prev) => [...prev, tempPage]);
@@ -153,8 +146,7 @@ export function DashboardSidebar({
       console.error("Error creating page:", error);
       setPages((prev) => prev.filter((p) => p.id !== tempId));
       alert(
-        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"
-        }`
+        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     } finally {
       setLoading(false);
@@ -185,16 +177,12 @@ export function DashboardSidebar({
     }
   };
 
-  const deletePage = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Are you sure you want to move this to trash?")) return;
-
+  const movePageToTrash = async (id: string) => {
     const prevPages = [...pages];
     setPages((prev) => prev.filter((p) => p.id !== id));
 
     try {
       const result = await moveToTrashAction({ id, table: "pages" });
-
       if (!result.data) throw new Error("Failed to move page to trash");
     } catch (error) {
       console.error(error);
@@ -239,13 +227,13 @@ export function DashboardSidebar({
     const targetId = over.id as string;
 
     const draggedPage = pages.find((p) => p.id === draggedPageId);
-    if (draggedPage?.is_folder && targetId === draggedPageId) return;
+    if (draggedPage?.is_folder === 1 && targetId === draggedPageId) return;
 
     if (targetId === "root") {
       movePageDebounced(draggedPageId, null);
     } else {
       const targetPage = pages.find((p) => p.id === targetId);
-      if (targetPage?.is_folder) {
+      if (targetPage?.is_folder === 1) {
         movePageDebounced(draggedPageId, targetId);
         setExpandedFolders((prev) => new Set([...prev, targetId]));
       }
@@ -337,7 +325,7 @@ export function DashboardSidebar({
             <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
 
-          {page.is_folder ? (
+          {page.is_folder === 1 ? (
             <>
               <button
                 onClick={() => toggleFolder(page.id)}
@@ -392,7 +380,7 @@ export function DashboardSidebar({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {page.is_folder ? (
+              {page.is_folder === 1 && (
                 <>
                   <DropdownMenuItem onClick={() => createPage()}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -403,9 +391,9 @@ export function DashboardSidebar({
                     New Folder
                   </DropdownMenuItem>
                 </>
-              ) : null}
+              )}
               <DropdownMenuItem
-                onClick={(e) => deletePage(page.id, e)}
+                onClick={() => movePageToTrash(page.id)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Move to Trash
@@ -417,14 +405,14 @@ export function DashboardSidebar({
 
       return (
         <div>
-          {page.is_folder ? (
+          {page.is_folder === 1 ? (
             <DroppableFolder page={page}>
               {content}
             </DroppableFolder>
           ) : (
             content
           )}
-          {page.is_folder && isExpanded && hasChildren && (
+          {page.is_folder === 1 && isExpanded && hasChildren && (
             <div className="ml-6">
               {page.children!.map((child: any) => (
                 <DraggablePageItem key={child.id} page={child} />
@@ -612,7 +600,7 @@ export function DashboardSidebar({
         <DragOverlay>
           {activePage ? (
             <div className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 shadow-lg ring-2 ring-primary">
-              {activePage.is_folder ? (
+              {activePage.is_folder === 1 ? (
                 <Folder className="h-4 w-4 text-muted-foreground" />
               ) : (
                 <FileText className="h-4 w-4 text-muted-foreground" />

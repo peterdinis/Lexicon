@@ -11,6 +11,7 @@ export interface Page {
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
+  in_trash?: number;
 }
 
 export interface Block {
