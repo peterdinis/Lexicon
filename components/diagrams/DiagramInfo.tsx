@@ -29,7 +29,13 @@ import { v4 as uuidv4 } from "uuid";
 // --------------------
 // Custom Node Label
 // --------------------
-const NodeLabel = ({ node, onChange }: { node: Node; onChange: (val: string) => void }) => {
+const NodeLabel = ({
+  node,
+  onChange,
+}: {
+  node: Node;
+  onChange: (val: string) => void;
+}) => {
   const [label, setLabel] = useState(node.data.label);
 
   const handleBlur = () => onChange(label as unknown as string);
@@ -78,9 +84,13 @@ const DiagramInfo: FC = () => {
         setDescription(data.description || "");
 
         const parsedNodes =
-          typeof data.nodes === "string" ? JSON.parse(data.nodes) : data.nodes || [];
+          typeof data.nodes === "string"
+            ? JSON.parse(data.nodes)
+            : data.nodes || [];
         const parsedEdges =
-          typeof data.edges === "string" ? JSON.parse(data.edges) : data.edges || [];
+          typeof data.edges === "string"
+            ? JSON.parse(data.edges)
+            : data.edges || [];
 
         setNodes(parsedNodes);
         setEdges(parsedEdges);
@@ -132,7 +142,7 @@ const DiagramInfo: FC = () => {
   // ----------------------
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   // ----------------------
@@ -142,7 +152,14 @@ const DiagramInfo: FC = () => {
     const newNode: Node = {
       id: uuidv4(),
       position: { x: 250, y: 250 },
-      data: { label: type === "text" ? "Text Node" : type === "image" ? "Image Node" : "Custom Node" },
+      data: {
+        label:
+          type === "text"
+            ? "Text Node"
+            : type === "image"
+              ? "Image Node"
+              : "Custom Node",
+      },
       style: {
         background: type === "custom" ? "#ffd700" : "#fff",
         border: "1px solid #777",
@@ -171,7 +188,9 @@ const DiagramInfo: FC = () => {
 
   const updateNodeLabel = (nodeId: string, label: string) => {
     setNodes((nds) =>
-      nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, label } } : n))
+      nds.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, label } } : n,
+      ),
     );
   };
 
@@ -192,7 +211,11 @@ const DiagramInfo: FC = () => {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} disabled={saving} />
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={saving}
+          />
         </div>
 
         <div>
@@ -228,7 +251,10 @@ const DiagramInfo: FC = () => {
               data: {
                 ...n.data,
                 label: (
-                  <NodeLabel node={n} onChange={(val) => updateNodeLabel(n.id, val)} />
+                  <NodeLabel
+                    node={n}
+                    onChange={(val) => updateNodeLabel(n.id, val)}
+                  />
                 ),
               },
             }))}
