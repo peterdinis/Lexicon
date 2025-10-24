@@ -333,6 +333,8 @@ export default function TodoWrapper() {
       if (editingTodo) {
         const updatedData = { ...data, completed: editingTodo.completed ?? 0 };
         const result = await updateTodoAction(editingTodo.id, updatedData);
+        console.log("Result of update:", result);
+        console.log("Updated data:", updatedData);
         if (result.success) {
           setTodos((prev) =>
             prev.map((todo) =>
