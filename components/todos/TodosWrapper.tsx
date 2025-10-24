@@ -58,6 +58,8 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
+  DragOverlay,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -97,7 +99,134 @@ type FilterStatus = "all" | "not_started" | "in_progress" | "done";
 type FilterPriority = "all" | "low" | "medium" | "high";
 
 // ----------------------
-// Sortable Component
+// Sortable Component pre Board
+// ----------------------
+function BoardTodoItem({
+  todo,
+  onToggle,
+  onDelete,
+  onEdit,
+}: {
+  todo: Todo;
+  onToggle: (todo: Todo) => void;
+  onDelete: (id: string) => void;
+  onEdit: (todo: Todo) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const getPriorityColor = (priority: string | null) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "medium":
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      case "low":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${
+        (todo.completed ?? 0) === 1 ? "opacity-60" : ""
+      } ${isDragging ? "shadow-lg border-primary rotate-2" : ""} bg-background`}
+    >
+      <div className="flex items-start gap-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(todo);
+          }}
+          className="mt-0.5 flex-shrink-0"
+        >
+          {(todo.completed ?? 0) === 1 ? (
+            <Check className="h-4 w-4 text-primary" />
+          ) : (
+            <Circle className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+        <div className="flex-1 min-w-0">
+          <h4
+            className={`text-sm font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
+          >
+            {todo.title}
+          </h4>
+          {todo.description && (
+            <p className="mt-1 text-xs text-muted-foreground truncate">
+              {todo.description}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-1">
+            {todo.priority && (
+              <Badge variant="outline" className={`text-xs ${getPriorityColor(todo.priority)}`}>
+                {todo.priority}
+              </Badge>
+            )}
+            {todo.tags?.map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="text-xs"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(todo);
+            }}
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(todo.id);
+            }}
+          >
+            <Trash2 className="h-3 w-3 text-destructive" />
+          </Button>
+        </div>
+      </div>
+      {/* Drag handle - celá plocha pre drag */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing rounded-lg"
+      />
+    </div>
+  );
+}
+
+// ----------------------
+// Sortable Component pre List
 // ----------------------
 function SortableTodoItem({
   todo,
@@ -157,23 +286,26 @@ function SortableTodoItem({
       style={style}
       className={`group flex items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-accent ${
         (todo.completed ?? 0) === 1 ? "opacity-60" : ""
-      }`}
+      } ${isDragging ? "shadow-lg border-primary" : ""} bg-background`}
     >
       <button
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing"
+        className="mt-1 cursor-grab active:cursor-grabbing hover:bg-accent rounded p-1 flex-shrink-0"
       >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
-      <button onClick={() => onToggle(todo)} className="mt-0.5">
+      <button 
+        onClick={() => onToggle(todo)} 
+        className="mt-0.5 flex-shrink-0"
+      >
         {(todo.completed ?? 0) === 1 ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (
           <Circle className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <h3
           className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
         >
@@ -215,7 +347,7 @@ function SortableTodoItem({
           )}
         </div>
       </div>
-      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0">
         <Button variant="ghost" size="icon" onClick={() => onEdit(todo)}>
           <Edit className="h-4 w-4" />
         </Button>
@@ -241,6 +373,7 @@ export default function TodoWrapper() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterPriority, setFilterPriority] = useState<FilterPriority>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const form = useForm<
     CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }
@@ -260,7 +393,11 @@ export default function TodoWrapper() {
   });
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -279,6 +416,9 @@ export default function TodoWrapper() {
               created_at: todo.created_at ?? new Date().toISOString(),
               updated_at: todo.updated_at ?? new Date().toISOString(),
               status: todo.status ?? "not_started",
+              tags: todo.tags ? JSON.parse(todo.tags) : [],
+              completed: todo.completed ?? 0,
+              notes: todo.notes ?? "",
             })),
           );
         }
@@ -310,10 +450,56 @@ export default function TodoWrapper() {
     });
   }, [todos, filterStatus, filterPriority, filterTag]);
 
+  const groupedByStatus = useMemo(() => {
+    const groups = {
+      not_started: filteredTodos.filter(
+        (t) => t.status === "not_started" || !t.status,
+      ),
+      in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
+      done: filteredTodos.filter(
+        (t) => t.status === "done" || (t.completed ?? 0) === 1,
+      ),
+    };
+    return groups;
+  }, [filteredTodos]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
-    if (over && active.id !== over.id) {
+    if (!over) return;
+
+    const activeTodo = todos.find(t => t.id === active.id);
+    const overTodo = todos.find(t => t.id === over.id) as any;
+
+    if (!activeTodo || !overTodo) return;
+
+    // Ak ťaháme medzi stĺpcami (zmena statusu)
+    if (activeTodo.status !== overTodo.status) {
+      const newStatus = overTodo.status;
+      
+      // Update todo status v databáze
+      const result = await updateTodoAction(activeTodo.id, {
+        status: newStatus,
+        completed: newStatus === 'done' ? 1 : 0,
+      });
+
+      if (result.success) {
+        setTodos(prev =>
+          prev.map(todo =>
+            todo.id === activeTodo.id
+              ? { ...todo, status: newStatus, completed: newStatus === 'done' ? 1 : 0 }
+              : todo
+          )
+        );
+      }
+    } 
+    // Ak ťaháme v rámci toho istého stĺpca (zmena poradia)
+    else if (active.id !== over.id) {
       const oldIndex = todos.findIndex((t) => t.id === active.id);
       const newIndex = todos.findIndex((t) => t.id === over.id);
 
@@ -331,19 +517,27 @@ export default function TodoWrapper() {
   ) => {
     try {
       if (editingTodo) {
-        const updatedData = { ...data, completed: editingTodo.completed ?? 0 };
+        const updatedData = { 
+          ...data, 
+          completed: editingTodo.completed ?? 0,
+          description: data.description || null,
+          due_date: data.due_date || null,
+        } as any;
+        
         const result = await updateTodoAction(editingTodo.id, updatedData);
-        console.log("Result of update:", result);
-        console.log("Updated data:", updatedData);
-        if (result.success) {
+        
+        if (result.success && result.data) {
           setTodos((prev) =>
             prev.map((todo) =>
               todo.id === editingTodo.id
                 ? {
                     ...todo,
                     ...updatedData,
-                    description: updatedData.description ?? null,
+                    description: updatedData.description,
+                    due_date: updatedData.due_date,
                     status: updatedData.status ?? todo.status,
+                    tags: updatedData.tags ?? todo.tags,
+                    notes: updatedData.notes ?? todo.notes,
                   }
                 : todo,
             ),
@@ -357,8 +551,8 @@ export default function TodoWrapper() {
             description: result.data.description ?? null,
             due_date: result.data.due_date ?? null,
             status: data.status ?? "not_started",
-            tags: data.tags,
-            notes: data.notes,
+            tags: data.tags ?? [],
+            notes: data.notes ?? "",
           };
           setTodos((prev) => [newTodo, ...prev]);
         }
@@ -384,9 +578,13 @@ export default function TodoWrapper() {
 
   const handleToggleComplete = async (todo: Todo) => {
     const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
+    const newStatus = newCompleted === 1 ? "done" : "not_started";
+    
     const result = await updateTodoAction(todo.id, {
       completed: newCompleted,
+      status: newStatus,
     });
+    
     if (result.success) {
       setTodos((prev) =>
         prev.map((t) =>
@@ -394,7 +592,7 @@ export default function TodoWrapper() {
             ? {
                 ...t,
                 completed: newCompleted,
-                status: newCompleted === 1 ? "done" : "not_started",
+                status: newStatus,
               }
             : t,
         ),
@@ -433,18 +631,7 @@ export default function TodoWrapper() {
     );
   };
 
-  const groupedByStatus = useMemo(() => {
-    const groups = {
-      not_started: filteredTodos.filter(
-        (t) => t.status === "not_started" || !t.status,
-      ),
-      in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
-      done: filteredTodos.filter(
-        (t) => t.status === "done" || (t.completed ?? 0) === 1,
-      ),
-    };
-    return groups;
-  }, [filteredTodos]);
+  const activeTodo = activeId ? todos.find(todo => todo.id === activeId) : null;
 
   if (loading) {
     return (
@@ -563,6 +750,7 @@ export default function TodoWrapper() {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -587,104 +775,83 @@ export default function TodoWrapper() {
               )}
             </div>
           </SortableContext>
+          <DragOverlay>
+            {activeTodo ? (
+              <div className="rounded-lg border p-4 bg-background shadow-lg border-primary opacity-80">
+                <div className="flex items-start gap-3">
+                  <GripVertical className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium">{activeTodo.title}</h3>
+                    {activeTodo.description && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {activeTodo.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
       {/* Board View */}
       {viewMode === "board" && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {(["not_started", "in_progress", "done"] as const).map((status) => (
-            <div key={status} className="rounded-lg border p-4">
-              <h3 className="mb-4 font-semibold capitalize">
-                {status.replace("_", " ")} ({groupedByStatus[status].length})
-              </h3>
-              <div className="space-y-2">
-                {groupedByStatus[status].map((todo) => (
-                  <div
-                    key={todo.id}
-                    className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${
-                      (todo.completed ?? 0) === 1 ? "opacity-60" : ""
-                    }`}
-                    onClick={() => setSelectedTodo(todo)}
-                  >
-                    <div className="flex items-start gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleComplete(todo);
-                        }}
-                        className="mt-0.5"
-                      >
-                        {(todo.completed ?? 0) === 1 ? (
-                          <Check className="h-4 w-4 text-primary" />
-                        ) : (
-                          <Circle className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <h4
-                          className={`text-sm font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
-                        >
-                          {todo.title}
-                        </h4>
-                        {todo.description && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {todo.description}
-                          </p>
-                        )}
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {todo.priority && (
-                            <Badge variant="outline" className="text-xs">
-                              {todo.priority}
-                            </Badge>
-                          )}
-                          {todo.tags?.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {(["not_started", "in_progress", "done"] as const).map((status) => (
+              <div key={status} className="rounded-lg border p-4 bg-muted/20 min-h-[400px]">
+                <h3 className="mb-4 font-semibold capitalize">
+                  {status.replace("_", " ")} ({groupedByStatus[status].length})
+                </h3>
+                <SortableContext
+                  items={groupedByStatus[status].map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {groupedByStatus[status].map((todo) => (
+                      <BoardTodoItem
+                        key={todo.id}
+                        todo={todo}
+                        onToggle={handleToggleComplete}
+                        onDelete={handleDelete}
+                        onEdit={openEditDialog}
+                      />
+                    ))}
+                    {groupedByStatus[status].length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                        <p className="text-sm">Drop tasks here</p>
                       </div>
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditDialog(todo);
-                          }}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(todo.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                ))}
-                {groupedByStatus[status].length === 0 && (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
-                    No todos
-                  </p>
-                )}
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <DragOverlay>
+            {activeTodo ? (
+              <div className="rounded-lg border p-3 bg-background shadow-lg border-primary opacity-80 rotate-2">
+                <div className="flex items-start gap-2">
+                  <div className="mt-0.5 flex-shrink-0">
+                    {(activeTodo.completed ?? 0) === 1 ? (
+                      <Check className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium">{activeTodo.title}</h4>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* Table View */}
@@ -793,6 +960,7 @@ export default function TodoWrapper() {
         </div>
       )}
 
+      {/* Ostatný kód (Dialog, Sheet) zostáva rovnaký */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -949,7 +1117,7 @@ export default function TodoWrapper() {
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <SheetTitle className="text-xl font-bold wrap-break">
+                <SheetTitle className="text-xl font-bold break-words">
                   {selectedTodo?.title}
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-base">

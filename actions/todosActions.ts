@@ -62,7 +62,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
         description,
         priority,
         due_date,
-        completed: completed ? 1 : 0,
+        completed: completed !== undefined ? (completed ? 1 : 0) : undefined,
         status,
         tags: tags ? JSON.stringify(tags) : null,
         notes,
@@ -71,6 +71,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       .where(eq(todos.id, id))
       .returning();
 
+    revalidatePath("/todos");
     return { success: true, data: result[0] };
   } catch (error) {
     console.error("Error updating todo:", error);
