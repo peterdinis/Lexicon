@@ -954,7 +954,7 @@ export default function TodoWrapper() {
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <SheetTitle className="text-xl font-bold break-words">
+                <SheetTitle className="text-xl font-bold wrap-break">
                   {selectedTodo?.title}
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-base">
@@ -982,7 +982,7 @@ export default function TodoWrapper() {
                     setDialogOpen(true);
                   }
                 }}
-                className="flex-shrink-0"
+                className="shrink-0 mt-6"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -990,7 +990,7 @@ export default function TodoWrapper() {
           </SheetHeader>
 
           {selectedTodo && (
-            <div className="mt-6 space-y-6">
+            <div className="mt-6 space-y-6 p-5">
               {/* Status & Priority Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
