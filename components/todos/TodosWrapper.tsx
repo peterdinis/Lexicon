@@ -87,7 +87,7 @@ export type Todo = {
   due_date: string | null;
   created_at: string;
   updated_at: string;
-  status?: string;
+  status: string;
   tags?: string[];
   notes?: string;
 };
@@ -278,6 +278,7 @@ export default function TodoWrapper() {
               ...todo,
               created_at: todo.created_at ?? new Date().toISOString(),
               updated_at: todo.updated_at ?? new Date().toISOString(),
+              status: todo.status ?? "not_started",
             })),
           );
         }
@@ -318,14 +319,6 @@ export default function TodoWrapper() {
 
       const newTodos = arrayMove(todos, oldIndex, newIndex);
       setTodos(newTodos);
-
-      // Update positions in the backend - můžete implementovat podle potřeby
-      try {
-        // await updateTodoPosition(active.id, newIndex);
-      } catch (error) {
-        console.error("Error reordering todos:", error);
-        setTodos(todos); // Revert on error
-      }
     }
   };
 
@@ -340,6 +333,8 @@ export default function TodoWrapper() {
       if (editingTodo) {
         const updatedData = { ...data, completed: editingTodo.completed ?? 0 };
         const result = await updateTodoAction(editingTodo.id, updatedData);
+        console.log("Result of update:", result);
+        console.log("Updated data:", updatedData);
         if (result.success) {
           setTodos((prev) =>
             prev.map((todo) =>
@@ -361,7 +356,7 @@ export default function TodoWrapper() {
             ...result.data,
             description: result.data.description ?? null,
             due_date: result.data.due_date ?? null,
-            status: data.status,
+            status: data.status ?? "not_started",
             tags: data.tags,
             notes: data.notes,
           };
@@ -798,7 +793,6 @@ export default function TodoWrapper() {
         </div>
       )}
 
-      {/* Dialog: Create/Edit */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
