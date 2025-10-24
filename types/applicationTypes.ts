@@ -1,4 +1,5 @@
 export interface Page {
+  children?(children: any, arg1: number): unknown;
   id: string;
   user_id: string;
   title: string;

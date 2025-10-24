@@ -92,16 +92,23 @@ export function DashboardSidebar({
     useSensor(KeyboardSensor),
   );
 
-  const buildHierarchy = useCallback((pages: Page[]): Page[] => {
-    const pageMap = new Map<string, Page & { children?: Page[] }>();
-    const rootPages: Page[] = [];
+  const buildHierarchy = useCallback((pages: Page[]): any[] => {
+    const pageMap = new Map<string, any>();
+    const rootPages: any[] = [];
+    
+    // Initialize all pages
     pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
+    
+    // Build hierarchy
     pages.forEach((p) => {
       const pageWithChildren = pageMap.get(p.id)!;
       if (p.parent_id && pageMap.has(p.parent_id)) {
         pageMap.get(p.parent_id)!.children!.push(pageWithChildren);
-      } else rootPages.push(pageWithChildren);
+      } else {
+        rootPages.push(pageWithChildren);
+      }
     });
+    
     return rootPages;
   }, []);
 
@@ -137,7 +144,7 @@ export function DashboardSidebar({
       if (!result?.data) throw new Error("No data returned from server");
 
       setPages((prev) =>
-        prev.map((p) => (p.id === tempId ? result.data as Page : p))
+        prev.map((p) => (p.id === tempId ? result.data as unknown as Page : p))
       );
 
       router.push(`/page/${result.data.id}`);
@@ -169,6 +176,8 @@ export function DashboardSidebar({
         parent_id: folderParentId,
       });
       setFolderModalOpen(false);
+      // Refresh the page list - you might want to add a proper refetch here
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "Unknown error");
@@ -216,7 +225,7 @@ export function DashboardSidebar({
     }
   };
 
-  const movePageDebounced = useMemo(() => debounce(movePage, 300), [pages]);
+  const movePageDebounced = useMemo(() => debounce(movePage, 300), []);
 
   const handleDragStart = (event: DragStartEvent) =>
     setActiveId(event.active.id as string);
@@ -234,8 +243,9 @@ export function DashboardSidebar({
     const draggedPage = pages.find((p) => p.id === draggedPageId);
     if (draggedPage?.is_folder && targetId === draggedPageId) return;
 
-    if (targetId === "root") movePageDebounced(draggedPageId, null);
-    else {
+    if (targetId === "root") {
+      movePageDebounced(draggedPageId, null);
+    } else {
       const targetPage = pages.find((p) => p.id === targetId);
       if (targetPage?.is_folder) {
         movePageDebounced(draggedPageId, targetId);
@@ -253,7 +263,7 @@ export function DashboardSidebar({
     });
   };
 
-  const isDescendant = (parentId: string, childId: string) => {
+  const isDescendant = (parentId: string, childId: string): boolean => {
     const page = pages.find((p) => p.id === childId);
     if (!page || !page.parent_id) return false;
     if (page.parent_id === parentId) return true;
@@ -261,7 +271,7 @@ export function DashboardSidebar({
   };
 
   const DraggablePageItem = memo(
-    ({ page }: { page: Page & { children?: Page[] } }) => {
+    ({ page }: { page: any }) => {
       const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({ id: page.id, data: { page } });
       const style = {
@@ -283,7 +293,7 @@ export function DashboardSidebar({
     page,
     children,
   }: {
-    page: Page & { children?: Page[] };
+    page: any;
     children: ReactNode;
   }) => {
     const { setNodeRef, isOver } = useDroppable({
@@ -309,7 +319,7 @@ export function DashboardSidebar({
       page,
       dragHandleProps,
     }: {
-      page: Page & { children?: Page[] };
+      page: any;
       dragHandleProps?: {
         attributes: DraggableAttributes;
         listeners: DraggableSyntheticListeners;
@@ -336,11 +346,16 @@ export function DashboardSidebar({
               <button
                 onClick={() => toggleFolder(page.id)}
                 className="p-1 hover:bg-accent-foreground/10 rounded"
+                disabled={!hasChildren}
               >
-                {isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
+                {hasChildren ? (
+                  isExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <div className="w-3.5 h-3.5" />
                 )}
               </button>
               <button
@@ -381,7 +396,7 @@ export function DashboardSidebar({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {page.is_folder && (
+              {page.is_folder ? (
                 <>
                   <DropdownMenuItem onClick={() => createPage()}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -392,11 +407,9 @@ export function DashboardSidebar({
                     New Folder
                   </DropdownMenuItem>
                 </>
-              )}
+              ) : null}
               <DropdownMenuItem
-                onClick={(e: React.MouseEvent<HTMLDivElement>) =>
-                  deletePage(page.id, e)
-                }
+                onClick={(e) => deletePage(page.id, e)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Move to Trash
@@ -417,7 +430,7 @@ export function DashboardSidebar({
           )}
           {page.is_folder && isExpanded && hasChildren && (
             <div className="ml-6">
-              {page.children!.map((child: Page) => (
+              {page.children!.map((child: any) => (
                 <DraggablePageItem key={child.id} page={child} />
               ))}
             </div>
@@ -546,7 +559,7 @@ export function DashboardSidebar({
                     <FolderPlus className="h-3.5 w-3.5" />
                   </Button>
                   <Button
-                    onClick={() => createPage()}
+                    onClick={createPage}
                     disabled={loading}
                     variant="ghost"
                     size="icon"
@@ -618,7 +631,7 @@ export function DashboardSidebar({
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="md:hidden">
+          <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
