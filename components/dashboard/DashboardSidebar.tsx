@@ -176,7 +176,6 @@ export function DashboardSidebar({
         parent_id: folderParentId,
       });
       setFolderModalOpen(false);
-      // Refresh the page list - you might want to add a proper refetch here
       window.location.reload();
     } catch (err) {
       console.error(err);
