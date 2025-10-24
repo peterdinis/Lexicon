@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useMemo,
-  useCallback,
-  memo,
-  ReactNode,
-} from "react";
+import { useState, useMemo, useCallback, memo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -54,7 +48,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction } from "@/actions/pagesActions";
+import { createPageAction, deletePageAction } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
@@ -92,7 +86,10 @@ export function DashboardSidebar({
     const pageMap = new Map<string, any>();
     const rootPages: any[] = [];
 
+    // Initialize all pages
     pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
+
+    // Build hierarchy
     pages.forEach((p) => {
       const pageWithChildren = pageMap.get(p.id)!;
       if (p.parent_id && pageMap.has(p.parent_id)) {
@@ -138,7 +135,9 @@ export function DashboardSidebar({
       if (!result?.data) throw new Error("No data returned from server");
 
       setPages((prev) =>
-        prev.map((p) => (p.id === tempId ? result.data as unknown as Page : p))
+        prev.map((p) =>
+          p.id === tempId ? (result.data as unknown as Page) : p,
+        ),
       );
 
       router.push(`/page/${result.data.id}`);
@@ -146,7 +145,9 @@ export function DashboardSidebar({
       console.error("Error creating page:", error);
       setPages((prev) => prev.filter((p) => p.id !== tempId));
       alert(
-        `Failed to create page: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to create page: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       );
     } finally {
       setLoading(false);
@@ -256,24 +257,19 @@ export function DashboardSidebar({
     return isDescendant(parentId, page.parent_id);
   };
 
-  const DraggablePageItem = memo(
-    ({ page }: { page: any }) => {
-      const { attributes, listeners, setNodeRef, transform, isDragging } =
-        useDraggable({ id: page.id, data: { page } });
-      const style = {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.5 : 1,
-      };
-      return (
-        <div ref={setNodeRef} style={style}>
-          <PageTreeItem
-            page={page}
-            dragHandleProps={{ attributes, listeners }}
-          />
-        </div>
-      );
-    },
-  );
+  const DraggablePageItem = memo(({ page }: { page: any }) => {
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+      useDraggable({ id: page.id, data: { page } });
+    const style = {
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0.5 : 1,
+    };
+    return (
+      <div ref={setNodeRef} style={style}>
+        <PageTreeItem page={page} dragHandleProps={{ attributes, listeners }} />
+      </div>
+    );
+  });
 
   const DroppableFolder = ({
     page,
@@ -367,7 +363,8 @@ export function DashboardSidebar({
               >
                 <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <span className="flex-1 truncate text-left">
-                  {page.icon ? `${page.icon} ` : ""}{page.title}
+                  {page.icon ? `${page.icon} ` : ""}
+                  {page.title}
                 </span>
               </button>
             </>

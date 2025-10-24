@@ -60,7 +60,9 @@ const SignupForm: FC = () => {
 
     startTransition(async () => {
       try {
-        const result = (await checkEmailAction({ email: data.email })) as { exists: boolean };
+        const result = (await checkEmailAction({ email: data.email })) as {
+          exists: boolean;
+        };
         if (result.exists) {
           setError("Email is already registered");
           return;
@@ -94,7 +96,9 @@ const SignupForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
           <CardDescription>Enter your details to get started</CardDescription>
         </CardHeader>
 
@@ -116,7 +120,11 @@ const SignupForm: FC = () => {
                 {...register("email", { required: "Email is required" })}
                 disabled={isPending || redirecting}
               />
-              {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-destructive text-sm">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -127,7 +135,9 @@ const SignupForm: FC = () => {
                   id={`${id}-password`}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  {...register("password", { required: "Password is required" })}
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
                   disabled={isPending || redirecting}
                   className="pr-10"
                 />
@@ -137,10 +147,18 @@ const SignupForm: FC = () => {
                   className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
-              {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-destructive text-sm">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -151,7 +169,9 @@ const SignupForm: FC = () => {
                   id={`${id}-confirm-password`}
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  {...register("confirmPassword", { required: "Confirm your password" })}
+                  {...register("confirmPassword", {
+                    required: "Confirm your password",
+                  })}
                   disabled={isPending || redirecting}
                   className="pr-10"
                 />
@@ -161,20 +181,31 @@ const SignupForm: FC = () => {
                   className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
                   tabIndex={-1}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
+                <p className="text-destructive text-sm">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4 mt-4">
-            <Button type="submit" className="w-full" disabled={isPending || redirecting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isPending || redirecting}
+            >
               {isPending ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="animate-spin h-4 w-4" /> Creating account...
+                  <Loader2 className="animate-spin h-4 w-4" /> Creating
+                  account...
                 </span>
               ) : redirecting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -187,7 +218,10 @@ const SignupForm: FC = () => {
 
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-primary hover:underline">
+              <Link
+                href="/auth/login"
+                className="font-medium text-primary hover:underline"
+              >
                 Sign in
               </Link>
             </p>
