@@ -591,13 +591,40 @@ export function DashboardSidebar({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
+        {/* Desktop Sidebar */}
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:block ${
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex ${
             desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
           }`}
         >
           <SidebarContent />
         </aside>
+
+        {/* Mobile Menu Button - vždy viditeľný */}
+        <div className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileOpen(true)}
+            className="h-9 w-9"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Desktop Toggle Button - viditeľný keď je sidebar zatvorený */}
+        {desktopCollapsed && (
+          <div className="hidden md:flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDesktopCollapsed(false)}
+              className="h-9 w-9 absolute left-2 top-2 z-10"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
 
         <DragOverlay>
           {activePage ? (
@@ -613,17 +640,14 @@ export function DashboardSidebar({
         </DragOverlay>
       </DndContext>
 
+      {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
         <SheetContent side="left" className="p-0 w-64">
           <SidebarContent isMobile />
         </SheetContent>
       </Sheet>
 
+      {/* Folder Modal */}
       <Sheet open={folderModalOpen} onOpenChange={setFolderModalOpen}>
         <SheetContent side="right" className="max-w-md">
           <div className="flex items-center justify-between border-b p-4">

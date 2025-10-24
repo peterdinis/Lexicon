@@ -57,7 +57,7 @@ const DashboardTopBar = () => {
   return (
     <header className="border-b bg-background">
       <div className="flex h-14 items-center justify-between px-4">
-        <h1 className="text-lg font-semibold">Dashboard</h1>
+        <h1 className="text-lg font-semibold" />
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
