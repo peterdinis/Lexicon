@@ -53,7 +53,16 @@ export async function createTodoAction(data: CreateTodoSchema) {
 
 export async function updateTodoAction(id: string, data: Partial<Todo>) {
   try {
-    const { title, description, priority, due_date, completed, status, tags, notes } = data;
+    const {
+      title,
+      description,
+      priority,
+      due_date,
+      completed,
+      status,
+      tags,
+      notes,
+    } = data;
 
     const result = await db
       .update(todos)
