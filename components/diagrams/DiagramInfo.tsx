@@ -5,7 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { getDiagramAction, updateDiagramAction, deleteDiagramAction } from "@/actions/diagramActions";
+import {
+  getDiagramAction,
+  updateDiagramAction,
+  deleteDiagramAction,
+} from "@/actions/diagramActions";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -52,8 +56,14 @@ const DiagramInfo: FC = () => {
         setDescription(data.description || "");
 
         // nodes/edges sa môžu ukladať ako stringy → parsujeme
-        const parsedNodes = typeof data.nodes === "string" ? JSON.parse(data.nodes) : data.nodes || [];
-        const parsedEdges = typeof data.edges === "string" ? JSON.parse(data.edges) : data.edges || [];
+        const parsedNodes =
+          typeof data.nodes === "string"
+            ? JSON.parse(data.nodes)
+            : data.nodes || [];
+        const parsedEdges =
+          typeof data.edges === "string"
+            ? JSON.parse(data.edges)
+            : data.edges || [];
 
         setNodes(parsedNodes);
         setEdges(parsedEdges);
@@ -77,7 +87,7 @@ const DiagramInfo: FC = () => {
         nodes: JSON.stringify(nodes),
         edges: JSON.stringify(edges),
       });
-      
+
       if (result?.data) {
         setDiagram(result.data);
       }
@@ -105,7 +115,7 @@ const DiagramInfo: FC = () => {
 
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   if (loading) return <p>Loading diagram...</p>;

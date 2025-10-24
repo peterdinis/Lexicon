@@ -7,7 +7,18 @@ import { CalendarEvent, Page } from "@/types/applicationTypes";
 import { getAllCalendarEventsAction } from "@/actions/calendarActions";
 
 export default async function CalendarPage() {
-  let pages: { id: string; user_id: string; title: string; description: string; parent_id: string | null; is_folder: number; created_at: string; updated_at: string; }[] | Page[] = [];
+  let pages:
+    | {
+        id: string;
+        user_id: string;
+        title: string;
+        description: string;
+        parent_id: string | null;
+        is_folder: number;
+        created_at: string;
+        updated_at: string;
+      }[]
+    | Page[] = [];
   let events: CalendarEvent[] = [];
 
   try {
@@ -15,7 +26,6 @@ export default async function CalendarPage() {
 
     const eventsResult = await getAllCalendarEventsAction();
     events = Array.isArray(eventsResult) ? eventsResult : [];
-    
   } catch (err) {
     pages = [];
     events = [];

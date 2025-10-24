@@ -2,8 +2,18 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { createDiagramHandler, getDiagramHandler, updateDiagramHandler, getAllDiagramsHandler, deleteDiagramHandler } from "./handlers/diagramsHandlers";
-import { createDiagramSchema, diagramIdSchema, updateDiagramSchema } from "./schemas/diagramsShcemas";
+import {
+  createDiagramHandler,
+  getDiagramHandler,
+  updateDiagramHandler,
+  getAllDiagramsHandler,
+  deleteDiagramHandler,
+} from "./handlers/diagramsHandlers";
+import {
+  createDiagramSchema,
+  diagramIdSchema,
+  updateDiagramSchema,
+} from "./schemas/diagramsShcemas";
 
 // CREATE
 export const createDiagramAction = actionClient
@@ -19,7 +29,13 @@ export const createDiagramAction = actionClient
       },
     }) => {
       try {
-        return await createDiagramHandler(title, description, nodes, edges, viewport);
+        return await createDiagramHandler(
+          title,
+          description,
+          nodes,
+          edges,
+          viewport,
+        );
       } catch (err) {
         throw new Error(getErrorMessage(err));
       }

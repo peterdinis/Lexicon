@@ -31,7 +31,7 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
     setLoading(true);
     try {
       const result = await createDiagramAction({ title: "Untitled Diagram" });
-      
+
       // safe-action vracia { data: Diagram }
       if (result?.data) {
         const newDiagram = result.data;
@@ -114,17 +114,18 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-muted-foreground">
-                    {Array.isArray(diagram.nodes) 
-                      ? diagram.nodes.length 
-                      : (typeof diagram.nodes === 'string' 
-                          ? JSON.parse(diagram.nodes || '[]').length 
-                          : 0)
-                    } nodes • {Array.isArray(diagram.edges)
+                    {Array.isArray(diagram.nodes)
+                      ? diagram.nodes.length
+                      : typeof diagram.nodes === "string"
+                        ? JSON.parse(diagram.nodes || "[]").length
+                        : 0}{" "}
+                    nodes •{" "}
+                    {Array.isArray(diagram.edges)
                       ? diagram.edges.length
-                      : (typeof diagram.edges === 'string'
-                          ? JSON.parse(diagram.edges || '[]').length
-                          : 0)
-                    } edges
+                      : typeof diagram.edges === "string"
+                        ? JSON.parse(diagram.edges || "[]").length
+                        : 0}{" "}
+                    edges
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
                     Updated {new Date(diagram.updated_at).toLocaleDateString()}
