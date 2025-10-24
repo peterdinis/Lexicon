@@ -95,38 +95,6 @@ export function DashboardSidebar({
     useSensor(KeyboardSensor),
   );
 
-  const refreshPagesAndFolders = useCallback(async () => {
-    try {
-      const [pagesResult, foldersResult] = await Promise.all([
-        getAllPagesAction(),
-        getFoldersAction(),
-      ]);
-
-      if (!pagesResult?.data) throw new Error("No pages returned");
-      if (!foldersResult) throw new Error("No folders returned");
-
-      const folderPages = foldersResult.data!.map((f: any) => ({
-        id: f.id,
-        title: f.title,
-        icon: "",
-        parent_id: f.parent_id,
-        is_folder: 0,
-        user_id: "",
-        description: "",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }));
-
-      setPages([...pagesResult.data, ...folderPages]);
-    } catch (err) {
-      console.error("Failed to fetch pages/folders:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshPagesAndFolders();
-  }, [refreshPagesAndFolders]);
-
   const buildHierarchy = useCallback((pages: Page[]): Page[] => {
     const pageMap = new Map<string, Page & { children?: Page[] }>();
     const rootPages: Page[] = [];
@@ -146,27 +114,57 @@ export function DashboardSidebar({
   );
 
   const createPage = async () => {
-    setLoading(true);
-    try {
-      const result = await createPageAction({
-        title: "Untitled",
-        description: "",
-      });
-      if (!result?.data) throw new Error("No data returned from server");
-      router.push(`/page/${result.data.id}`);
-      setMobileOpen(false);
-      await refreshPagesAndFolders();
-    } catch (error) {
-      console.error("Error creating page:", error);
-      alert(
-        `Failed to create page: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      );
-    } finally {
-      setLoading(false);
-    }
+  setLoading(true);
+
+  // Vytvoríme "dočasnú" page pre okamžité zobrazenie
+  const tempId = `temp-${Date.now()}`;
+  const tempPage: Page = {
+    id: tempId,
+    title: "Untitled",
+    icon: "",
+    parent_id: null,
+    is_folder: 0,
+    user_id: "",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
+
+  // Optimisticky pridáme page do UI
+  setPages((prev) => [...prev, tempPage]);
+  setMobileOpen(false);
+
+  try {
+    // Zavoláme server action
+    const result = await createPageAction({
+      title: "Untitled",
+      description: "",
+    });
+
+    if (!result?.data) throw new Error("No data returned from server");
+
+    // Nahradíme temp page reálnou
+    setPages((prev) =>
+      prev.map((p) => (p.id === tempId ? result.data as Page : p))
+    );
+
+    // Presmerovanie
+    router.push(`/page/${result.data.id}`);
+  } catch (error) {
+    console.error("Error creating page:", error);
+
+    // Ak sa nepodarilo, odstránime temp page
+    setPages((prev) => prev.filter((p) => p.id !== tempId));
+
+    alert(
+      `Failed to create page: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const createFolder = (parentId?: string | null) => {
     setFolderParentId(parentId || null);
@@ -182,7 +180,6 @@ export function DashboardSidebar({
         title: newFolderName,
         parent_id: folderParentId,
       });
-      await refreshPagesAndFolders();
       setFolderModalOpen(false);
     } catch (err) {
       console.error(err);
