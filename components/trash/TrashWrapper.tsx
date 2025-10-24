@@ -1,27 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RotateCcw, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Page } from "@/types/applicationTypes";
+import {
+  getAllNonTrashedItemsAction,
+  restoreFromTrashAction,
+} from "@/actions/trashActions";
 
-interface TrashWrapperProps {
-  initialPages: Page[];
-}
+interface TrashWrapperProps {}
 
-export function TrashWrapper({ initialPages }: TrashWrapperProps) {
-  const [pages, setPages] = useState<Page[]>(initialPages);
+export function TrashWrapper({}: TrashWrapperProps) {
+  const [pages, setPages] = useState<Page[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    async function fetchTrash() {
+      try {
+        const items = await getAllNonTrashedItemsAction();
+        setPages((items.data && Array.isArray(items.data.pages)) ? items.data.pages : []);
+      } catch (err) {
+        console.error("Error loading trash:", err);
+      }
+    }
+    fetchTrash();
+  }, []);
 
   const restorePage = async (id: string) => {
     try {
-      const response = await fetch(`/api/pages/${id}/restore`, {
-        method: "POST",
-      });
+      const formData = new FormData();
+      formData.append("id", id);
+      formData.append("table", "pages");
 
-      if (!response.ok) throw new Error("Failed to restore page");
+      const result = await restoreFromTrashAction(formData);
+
+      if (!result.success) throw new Error(result.error);
 
       setPages(pages.filter((p) => p.id !== id));
       router.refresh();
@@ -31,12 +47,7 @@ export function TrashWrapper({ initialPages }: TrashWrapperProps) {
   };
 
   const permanentlyDelete = async (id: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to permanently delete this page? This action cannot be undone.",
-      )
-    )
-      return;
+    if (!confirm("Are you sure you want to permanently delete this page?")) return;
 
     try {
       const response = await fetch("/api/trash", {
@@ -52,7 +63,7 @@ export function TrashWrapper({ initialPages }: TrashWrapperProps) {
       console.error("Error deleting page:", error);
     }
   };
-
+  
   return (
     <div className="space-y-4">
       {pages.length === 0 ? (
@@ -73,27 +84,16 @@ export function TrashWrapper({ initialPages }: TrashWrapperProps) {
                 {page.deleted_at && (
                   <p className="text-xs text-muted-foreground">
                     Deleted{" "}
-                    {format(
-                      new Date(page.deleted_at),
-                      "MMM d, yyyy 'at' h:mm a",
-                    )}
+                    {format(new Date(page.deleted_at), "MMM d, yyyy 'at' h:mm a")}
                   </p>
                 )}
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => restorePage(page.id)}
-                >
+                <Button variant="outline" size="sm" onClick={() => restorePage(page.id)}>
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Restore
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => permanentlyDelete(page.id)}
-                >
+                <Button variant="destructive" size="sm" onClick={() => permanentlyDelete(page.id)}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Forever
                 </Button>
