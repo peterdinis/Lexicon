@@ -17,10 +17,7 @@ export async function getDiagramHandler(id: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const [diagram] = await db
-    .select()
-    .from(diagrams)
-    .where(eq(diagrams.id, id))
+  const [diagram] = await db.select().from(diagrams).where(eq(diagrams.id, id));
 
   if (!diagram) throw new Error("Diagram not found");
   return diagram;
