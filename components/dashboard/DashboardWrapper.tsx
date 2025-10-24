@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex h-screen bg-white dark:bg-neutral-900">
       <DashboardSidebar initialPages={pages} />
-      
+
       <div className="flex flex-1 flex-col min-w-0">
         <DashboardTopBar />
 

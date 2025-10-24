@@ -36,7 +36,9 @@ const ForgotPasswordForm: FC = () => {
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
-  const [emailExists, setEmailExists] = useState<boolean | undefined>(undefined);
+  const [emailExists, setEmailExists] = useState<boolean | undefined>(
+    undefined,
+  );
 
   const {
     register,
@@ -94,14 +96,18 @@ const ForgotPasswordForm: FC = () => {
             <div className="flex items-center justify-center mb-4">
               <CheckCircle2 className="h-12 w-12 text-green-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-center">Check your email</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              Check your email
+            </CardTitle>
             <CardDescription className="text-center">
-              We've sent a password reset link to <strong>{getValues("email")}</strong>
+              We've sent a password reset link to{" "}
+              <strong>{getValues("email")}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Click the link in the email to reset your password. The link will expire in 1 hour.
+              Click the link in the email to reset your password. The link will
+              expire in 1 hour.
             </p>
           </CardContent>
           <CardFooter>
@@ -120,9 +126,12 @@ const ForgotPasswordForm: FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Reset your password</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Reset your password
+          </CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we'll send you a link to reset your
+            password
           </CardDescription>
         </CardHeader>
 
@@ -145,7 +154,9 @@ const ForgotPasswordForm: FC = () => {
                 disabled={isSubmitting || checkingEmail}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
               {checkingEmail && (
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -153,7 +164,9 @@ const ForgotPasswordForm: FC = () => {
                 </p>
               )}
               {emailExists === false && (
-                <p className="text-sm text-destructive">This email is not registered</p>
+                <p className="text-sm text-destructive">
+                  This email is not registered
+                </p>
               )}
             </div>
           </CardContent>
@@ -166,7 +179,8 @@ const ForgotPasswordForm: FC = () => {
             >
               {isSubmitting || checkingEmail ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Spinner /> {checkingEmail ? "Checking email..." : "Sending..."}
+                  <Spinner />{" "}
+                  {checkingEmail ? "Checking email..." : "Sending..."}
                 </span>
               ) : (
                 "Send reset link"
