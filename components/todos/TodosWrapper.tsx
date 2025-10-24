@@ -155,9 +155,8 @@ function SortableTodoItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-accent ${
-        (todo.completed ?? 0) === 1 ? "opacity-60" : ""
-      }`}
+      className={`group flex items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-accent ${(todo.completed ?? 0) === 1 ? "opacity-60" : ""
+        }`}
     >
       <button
         {...attributes}
@@ -338,19 +337,15 @@ export default function TodoWrapper() {
   ) => {
     try {
       if (editingTodo) {
-        const result = await updateTodoAction(editingTodo.id, data);
+        const updatedData = { ...data, completed: editingTodo.completed ?? 0 };
+        const result = await updateTodoAction(editingTodo.id, updatedData);
         if (result.success) {
           setTodos((prev) =>
             prev.map((todo) =>
               todo.id === editingTodo.id
-                ? {
-                    ...todo,
-                    ...data,
-                    description: data.description ?? null,
-                    due_date: data.due_date ?? null,
-                  }
-                : todo,
-            ),
+                ? { ...todo, ...updatedData, description: updatedData.description ?? null }
+                : todo
+            )
           );
         }
       } else {
@@ -396,10 +391,10 @@ export default function TodoWrapper() {
         prev.map((t) =>
           t.id === todo.id
             ? {
-                ...t,
-                completed: newCompleted,
-                status: newCompleted === 1 ? "done" : "not_started",
-              }
+              ...t,
+              completed: newCompleted,
+              status: newCompleted === 1 ? "done" : "not_started",
+            }
             : t,
         ),
       );
@@ -411,12 +406,12 @@ export default function TodoWrapper() {
     setEditingTodo(todo);
     form.reset({
       title: todo.title,
-      description: todo.description || "",
-      priority: (todo.priority as "low" | "medium" | "high") || "medium",
-      due_date: todo.due_date || "",
-      status: todo.status || "not_started",
-      tags: todo.tags || [],
-      notes: todo.notes || "",
+      description: todo.description ?? "",
+      priority: (todo.priority as "low" | "medium" | "high") ?? "medium",
+      due_date: todo.due_date ?? "",
+      status: todo.status ?? "not_started",
+      tags: todo.tags ?? [],
+      notes: todo.notes ?? "",
     });
     setDialogOpen(true);
   };
@@ -606,9 +601,8 @@ export default function TodoWrapper() {
                 {groupedByStatus[status].map((todo) => (
                   <div
                     key={todo.id}
-                    className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${
-                      (todo.completed ?? 0) === 1 ? "opacity-60" : ""
-                    }`}
+                    className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${(todo.completed ?? 0) === 1 ? "opacity-60" : ""
+                      }`}
                     onClick={() => setSelectedTodo(todo)}
                   >
                     <div className="flex items-start gap-2">
@@ -996,13 +990,12 @@ export default function TodoWrapper() {
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Circle
-                      className={`h-3 w-3 ${
-                        (selectedTodo.completed ?? 0) === 1
+                      className={`h-3 w-3 ${(selectedTodo.completed ?? 0) === 1
                           ? "text-green-500 fill-green-500"
                           : selectedTodo.status === "in_progress"
                             ? "text-blue-500 fill-blue-500"
                             : "text-gray-500 fill-gray-500"
-                      }`}
+                        }`}
                     />
                     Status
                   </p>
@@ -1010,20 +1003,19 @@ export default function TodoWrapper() {
                     <Badge
                       variant="outline"
                       className={`
-                  ${
-                    (selectedTodo.completed ?? 0) === 1
-                      ? "bg-green-500/10 text-green-600 border-green-500/20"
-                      : selectedTodo.status === "in_progress"
-                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                        : "bg-gray-500/10 text-gray-600 border-gray-500/20"
-                  }
+                  ${(selectedTodo.completed ?? 0) === 1
+                          ? "bg-green-500/10 text-green-600 border-green-500/20"
+                          : selectedTodo.status === "in_progress"
+                            ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                            : "bg-gray-500/10 text-gray-600 border-gray-500/20"
+                        }
                   capitalize
                 `}
                     >
                       {(selectedTodo.completed ?? 0) === 1
                         ? "Completed"
                         : selectedTodo.status?.replace("_", " ") ||
-                          "Not Started"}
+                        "Not Started"}
                     </Badge>
                   </div>
                 </div>
@@ -1035,13 +1027,12 @@ export default function TodoWrapper() {
                   <Badge
                     variant="outline"
                     className={`
-                ${
-                  selectedTodo.priority === "high"
-                    ? "bg-red-500/10 text-red-600 border-red-500/20"
-                    : selectedTodo.priority === "medium"
-                      ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-                      : "bg-green-500/10 text-green-600 border-green-500/20"
-                }
+                ${selectedTodo.priority === "high"
+                        ? "bg-red-500/10 text-red-600 border-red-500/20"
+                        : selectedTodo.priority === "medium"
+                          ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                          : "bg-green-500/10 text-green-600 border-green-500/20"
+                      }
                 capitalize
               `}
                   >
@@ -1141,7 +1132,7 @@ export default function TodoWrapper() {
                         {Math.ceil(
                           (new Date(selectedTodo.due_date).getTime() -
                             new Date().getTime()) /
-                            (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24),
                         )}{" "}
                         days
                       </span>
