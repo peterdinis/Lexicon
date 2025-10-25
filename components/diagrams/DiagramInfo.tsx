@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useState, useCallback, ReactNode, useRef } from "react";
+import { FC, useEffect, useState, useCallback, ReactNode, useRef, MouseEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +33,6 @@ import {
   Controls,
   Background,
   addEdge,
-  Connection,
   useNodesState,
   useEdgesState,
   Node,
@@ -45,14 +44,11 @@ import {
   NodeTypes,
   EdgeTypes,
   OnConnect,
-  NodeChange,
-  EdgeChange,
   XYPosition,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
 import {
-  Plus,
   Trash2,
   Copy,
   Save,
@@ -79,9 +75,6 @@ import {
   GitFork,
 } from "lucide-react";
 
-// --------------------
-// Type Definitions
-// --------------------
 interface DiagramData {
   id: string;
   title: string;
@@ -102,7 +95,7 @@ interface TextNodeData {
 
 interface ShapeNodeData {
   label: string;
-  shape: "rectangle" | "circle" | "diamond";
+  shape: 'rectangle' | 'circle' | 'diamond';
   backgroundColor?: string;
   textColor?: string;
   borderColor?: string;
@@ -122,20 +115,17 @@ interface CustomEdgeData {
   label?: string;
   color?: string;
   width?: number;
-  style?: "solid" | "dashed" | "dotted";
+  style?: 'solid' | 'dashed' | 'dotted';
   textColor?: string;
 }
 
-type CustomNode = Node<TextNodeData | ShapeNodeData | IconNodeData>;
-type CustomEdge = Edge<CustomEdgeData>;
+type CustomNode = Node<any>;
+type CustomEdge = Edge<any>;
 
 // --------------------
 // Custom Node Types
 // --------------------
-const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({
-  data,
-  selected,
-}) => {
+const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({ data, selected }) => {
   return (
     <div
       className={`px-4 py-3 rounded-lg border-2 min-w-[120px] text-center transition-all ${
@@ -157,10 +147,7 @@ const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({
   );
 };
 
-const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({
-  data,
-  selected,
-}) => {
+const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({ data, selected }) => {
   const shapeStyle = {
     rectangle: "rounded-lg",
     circle: "rounded-full aspect-square",
@@ -195,10 +182,7 @@ const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({
   );
 };
 
-const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({
-  data,
-  selected,
-}) => {
+const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({ data, selected }) => {
   const icons: Record<string, ReactNode> = {
     database: <Database size={24} />,
     cloud: <Cloud size={24} />,
@@ -217,7 +201,7 @@ const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 min-w-[80px] min-h-[80px] transition-all ${
+      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 min-w-20 min-h-20 transition-all ${
         selected
           ? "border-blue-500 bg-blue-50 shadow-md"
           : "border-gray-300 bg-white hover:shadow-sm"
@@ -272,12 +256,7 @@ const CustomEdge: FC<any> = ({
           ...style,
           stroke: selected ? "#3b82f6" : data?.color || "#b1b1b7",
           strokeWidth: selected ? 3 : data?.width || 2,
-          strokeDasharray:
-            data?.style === "dashed"
-              ? "5,5"
-              : data?.style === "dotted"
-                ? "2,2"
-                : "none",
+          strokeDasharray: data?.style === "dashed" ? "5,5" : data?.style === "dotted" ? "2,2" : "none",
         }}
         className="react-flow__edge-path"
         d={edgePath}
@@ -316,9 +295,7 @@ interface NodeTemplate {
   data: Partial<TextNodeData | ShapeNodeData | IconNodeData>;
 }
 
-const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({
-  onAddNode,
-}) => {
+const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({ onAddNode }) => {
   const nodeTemplates: NodeTemplate[] = [
     {
       type: "text",
@@ -330,11 +307,7 @@ const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({
       type: "shape",
       label: "Rectangle",
       icon: <Square size={16} />,
-      data: {
-        label: "Rectangle",
-        shape: "rectangle",
-        backgroundColor: "#f0f9ff",
-      },
+      data: { label: "Rectangle", shape: "rectangle", backgroundColor: "#f0f9ff" },
     },
     {
       type: "shape",
@@ -352,11 +325,7 @@ const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({
       type: "icon",
       label: "Database",
       icon: <Database size={16} />,
-      data: {
-        label: "Database",
-        iconType: "database",
-        backgroundColor: "#eff6ff",
-      },
+      data: { label: "Database", iconType: "database", backgroundColor: "#eff6ff" },
     },
     {
       type: "icon",
@@ -380,21 +349,13 @@ const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({
       type: "icon",
       label: "AI",
       icon: <Brain size={16} />,
-      data: {
-        label: "AI Service",
-        iconType: "brain",
-        backgroundColor: "#faf5ff",
-      },
+      data: { label: "AI Service", iconType: "brain", backgroundColor: "#faf5ff" },
     },
     {
       type: "icon",
       label: "Network",
       icon: <Network size={16} />,
-      data: {
-        label: "Network",
-        iconType: "network",
-        backgroundColor: "#fff7ed",
-      },
+      data: { label: "Network", iconType: "network", backgroundColor: "#fff7ed" },
     },
   ];
 
@@ -432,10 +393,7 @@ interface SettingsPanelProps {
   onUpdateNode: (nodeId: string, updates: any) => void;
 }
 
-const SettingsPanel: FC<SettingsPanelProps> = ({
-  selectedNode,
-  onUpdateNode,
-}) => {
+const SettingsPanel: FC<SettingsPanelProps> = ({ selectedNode, onUpdateNode }) => {
   if (!selectedNode) {
     return (
       <div className="p-6 text-center text-muted-foreground">
@@ -448,11 +406,9 @@ const SettingsPanel: FC<SettingsPanelProps> = ({
   return (
     <div className="space-y-4 p-4">
       <h3 className="font-semibold text-lg border-b pb-2">Node Properties</h3>
-
+      
       <div className="space-y-3">
-        <Label htmlFor="node-label" className="text-sm font-medium">
-          Label
-        </Label>
+        <Label htmlFor="node-label" className="text-sm font-medium">Label</Label>
         <Input
           id="node-label"
           value={selectedNode.data.label || ""}
@@ -465,9 +421,7 @@ const SettingsPanel: FC<SettingsPanelProps> = ({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="bg-color" className="text-sm font-medium">
-            Background
-          </Label>
+          <Label htmlFor="bg-color" className="text-sm font-medium">Background</Label>
           <Input
             id="bg-color"
             type="color"
@@ -479,9 +433,7 @@ const SettingsPanel: FC<SettingsPanelProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="text-color" className="text-sm font-medium">
-            Text Color
-          </Label>
+          <Label htmlFor="text-color" className="text-sm font-medium">Text Color</Label>
           <Input
             id="text-color"
             type="color"
@@ -515,12 +467,10 @@ const SettingsPanel: FC<SettingsPanelProps> = ({
 
       {selectedNode.type === "shape" && (
         <div className="space-y-2">
-          <Label htmlFor="shape-type" className="text-sm font-medium">
-            Shape Type
-          </Label>
+          <Label htmlFor="shape-type" className="text-sm font-medium">Shape Type</Label>
           <Select
             value={selectedNode.data.shape || "rectangle"}
-            onValueChange={(value: "rectangle" | "circle" | "diamond") =>
+            onValueChange={(value: 'rectangle' | 'circle' | 'diamond') =>
               onUpdateNode(selectedNode.id, { shape: value })
             }
           >
@@ -538,9 +488,7 @@ const SettingsPanel: FC<SettingsPanelProps> = ({
 
       {selectedNode.type === "icon" && (
         <div className="space-y-2">
-          <Label htmlFor="icon-type" className="text-sm font-medium">
-            Icon Type
-          </Label>
+          <Label htmlFor="icon-type" className="text-sm font-medium">Icon Type</Label>
           <Select
             value={selectedNode.data.iconType || "database"}
             onValueChange={(value: string) =>
@@ -578,7 +526,7 @@ const DiagramInfo: FC = () => {
   const id = params.id as string;
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-  const [diagram, setDiagram] = useState<DiagramData | null>(null);
+  const [diagram, setDiagram] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
@@ -587,7 +535,7 @@ const DiagramInfo: FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>(
-    ConnectionMode.Strict,
+    ConnectionMode.Strict
   );
   const [showGrid, setShowGrid] = useState<boolean>(true);
 
@@ -608,14 +556,12 @@ const DiagramInfo: FC = () => {
         setDescription(data.description || "");
 
         try {
-          const parsedNodes: CustomNode[] =
-            typeof data.nodes === "string"
-              ? JSON.parse(data.nodes)
-              : data.nodes || [];
-          const parsedEdges: CustomEdge[] =
-            typeof data.edges === "string"
-              ? JSON.parse(data.edges)
-              : data.edges || [];
+          const parsedNodes: CustomNode[] = typeof data.nodes === "string"
+            ? JSON.parse(data.nodes)
+            : data.nodes || [];
+          const parsedEdges: CustomEdge[] = typeof data.edges === "string"
+            ? JSON.parse(data.edges)
+            : data.edges || [];
 
           setNodes(parsedNodes);
           setEdges(parsedEdges);
@@ -665,21 +611,18 @@ const DiagramInfo: FC = () => {
 
   // ReactFlow handlers
   const onConnect: OnConnect = useCallback(
-    (connection) =>
-      setEdges((eds) =>
-        addEdge(
-          {
-            ...connection,
-            type: "custom",
-            data: { style: "solid", width: 2 },
-          },
-          eds,
-        ),
-      ),
-    [setEdges],
+    (connection) => {
+      if (!connection.source || !connection.target) return;
+      setEdges((eds) => addEdge({ 
+        ...connection, 
+        type: "custom",
+        data: { style: 'solid', width: 2 }
+      } as CustomEdge, eds))
+    },
+    [setEdges]
   );
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: CustomNode) => {
+  const onNodeClick = useCallback((_: MouseEvent, node: CustomNode) => {
     setSelectedNode(node);
   }, []);
 
@@ -688,38 +631,32 @@ const DiagramInfo: FC = () => {
   }, []);
 
   // Node operations
-  const addNode = useCallback(
-    (type: string, templateData: any = {}): void => {
-      const position: XYPosition = {
-        x: Math.random() * 400 + 100,
-        y: Math.random() * 400 + 100,
-      };
+  const addNode = useCallback((type: string, templateData: any = {}): void => {
+    const position: XYPosition = { 
+      x: Math.random() * 400 + 100, 
+      y: Math.random() * 400 + 100 
+    };
+    
+    const baseNode: CustomNode = {
+      id: uuidv4(),
+      type: type as 'text' | 'shape' | 'icon',
+      position,
+      data: {
+        label: templateData.label || "New Node",
+        ...templateData,
+      },
+    };
 
-      const baseNode: CustomNode = {
-        id: uuidv4(),
-        type: type as any,
-        position,
-        data: {
-          label: templateData.label || "New Node",
-          ...templateData,
-        },
-      };
+    setNodes((nds) => [...nds, baseNode]);
+  }, [setNodes]);
 
-      setNodes((nds) => [...nds, baseNode]);
-    },
-    [setNodes],
-  );
-
-  const updateNode = useCallback(
-    (nodeId: string, updates: any): void => {
-      setNodes((nds) =>
-        nds.map((n) =>
-          n.id === nodeId ? { ...n, data: { ...n.data, ...updates } } : n,
-        ),
-      );
-    },
-    [setNodes],
-  );
+  const updateNode = useCallback((nodeId: string, updates: any): void => {
+    setNodes((nds) =>
+      nds.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, ...updates } } : n
+      )
+    );
+  }, [setNodes]);
 
   const deleteSelected = useCallback((): void => {
     setNodes((nds) => nds.filter((n) => !n.selected));
@@ -761,31 +698,28 @@ const DiagramInfo: FC = () => {
     URL.revokeObjectURL(url);
   }, [title, description, nodes, edges]);
 
-  const importDiagram = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>): void => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+  const importDiagram = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target?.result as string);
-          setTitle(data.title || "");
-          setDescription(data.description || "");
-          setNodes(data.nodes || []);
-          setEdges(data.edges || []);
-
-          // Reset file input
-          event.target.value = "";
-        } catch (err) {
-          console.error("Failed to import diagram:", err);
-          alert("Failed to import diagram file. Please check the file format.");
-        }
-      };
-      reader.readAsText(file);
-    },
-    [setNodes, setEdges],
-  );
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+        setNodes(data.nodes || []);
+        setEdges(data.edges || []);
+        
+        // Reset file input
+        event.target.value = '';
+      } catch (err) {
+        console.error("Failed to import diagram:", err);
+        alert("Failed to import diagram file. Please check the file format.");
+      }
+    };
+    reader.readAsText(file);
+  }, [setNodes, setEdges]);
 
   // Layout helpers
   const arrangeNodes = useCallback(() => {
@@ -829,10 +763,7 @@ const DiagramInfo: FC = () => {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => document.getElementById("import-input")?.click()}
-          >
+          <Button variant="outline" onClick={() => document.getElementById("import-input")?.click()}>
             <Upload className="w-4 h-4 mr-2" />
             Import
             <input
@@ -858,9 +789,7 @@ const DiagramInfo: FC = () => {
           <div className="space-y-4 bg-card p-4 rounded-lg border shadow-sm">
             <h3 className="font-semibold">Diagram Properties</h3>
             <div className="space-y-3">
-              <Label htmlFor="title" className="text-sm font-medium">
-                Title
-              </Label>
+              <Label htmlFor="title" className="text-sm font-medium">Title</Label>
               <Input
                 id="title"
                 value={title}
@@ -870,9 +799,7 @@ const DiagramInfo: FC = () => {
               />
             </div>
             <div className="space-y-3">
-              <Label htmlFor="description" className="text-sm font-medium">
-                Description
-              </Label>
+              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
               <Textarea
                 id="description"
                 value={description}
@@ -882,9 +809,9 @@ const DiagramInfo: FC = () => {
                 placeholder="Enter diagram description"
               />
             </div>
-            <Button
-              onClick={saveDiagram}
-              disabled={saving}
+            <Button 
+              onClick={saveDiagram} 
+              disabled={saving} 
               className="w-full"
               size="lg"
             >
@@ -895,10 +822,7 @@ const DiagramInfo: FC = () => {
 
           {/* Settings Panel */}
           <div className="bg-card p-4 rounded-lg border shadow-sm">
-            <SettingsPanel
-              selectedNode={selectedNode}
-              onUpdateNode={updateNode}
-            />
+            <SettingsPanel selectedNode={selectedNode} onUpdateNode={updateNode} />
           </div>
 
           {/* Quick Actions */}
@@ -906,47 +830,25 @@ const DiagramInfo: FC = () => {
             <h3 className="font-semibold mb-3">Quick Actions</h3>
             <div className="space-y-2">
               <div className="flex gap-2">
-                <Button
-                  onClick={deleteSelected}
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
-                >
+                <Button onClick={deleteSelected} variant="destructive" size="sm" className="flex-1">
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
-                <Button
-                  onClick={duplicateSelected}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
+                <Button onClick={duplicateSelected} variant="outline" size="sm" className="flex-1">
                   <Copy className="w-4 h-4 mr-2" />
                   Duplicate
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button
-                  onClick={() => fitView()}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
+                <Button onClick={() => fitView()} variant="outline" size="sm" className="flex-1">
                   Fit View
                 </Button>
-                <Button
-                  onClick={arrangeNodes}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
+                <Button onClick={arrangeNodes} variant="outline" size="sm" className="flex-1">
                   Arrange
                 </Button>
               </div>
               <div className="flex items-center justify-between pt-2">
-                <Label htmlFor="grid-toggle" className="text-sm">
-                  Show Grid
-                </Label>
+                <Label htmlFor="grid-toggle" className="text-sm">Show Grid</Label>
                 <Switch
                   id="grid-toggle"
                   checked={showGrid}
@@ -959,16 +861,13 @@ const DiagramInfo: FC = () => {
 
         {/* Diagram Area */}
         <div className="lg:col-span-3">
-          <div
-            className="bg-card rounded-lg border shadow-sm h-[800px]"
-            ref={reactFlowWrapper}
-          >
+          <div className="bg-card rounded-lg border shadow-sm h-[800px]" ref={reactFlowWrapper}>
             <ReactFlowProvider>
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
-                onNodesChange={onNodesChange as any}
-                onEdgesChange={onEdgesChange as any}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
@@ -988,33 +887,25 @@ const DiagramInfo: FC = () => {
                 <Panel position="top-left" className="flex gap-2">
                   <NodeToolbar onAddNode={addNode} />
                 </Panel>
-
-                <Panel
-                  position="top-right"
-                  className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm"
-                >
+                
+                <Panel position="top-right" className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            setConnectionMode(
-                              connectionMode === ConnectionMode.Strict
-                                ? ConnectionMode.Loose
-                                : ConnectionMode.Strict,
-                            )
-                          }
+                          onClick={() => setConnectionMode(
+                            connectionMode === ConnectionMode.Strict
+                              ? ConnectionMode.Loose
+                              : ConnectionMode.Strict
+                          )}
                         >
                           <ArrowRight className="w-4 h-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Connection Mode:{" "}
-                        {connectionMode === ConnectionMode.Strict
-                          ? "Strict"
-                          : "Loose"}
+                        Connection Mode: {connectionMode === ConnectionMode.Strict ? "Strict" : "Loose"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -1033,16 +924,16 @@ const DiagramInfo: FC = () => {
                 </Panel>
 
                 <Controls />
-                <MiniMap
+                <MiniMap 
                   nodeStrokeColor="#1f2937"
                   nodeColor="#f3f4f6"
                   maskColor="rgba(255, 255, 255, 0.6)"
                   position="bottom-left"
                 />
                 {showGrid && (
-                  <Background
-                    variant={BackgroundVariant.Dots}
-                    gap={20}
+                  <Background 
+                    variant={BackgroundVariant.Dots} 
+                    gap={20} 
                     size={1}
                     color="#e5e7eb"
                   />
