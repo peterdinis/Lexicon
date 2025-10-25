@@ -6,6 +6,8 @@ import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 import { ShareDialog } from "../dialogs/ShareDialog";
 import { debounce } from "@/lib/debounce";
+import { updatePageAction } from "@/actions/pagesActions";
+import Image from "next/image";
 
 interface PageHeaderProps {
   pageId: string;
@@ -14,6 +16,8 @@ interface PageHeaderProps {
   coverImage?: string | null;
   isSaving?: boolean;
   onTitleChange?: (value: string) => void;
+  onIconChange?: (value: string) => void;
+  onCoverChange?: (value: string | null) => void;
 }
 
 export function PageHeader({
@@ -23,6 +27,8 @@ export function PageHeader({
   coverImage,
   isSaving,
   onTitleChange,
+  onIconChange,
+  onCoverChange,
 }: PageHeaderProps) {
   const [localTitle, setLocalTitle] = useState(title);
 
@@ -42,31 +48,77 @@ export function PageHeader({
     debouncedTitleChange(value);
   };
 
-  const handleCoverChange = useCallback((newCover: string) => {
-    console.log("TODO: cover change", newCover);
-  }, []);
+  const handleCoverChange = useCallback(
+    async (newCover: string) => {
+      try {
+        await updatePageAction({
+          id: pageId,
+          coverImage: newCover,
+        });
+        onCoverChange?.(newCover);
+      } catch (error) {
+        console.error("Failed to update cover image:", error);
+      }
+    },
+    [pageId, onCoverChange],
+  );
 
-  const handleIconChange = useCallback((newIcon: string) => {
-    console.log("TODO: icon change", newIcon);
-  }, []);
+  const handleIconChange = useCallback(
+    async (newIcon: string) => {
+      try {
+        await updatePageAction({
+          id: pageId,
+          icon: newIcon,
+        });
+        onIconChange?.(newIcon);
+      } catch (error) {
+        console.error("Failed to update icon:", error);
+      }
+    },
+    [pageId, onIconChange],
+  );
+
+  const handleRemoveCover = useCallback(async () => {
+    try {
+      await updatePageAction({
+        id: pageId,
+        coverImage: null,
+      });
+      onCoverChange?.(null);
+    } catch (error) {
+      console.error("Failed to remove cover image:", error);
+    }
+  }, [pageId, onCoverChange]);
 
   return (
     <div className="border-b">
       {coverImage && (
         <div className="relative h-64 w-full overflow-hidden">
-          <img
+          <Image
+            width={100}
+            height={100}
             src={coverImage || "/placeholder.svg"}
             alt="Cover"
             className="h-full w-full object-cover"
           />
-          <div className="absolute bottom-4 right-4">
+          <div className="absolute bottom-4 right-4 flex gap-2">
             <CoverImageSelector
               value={coverImage}
-              onChange={() => {
-                console.log("TODO");
-              }}
+              onChange={handleCoverChange}
             />
+            <button
+              onClick={handleRemoveCover}
+              className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+            >
+              Remove
+            </button>
           </div>
+        </div>
+      )}
+
+      {!coverImage && (
+        <div className="p-4">
+          <CoverImageSelector value={null} onChange={handleCoverChange} />
         </div>
       )}
 

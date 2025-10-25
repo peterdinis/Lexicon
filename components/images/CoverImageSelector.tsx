@@ -10,10 +10,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ImageIcon, X } from "lucide-react";
+import Image from "next/image";
 
 interface CoverImageSelectorProps {
-  value?: string;
-  onChange: (url: string | null) => void;
+  value?: string | null;
+  onChange: (url: string) => void;
 }
 
 const UNSPLASH_IMAGES = [
@@ -40,18 +41,23 @@ export function CoverImageSelector({
   };
 
   const handleCustomUrl = () => {
-    if (customUrl) {
-      onChange(customUrl);
+    if (customUrl.trim()) {
+      onChange(customUrl.trim());
       setCustomUrl("");
       setOpen(false);
     }
+  };
+
+  const handleRemove = () => {
+    onChange("");
+    setOpen(false);
   };
 
   return (
     <div className="flex items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm">
+          <Button variant="outline" size="sm">
             <ImageIcon className="mr-2 h-4 w-4" />
             {value ? "Change cover" : "Add cover"}
           </Button>
@@ -71,11 +77,14 @@ export function CoverImageSelector({
                 {UNSPLASH_IMAGES.map((url, index) => (
                   <button
                     key={index}
+                    type="button"
                     onClick={() => handleSelectImage(url)}
                     className="relative aspect-video overflow-hidden rounded-md border hover:border-primary transition-colors"
                   >
-                    <img
-                      src={url || "/placeholder.svg"}
+                    <Image
+                      width={100}
+                      height={100}
+                      src={url}
                       alt={`Cover ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
@@ -106,7 +115,7 @@ export function CoverImageSelector({
         </PopoverContent>
       </Popover>
       {value && (
-        <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
+        <Button variant="outline" size="sm" onClick={handleRemove}>
           <X className="h-4 w-4" />
         </Button>
       )}
