@@ -137,7 +137,7 @@ export async function movePageHandler(pageId: string) {
 
   const [updatedPage] = await db
     .update(pages)
-    .set({ updated_at: new Date().toISOString() }) // len aktualizujeme timestamp
+    .set({ updated_at: new Date().toISOString() })
     .where(eq(pages.id, pageId))
     .returning();
 

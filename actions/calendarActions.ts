@@ -18,7 +18,7 @@ const CreateCalendarEventSchema = z.object({
   description: z.string().optional().nullable(),
   start_time: z.string().min(1, "Start time is required"),
   end_time: z.string().min(1, "End time is required"),
-  all_day: z.boolean().default(false),
+  all_day: z.number().default(0).optional(),
   color: z.string().optional().nullable(),
 });
 
