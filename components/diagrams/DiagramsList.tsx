@@ -51,11 +51,11 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
   const createDiagram = async () => {
     setLoading(true);
     try {
-      const result = await createDiagramAction({ 
+      const result = await createDiagramAction({
         title: "Untitled Diagram",
         description: "",
         nodes: JSON.stringify([]),
-        edges: JSON.stringify([])
+        edges: JSON.stringify([]),
       });
 
       if (result?.data) {
@@ -136,12 +136,14 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={refreshDiagrams} 
+            <Button
+              variant="outline"
+              onClick={refreshDiagrams}
               disabled={refreshing}
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
             <Button onClick={createDiagram} disabled={loading}>
@@ -204,11 +206,10 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
                   <CardContent className="pt-0">
                     <div className="flex justify-between items-center text-xs text-muted-foreground">
                       <span>
-                        {getNodeCount(diagram)} nodes • {getEdgeCount(diagram)} edges
+                        {getNodeCount(diagram)} nodes • {getEdgeCount(diagram)}{" "}
+                        edges
                       </span>
-                      <span>
-                        Updated {formatDate(diagram.updated_at)}
-                      </span>
+                      <span>Updated {formatDate(diagram.updated_at)}</span>
                     </div>
                     {diagram.created_at !== diagram.updated_at && (
                       <div className="text-xs text-muted-foreground mt-1">
