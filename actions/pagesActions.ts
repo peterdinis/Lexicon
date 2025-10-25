@@ -10,7 +10,6 @@ import {
 import {
   createPageHandler,
   deletePageHandler,
-  movePageHandler,
   getAllPagesHandler,
   getPageHandler,
   updatePageHandler,
