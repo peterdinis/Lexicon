@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useOptimistic } from "react";
 import { Plus, Trash2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,8 @@ interface ValidationErrors {
   end_time?: string;
 }
 
+type OptimisticEvent = CalendarEvent & { pending?: boolean };
+
 export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -88,6 +90,44 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   });
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {},
+  );
+
+  // Optimistic updates pre eventy
+  const [optimisticEvents, addOptimisticEvent] = useOptimistic<
+    OptimisticEvent[],
+    | { type: "add"; event: CreateCalendarEventData }
+    | { type: "update"; event: CalendarEvent }
+    | { type: "delete"; id: string }
+  >(
+    events.map(event => ({ ...event, pending: false })),
+    (state, action) => {
+      switch (action.type) {
+        case "add":
+          const tempId = `temp-${Date.now()}`;
+          return [
+            ...state,
+            {
+              ...action.event,
+              id: tempId,
+              pending: true,
+            } as OptimisticEvent,
+          ];
+        case "update":
+          return state.map(event =>
+            event.id === action.event.id
+              ? { ...action.event, pending: true }
+              : event
+          );
+        case "delete":
+          return state.map(event =>
+            event.id === action.id
+              ? { ...event, pending: true }
+              : event
+          );
+        default:
+          return state;
+      }
+    }
   );
 
   // Memoizovaný dátumový rozsah
@@ -121,12 +161,12 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   // Memoizovaná funkcia pre eventy podľa dňa
   const getEventsForDay = useCallback(
     (day: Date) => {
-      return events.filter((event) => {
+      return optimisticEvents.filter((event) => {
         if (!event.start_time) return false;
         return isSameDay(parseISO(event.start_time), day);
       });
     },
-    [events],
+    [optimisticEvents],
   );
 
   const formatDateTimeForInput = useCallback((date: Date) => {
@@ -216,6 +256,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
+      // Optimistic update
+      addOptimisticEvent({ type: "add", event: newEvent });
+
       const eventData: CreateCalendarEventData = {
         ...newEvent,
         description: newEvent.description || null,
@@ -239,6 +282,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     } catch (error) {
       console.error("Error creating event:", error);
+      // V prípade chyby znova načítame eventy pre synchronizáciu
+      await loadEventsForMonth();
     }
   };
 
@@ -254,6 +299,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
 
     try {
+      // Optimistic update
+      addOptimisticEvent({ type: "update", event: selectedEvent });
+
       const result = await updateCalendarEventAction({
         id: selectedEvent.id,
         title: selectedEvent.title,
@@ -272,6 +320,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     } catch (error) {
       console.error("Error updating event:", error);
+      await loadEventsForMonth();
     }
   };
 
@@ -280,6 +329,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
+      // Optimistic update
+      addOptimisticEvent({ type: "delete", id });
+
       const result = await deleteCalendarEventAction({ id });
 
       if (result.data !== false) {
@@ -289,6 +341,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     } catch (error) {
       console.error("Error deleting event:", error);
+      await loadEventsForMonth();
     }
   };
 
@@ -331,8 +384,20 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     return formatDateTimeForInput(new Date());
   }, [formatDateTimeForInput]);
 
+  // Aktuálne eventy pre tabuľku (dnešné a budúce)
+  const currentAndUpcomingEvents = useMemo(() => {
+    const now = new Date();
+    return optimisticEvents
+      .filter(event => {
+        const eventDate = parseISO(event.start_time);
+        return isAfter(eventDate, startOfDay(now)) || isSameDay(eventDate, now);
+      })
+      .sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())
+      .slice(0, 10); // Max 10 eventov v tabuľke
+  }, [optimisticEvents]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -358,6 +423,66 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           <Plus className="mr-2 h-4 w-4" />
           Add Event
         </Button>
+      </div>
+
+      {/* Tabuľka aktuálnych eventov */}
+      <div className="bg-card rounded-lg border p-4">
+        <h3 className="text-lg font-semibold mb-3">Upcoming Events</h3>
+        {currentAndUpcomingEvents.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No upcoming events</p>
+        ) : (
+          <div className="space-y-2">
+            {currentAndUpcomingEvents.map((event) => (
+              <div
+                key={event.id}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  event.pending ? "opacity-60" : ""
+                }`}
+                style={{
+                  borderLeft: `4px solid ${event.color || "#3b82f6"}`,
+                }}
+              >
+                <div className="flex items-center space-x-3 flex-1">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: event.color || "#3b82f6" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <p className="font-medium text-sm truncate">
+                        {event.title}
+                      </p>
+                      {event.pending && (
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                          Saving...
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {format(parseISO(event.start_time), "MMM d, yyyy 'at' HH:mm")}
+                      {event.end_time && 
+                        ` - ${format(parseISO(event.end_time), "HH:mm")}`
+                      }
+                    </p>
+                    {event.description && (
+                      <p className="text-xs text-muted-foreground truncate mt-1">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEventClick(event)}
+                  disabled={event.pending}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Create Event Dialog */}
@@ -678,14 +803,23 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity"
+                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${
+                      event.pending ? "opacity-60" : ""
+                    }`}
                     style={{
                       backgroundColor: `${event.color || "#3b82f6"}20`,
                       borderLeft: `3px solid ${event.color || "#3b82f6"}`,
                     }}
-                    onClick={() => handleEventClick(event)}
+                    onClick={() => !event.pending && handleEventClick(event)}
                   >
-                    <div className="truncate font-medium">{event.title}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="truncate font-medium flex-1">
+                        {event.title}
+                      </div>
+                      {event.pending && (
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse ml-1" />
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground truncate">
                       {event.start_time
                         ? format(parseISO(event.start_time), "HH:mm")
