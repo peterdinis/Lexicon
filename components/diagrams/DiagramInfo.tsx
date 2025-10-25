@@ -45,6 +45,8 @@ import {
   EdgeTypes,
   OnConnect,
   XYPosition,
+  Connection,
+  EdgeTypes as ReactFlowEdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
@@ -73,6 +75,8 @@ import {
   Shield,
   Layout,
   GitFork,
+  Edit,
+  Link,
 } from "lucide-react";
 
 interface DiagramData {
@@ -123,9 +127,99 @@ type CustomNode = Node<any>;
 type CustomEdge = Edge<any>;
 
 // --------------------
+// Editable Node Label Component
+// --------------------
+interface EditableLabelProps {
+  label: string;
+  onLabelChange: (newLabel: string) => void;
+  fontSize?: number;
+  textColor?: string;
+}
+
+const EditableLabel: FC<EditableLabelProps> = ({ 
+  label, 
+  onLabelChange, 
+  fontSize = 14, 
+  textColor = "#000000" 
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleDoubleClick = () => {
+    setIsEditing(true);
+    setEditValue(label);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (editValue.trim() && editValue !== label) {
+      onLabelChange(editValue.trim());
+    } else {
+      setEditValue(label);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleBlur();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditValue(label);
+    }
+  };
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  if (isEditing) {
+    return (
+      <input
+        ref={inputRef}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="bg-transparent border-none outline-none text-center w-full"
+        style={{ 
+          fontSize: `${fontSize}px`, 
+          color: textColor,
+          fontWeight: 'inherit',
+          fontFamily: 'inherit'
+        }}
+      />
+    );
+  }
+
+  return (
+    <div 
+      onDoubleClick={handleDoubleClick}
+      className="cursor-text w-full text-center"
+      style={{ 
+        fontSize: `${fontSize}px`, 
+        color: textColor,
+        fontWeight: 'inherit',
+        fontFamily: 'inherit'
+      }}
+      title="Double-click to edit"
+    >
+      {label}
+    </div>
+  );
+};
+
+// --------------------
 // Custom Node Types
 // --------------------
 const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({ data, selected }) => {
+  const handleLabelChange = useCallback((newLabel: string) => {
+    // This will be handled by the parent component through updateNode
+  }, []);
+
   return (
     <div
       className={`px-4 py-3 rounded-lg border-2 min-w-[120px] text-center transition-all ${
@@ -135,14 +229,15 @@ const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({ data, select
       }`}
       style={{
         backgroundColor: data.backgroundColor || "#ffffff",
-        color: data.textColor || "#000000",
         borderColor: selected ? "#3b82f6" : data.borderColor || "#d1d5db",
-        fontSize: data.fontSize || 14,
-        fontFamily: data.fontFamily || "inherit",
-        fontWeight: data.fontWeight || "normal",
       }}
     >
-      {data.label}
+      <EditableLabel
+        label={data.label}
+        onLabelChange={handleLabelChange}
+        fontSize={data.fontSize}
+        textColor={data.textColor}
+      />
     </div>
   );
 };
@@ -153,6 +248,10 @@ const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({ data, sele
     circle: "rounded-full aspect-square",
     diamond: "rotate-45",
   };
+
+  const handleLabelChange = useCallback((newLabel: string) => {
+    // This will be handled by the parent component through updateNode
+  }, []);
 
   return (
     <div
@@ -170,13 +269,14 @@ const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({ data, sele
       }}
     >
       <div
-        className={`text-center ${data.shape === "diamond" ? "-rotate-45" : ""}`}
-        style={{
-          color: data.textColor || "#000000",
-          fontSize: data.fontSize || 14,
-        }}
+        className={`text-center w-full ${data.shape === "diamond" ? "-rotate-45" : ""}`}
       >
-        {data.label}
+        <EditableLabel
+          label={data.label}
+          onLabelChange={handleLabelChange}
+          fontSize={data.fontSize}
+          textColor={data.textColor}
+        />
       </div>
     </div>
   );
@@ -199,6 +299,10 @@ const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({ data, select
     fork: <GitFork size={24} />,
   };
 
+  const handleLabelChange = useCallback((newLabel: string) => {
+    // This will be handled by the parent component through updateNode
+  }, []);
+
   return (
     <div
       className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 min-w-20 min-h-20 transition-all ${
@@ -214,11 +318,13 @@ const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({ data, select
       <div style={{ color: data.iconColor || "#3b82f6" }}>
         {icons[data.iconType] || <Zap size={24} />}
       </div>
-      <div
-        className="text-xs mt-1 text-center font-medium"
-        style={{ color: data.textColor || "#000000" }}
-      >
-        {data.label}
+      <div className="w-full mt-1">
+        <EditableLabel
+          label={data.label}
+          onLabelChange={handleLabelChange}
+          fontSize={12}
+          textColor={data.textColor}
+        />
       </div>
     </div>
   );
@@ -234,7 +340,7 @@ const nodeTypes: NodeTypes = {
 };
 
 // --------------------
-// Custom Edge Types
+// Custom Edge Types with Arrow
 // --------------------
 const CustomEdge: FC<any> = ({
   id,
@@ -242,9 +348,12 @@ const CustomEdge: FC<any> = ({
   sourceY,
   targetX,
   targetY,
+  sourcePosition,
+  targetPosition,
   style = {},
   data,
   selected,
+  markerEnd,
 }) => {
   const edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
 
@@ -260,6 +369,7 @@ const CustomEdge: FC<any> = ({
         }}
         className="react-flow__edge-path"
         d={edgePath}
+        markerEnd={markerEnd}
       />
       {data?.label && (
         <text>
@@ -386,19 +496,121 @@ const NodeToolbar: FC<{ onAddNode: (type: string, data?: any) => void }> = ({ on
 };
 
 // --------------------
+// Connection Settings Panel
+// --------------------
+interface ConnectionSettingsProps {
+  selectedEdge: CustomEdge | null;
+  onUpdateEdge: (edgeId: string, updates: Partial<CustomEdgeData>) => void;
+}
+
+const ConnectionSettings: FC<ConnectionSettingsProps> = ({ selectedEdge, onUpdateEdge }) => {
+  if (!selectedEdge) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        <Link className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <p className="text-sm">Select a connection to edit its properties</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-4">
+      <h3 className="font-semibold text-lg border-b pb-2">Connection Properties</h3>
+      
+      <div className="space-y-3">
+        <Label htmlFor="edge-label" className="text-sm font-medium">Label</Label>
+        <Input
+          id="edge-label"
+          value={selectedEdge.data?.label || ""}
+          onChange={(e) =>
+            onUpdateEdge(selectedEdge.id, { label: e.target.value })
+          }
+          className="w-full"
+          placeholder="Connection label"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="edge-color" className="text-sm font-medium">Color</Label>
+          <Input
+            id="edge-color"
+            type="color"
+            value={selectedEdge.data?.color || "#b1b1b7"}
+            onChange={(e) =>
+              onUpdateEdge(selectedEdge.id, { color: e.target.value })
+            }
+            className="w-full h-10"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edge-width" className="text-sm font-medium">Width</Label>
+          <Select
+            value={String(selectedEdge.data?.width || 2)}
+            onValueChange={(value) =>
+              onUpdateEdge(selectedEdge.id, { width: parseInt(value) })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Thin</SelectItem>
+              <SelectItem value="2">Normal</SelectItem>
+              <SelectItem value="3">Thick</SelectItem>
+              <SelectItem value="4">Extra Thick</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="edge-style" className="text-sm font-medium">Line Style</Label>
+        <Select
+          value={selectedEdge.data?.style || "solid"}
+          onValueChange={(value: 'solid' | 'dashed' | 'dotted') =>
+            onUpdateEdge(selectedEdge.id, { style: value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="solid">Solid</SelectItem>
+            <SelectItem value="dashed">Dashed</SelectItem>
+            <SelectItem value="dotted">Dotted</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
+
+// --------------------
 // Settings Panel
 // --------------------
 interface SettingsPanelProps {
   selectedNode: CustomNode | null;
+  selectedEdge: CustomEdge | null;
   onUpdateNode: (nodeId: string, updates: any) => void;
+  onUpdateEdge: (edgeId: string, updates: Partial<CustomEdgeData>) => void;
 }
 
-const SettingsPanel: FC<SettingsPanelProps> = ({ selectedNode, onUpdateNode }) => {
+const SettingsPanel: FC<SettingsPanelProps> = ({ 
+  selectedNode, 
+  selectedEdge, 
+  onUpdateNode, 
+  onUpdateEdge 
+}) => {
+  if (selectedEdge) {
+    return <ConnectionSettings selectedEdge={selectedEdge} onUpdateEdge={onUpdateEdge} />;
+  }
+
   if (!selectedNode) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         <Layout className="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p className="text-sm">Select a node to edit its properties</p>
+        <p className="text-sm">Select a node or connection to edit its properties</p>
       </div>
     );
   }
@@ -527,6 +739,7 @@ const DiagramFlow: FC<{
   onEdgesChange: any;
   onConnect: OnConnect;
   onNodeClick: (event: MouseEvent, node: CustomNode) => void;
+  onEdgeClick: (event: MouseEvent, edge: CustomEdge) => void;
   onPaneClick: () => void;
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
@@ -541,6 +754,7 @@ const DiagramFlow: FC<{
   onEdgesChange,
   onConnect,
   onNodeClick,
+  onEdgeClick,
   onPaneClick,
   nodeTypes,
   edgeTypes,
@@ -559,6 +773,7 @@ const DiagramFlow: FC<{
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onNodeClick={onNodeClick}
+      onEdgeClick={onEdgeClick}
       onPaneClick={onPaneClick}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
@@ -572,6 +787,14 @@ const DiagramFlow: FC<{
       panOnScroll={true}
       panOnScrollSpeed={1}
       selectionOnDrag={true}
+      defaultEdgeOptions={{
+        type: 'custom',
+        style: { stroke: '#b1b1b7', strokeWidth: 2 },
+        markerEnd: {
+          type: 'arrowclosed',
+          color: '#b1b1b7',
+        },
+      }}
     >
       <Panel position="top-left" className="flex gap-2">
         <NodeToolbar onAddNode={onAddNode} />
@@ -644,6 +867,7 @@ const DiagramInfo: FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<CustomNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<CustomEdge>([]);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<CustomEdge | null>(null);
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>(
     ConnectionMode.Strict
   );
@@ -719,12 +943,20 @@ const DiagramInfo: FC = () => {
 
   // ReactFlow handlers
   const onConnect: OnConnect = useCallback(
-    (connection) => {
+    (connection: Connection) => {
       if (!connection.source || !connection.target) return;
       setEdges((eds) => addEdge({ 
         ...connection, 
         type: "custom",
-        data: { style: 'solid', width: 2 }
+        data: { 
+          style: 'solid', 
+          width: 2,
+          color: '#b1b1b7'
+        },
+        markerEnd: {
+          type: 'arrowclosed',
+          color: '#b1b1b7',
+        },
       } as CustomEdge, eds))
     },
     [setEdges]
@@ -732,10 +964,17 @@ const DiagramInfo: FC = () => {
 
   const onNodeClick = useCallback((_: MouseEvent, node: CustomNode) => {
     setSelectedNode(node);
+    setSelectedEdge(null);
+  }, []);
+
+  const onEdgeClick = useCallback((_: MouseEvent, edge: CustomEdge) => {
+    setSelectedEdge(edge);
+    setSelectedNode(null);
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setSelectedEdge(null);
   }, []);
 
   // Node operations
@@ -766,10 +1005,19 @@ const DiagramInfo: FC = () => {
     );
   }, [setNodes]);
 
+  const updateEdge = useCallback((edgeId: string, updates: Partial<CustomEdgeData>): void => {
+    setEdges((eds) =>
+      eds.map((e) =>
+        e.id === edgeId ? { ...e, data: { ...e.data, ...updates } } : e
+      )
+    );
+  }, [setEdges]);
+
   const deleteSelected = useCallback((): void => {
     setNodes((nds) => nds.filter((n) => !n.selected));
     setEdges((eds) => eds.filter((e) => !e.selected));
     setSelectedNode(null);
+    setSelectedEdge(null);
   }, [setNodes, setEdges]);
 
   const duplicateSelected = useCallback((): void => {
@@ -937,7 +1185,12 @@ const DiagramInfo: FC = () => {
 
           {/* Settings Panel */}
           <div className="bg-card p-4 rounded-lg border shadow-sm">
-            <SettingsPanel selectedNode={selectedNode} onUpdateNode={updateNode} />
+            <SettingsPanel 
+              selectedNode={selectedNode} 
+              selectedEdge={selectedEdge}
+              onUpdateNode={updateNode} 
+              onUpdateEdge={updateEdge}
+            />
           </div>
 
           {/* Quick Actions */}
@@ -982,6 +1235,7 @@ const DiagramInfo: FC = () => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
+                onEdgeClick={onEdgeClick}
                 onPaneClick={onPaneClick}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
