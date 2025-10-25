@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useOptimistic } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useOptimistic,
+} from "react";
 import { Plus, Trash2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +105,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     | { type: "update"; event: CalendarEvent }
     | { type: "delete"; id: string }
   >(
-    events.map(event => ({ ...event, pending: false })),
+    events.map((event) => ({ ...event, pending: false })),
     (state, action) => {
       switch (action.type) {
         case "add":
@@ -113,21 +119,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             } as OptimisticEvent,
           ];
         case "update":
-          return state.map(event =>
+          return state.map((event) =>
             event.id === action.event.id
               ? { ...action.event, pending: true }
-              : event
+              : event,
           );
         case "delete":
-          return state.map(event =>
-            event.id === action.id
-              ? { ...event, pending: true }
-              : event
+          return state.map((event) =>
+            event.id === action.id ? { ...event, pending: true } : event,
           );
         default:
           return state;
       }
-    }
+    },
   );
 
   // Memoizovaný dátumový rozsah
@@ -388,11 +392,14 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const currentAndUpcomingEvents = useMemo(() => {
     const now = new Date();
     return optimisticEvents
-      .filter(event => {
+      .filter((event) => {
         const eventDate = parseISO(event.start_time);
         return isAfter(eventDate, startOfDay(now)) || isSameDay(eventDate, now);
       })
-      .sort((a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime())
+      .sort(
+        (a, b) =>
+          parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime(),
+      )
       .slice(0, 10); // Max 10 eventov v tabuľke
   }, [optimisticEvents]);
 
@@ -459,10 +466,12 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {format(parseISO(event.start_time), "MMM d, yyyy 'at' HH:mm")}
-                      {event.end_time && 
-                        ` - ${format(parseISO(event.end_time), "HH:mm")}`
-                      }
+                      {format(
+                        parseISO(event.start_time),
+                        "MMM d, yyyy 'at' HH:mm",
+                      )}
+                      {event.end_time &&
+                        ` - ${format(parseISO(event.end_time), "HH:mm")}`}
                     </p>
                     {event.description && (
                       <p className="text-xs text-muted-foreground truncate mt-1">
