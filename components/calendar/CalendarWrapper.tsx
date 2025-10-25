@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -23,15 +24,34 @@ import {
   subMonths,
   startOfWeek,
   endOfWeek,
+  parseISO,
+  isBefore,
+  isAfter,
+  isEqual,
+  addHours,
+  startOfDay,
+  endOfDay,
+  isValid,
 } from "date-fns";
 import {
   getCalendarEventsByDateRangeAction,
   createCalendarEventAction,
   deleteCalendarEventAction,
+  updateCalendarEventAction,
 } from "@/actions/calendarActions";
 
 interface CalendarViewProps {
   initialEvents: any[];
+}
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string | null;
+  start_time: string;
+  end_time: string;
+  all_day: boolean;
+  color?: string | null;
 }
 
 interface CreateCalendarEventData {
@@ -43,10 +63,18 @@ interface CreateCalendarEventData {
   color?: string | null;
 }
 
+interface ValidationErrors {
+  title?: string;
+  start_time?: string;
+  end_time?: string;
+}
+
 export function CalendarView({ initialEvents }: CalendarViewProps) {
-  const [events, setEvents] = useState<any[]>(initialEvents);
+  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [loading, setLoading] = useState(false);
   const [newEvent, setNewEvent] = useState<CreateCalendarEventData>({
     title: "",
@@ -56,58 +84,121 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     all_day: false,
     color: "#3b82f6",
   });
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
-  useEffect(() => {
-    loadEventsForMonth();
+  // Memoizovaný dátumový rozsah
+  const dateRange = useMemo(() => {
+    return {
+      startDate: format(startOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
+      endDate: format(endOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
+    };
   }, [currentDate]);
 
-  const loadEventsForMonth = async () => {
+  // Načítanie eventov s useCallback
+  const loadEventsForMonth = useCallback(async () => {
     setLoading(true);
     try {
-      const startDate = format(
-        startOfMonth(currentDate),
-        "yyyy-MM-dd'T'HH:mm:ss",
-      );
-      const endDate = format(endOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss");
+      const result = await getCalendarEventsByDateRangeAction(dateRange);
 
-      const result = await getCalendarEventsByDateRangeAction({
-        startDate,
-        endDate,
-      });
-
-      if (result) {
-        setEvents(result.data || []);
+      if (result?.data) {
+        setEvents(result.data);
       }
     } catch (error) {
       console.error("Error loading events:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]);
 
-  const getEventsForDay = (day: Date) => {
+  useEffect(() => {
+    loadEventsForMonth();
+  }, [loadEventsForMonth]);
+
+  // Memoizovaná funkcia pre eventy podľa dňa
+  const getEventsForDay = useCallback((day: Date) => {
     return events.filter((event) => {
       if (!event.start_time) return false;
-      return isSameDay(new Date(event.start_time), day);
+      return isSameDay(parseISO(event.start_time), day);
     });
-  };
+  }, [events]);
 
-  const formatDateTimeForInput = (date: Date) => {
+  const formatDateTimeForInput = useCallback((date: Date) => {
     return format(date, "yyyy-MM-dd'T'HH:mm");
-  };
+  }, []);
 
-  const handleStartTimeChange = (value: string) => {
+  // Validácia eventu
+  const validateEvent = useCallback((eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
+    const errors: ValidationErrors = {};
+
+    // Validácia titulu
+    if (!eventData.title.trim()) {
+      errors.title = "Title is required";
+    }
+
+    // Validácia dátumov
+    if (!eventData.start_time) {
+      errors.start_time = "Start time is required";
+    } else if (!eventData.end_time) {
+      errors.end_time = "End time is required";
+    } else {
+      const startDate = new Date(eventData.start_time);
+      const endDate = new Date(eventData.end_time);
+      const now = new Date();
+
+      // Validácia platnosti dátumov
+      if (!isValid(startDate)) {
+        errors.start_time = "Invalid start date";
+      } else if (!isValid(endDate)) {
+        errors.end_time = "Invalid end date";
+      } else {
+        // Event nemôže začínať v minulosti
+        if (isBefore(startDate, startOfDay(now))) {
+          errors.start_time = "Event cannot start in the past";
+        }
+
+        // End time nemôže byť pred start time
+        if (isBefore(endDate, startDate)) {
+          errors.end_time = "End time must be after start time";
+        }
+
+        // Minimálna dĺžka eventu (5 minút)
+        const minDuration = 5 * 60 * 1000; // 5 minút v milisekundách
+        if (endDate.getTime() - startDate.getTime() < minDuration) {
+          errors.end_time = "Event must be at least 5 minutes long";
+        }
+      }
+    }
+
+    return errors;
+  }, []);
+
+  const handleStartTimeChange = useCallback((value: string) => {
     const start = new Date(value);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
 
     setNewEvent((prev) => ({
       ...prev,
       start_time: value,
       end_time: prev.end_time || formatDateTimeForInput(end),
     }));
-  };
 
+    // Clear validation errors when user types
+    setValidationErrors((prev) => ({
+      ...prev,
+      start_time: undefined,
+      end_time: undefined,
+    }));
+  }, [formatDateTimeForInput]);
+
+  // Vytvorenie eventu
   const createEvent = async () => {
+    const errors = validateEvent(newEvent);
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
     if (!newEvent.title.trim() || !newEvent.start_time || !newEvent.end_time)
       return;
 
@@ -121,7 +212,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       const result = await createCalendarEventAction(eventData);
 
       if (result) {
-        setEvents((prev) => [result, ...prev]);
+        await loadEventsForMonth();
         setNewEvent({
           title: "",
           description: "",
@@ -130,13 +221,48 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           all_day: false,
           color: "#3b82f6",
         });
-        setDialogOpen(false);
+        setValidationErrors({});
+        setCreateDialogOpen(false);
       }
     } catch (error) {
       console.error("Error creating event:", error);
     }
   };
 
+  // Aktualizácia eventu
+  const updateEvent = async () => {
+    if (!selectedEvent) return;
+
+    const errors = validateEvent(selectedEvent);
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    try {
+      const result = await updateCalendarEventAction({
+        id: selectedEvent.id,
+        title: selectedEvent.title,
+        description: selectedEvent.description,
+        start_time: selectedEvent.start_time,
+        end_time: selectedEvent.end_time,
+        all_day: selectedEvent.all_day,
+        color: selectedEvent.color,
+      });
+
+      if (result) {
+        await loadEventsForMonth();
+        setDetailDialogOpen(false);
+        setSelectedEvent(null);
+        setValidationErrors({});
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+    }
+  };
+
+  // Vymazanie eventu
   const deleteEvent = async (id: string) => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
@@ -144,21 +270,53 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       const result = await deleteCalendarEventAction({ id });
 
       if (result.data !== false) {
-        setEvents((prev) => prev.filter((e) => e.id !== id));
+        await loadEventsForMonth();
+        setDetailDialogOpen(false);
+        setSelectedEvent(null);
       }
     } catch (error) {
       console.error("Error deleting event:", error);
     }
   };
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
-  const calendarDays = eachDayOfInterval({
-    start: calendarStart,
-    end: calendarEnd,
-  });
+  // Otvorenie detailu eventu
+  const handleEventClick = useCallback((event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setValidationErrors({});
+    setDetailDialogOpen(true);
+  }, []);
+
+  // Otvorenie create dialogu
+  const handleOpenCreateDialog = useCallback(() => {
+    setNewEvent({
+      title: "",
+      description: "",
+      start_time: formatDateTimeForInput(new Date()),
+      end_time: formatDateTimeForInput(addHours(new Date(), 1)),
+      all_day: false,
+      color: "#3b82f6",
+    });
+    setValidationErrors({});
+    setCreateDialogOpen(true);
+  }, [formatDateTimeForInput]);
+
+  // Kalendárne dátumy memoizované
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart);
+    const calendarEnd = endOfWeek(monthEnd);
+    
+    return eachDayOfInterval({
+      start: calendarStart,
+      end: calendarEnd,
+    });
+  }, [currentDate]);
+
+  // Minimálny dátum pre datetime input (aktuálny čas)
+  const minDateTime = useMemo(() => {
+    return formatDateTimeForInput(new Date());
+  }, [formatDateTimeForInput]);
 
   return (
     <div className="space-y-4">
@@ -183,14 +341,14 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={handleOpenCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
           Add Event
         </Button>
       </div>
 
-      {/* Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Create Event Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Event</DialogTitle>
@@ -200,20 +358,27 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium">Title</label>
+              <label className="mb-2 block text-sm font-medium">Title *</label>
               <Input
                 placeholder="Enter event title"
                 value={newEvent.title}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, title: e.target.value })
-                }
+                onChange={(e) => {
+                  setNewEvent({ ...newEvent, title: e.target.value });
+                  setValidationErrors((prev) => ({ ...prev, title: undefined }));
+                }}
+                className={validationErrors.title ? "border-destructive" : ""}
               />
+              {validationErrors.title && (
+                <p className="text-sm text-destructive mt-1">
+                  {validationErrors.title}
+                </p>
+              )}
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium">
                 Description
               </label>
-              <Input
+              <Textarea
                 placeholder="Enter description (optional)"
                 value={newEvent.description || ""}
                 onChange={(e) =>
@@ -224,25 +389,40 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">
-                  Start Time
+                  Start Time *
                 </label>
                 <Input
                   type="datetime-local"
                   value={newEvent.start_time}
                   onChange={(e) => handleStartTimeChange(e.target.value)}
+                  min={minDateTime}
+                  className={validationErrors.start_time ? "border-destructive" : ""}
                 />
+                {validationErrors.start_time && (
+                  <p className="text-sm text-destructive mt-1">
+                    {validationErrors.start_time}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium">
-                  End Time
+                  End Time *
                 </label>
                 <Input
                   type="datetime-local"
                   value={newEvent.end_time}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, end_time: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setNewEvent({ ...newEvent, end_time: e.target.value });
+                    setValidationErrors((prev) => ({ ...prev, end_time: undefined }));
+                  }}
+                  min={newEvent.start_time || minDateTime}
+                  className={validationErrors.end_time ? "border-destructive" : ""}
                 />
+                {validationErrors.end_time && (
+                  <p className="text-sm text-destructive mt-1">
+                    {validationErrors.end_time}
+                  </p>
+                )}
               </div>
             </div>
             <div>
@@ -263,19 +443,129 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={createEvent}
-              disabled={
-                !newEvent.title.trim() ||
-                !newEvent.start_time ||
-                !newEvent.end_time
-              }
-            >
+            <Button onClick={createEvent}>
               Create Event
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Detail Dialog */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Event Details</DialogTitle>
+            <DialogDescription>
+              View and edit your event details
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEvent && (
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium">Title *</label>
+                <Input
+                  value={selectedEvent.title}
+                  onChange={(e) => {
+                    setSelectedEvent({ ...selectedEvent, title: e.target.value });
+                    setValidationErrors((prev) => ({ ...prev, title: undefined }));
+                  }}
+                  className={validationErrors.title ? "border-destructive" : ""}
+                />
+                {validationErrors.title && (
+                  <p className="text-sm text-destructive mt-1">
+                    {validationErrors.title}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Description
+                </label>
+                <Textarea
+                  value={selectedEvent.description || ""}
+                  onChange={(e) =>
+                    setSelectedEvent({ ...selectedEvent, description: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    Start Time *
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={formatDateTimeForInput(parseISO(selectedEvent.start_time))}
+                    onChange={(e) => {
+                      setSelectedEvent({ ...selectedEvent, start_time: e.target.value });
+                      setValidationErrors((prev) => ({ ...prev, start_time: undefined }));
+                    }}
+                    className={validationErrors.start_time ? "border-destructive" : ""}
+                  />
+                  {validationErrors.start_time && (
+                    <p className="text-sm text-destructive mt-1">
+                      {validationErrors.start_time}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    End Time *
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={formatDateTimeForInput(parseISO(selectedEvent.end_time))}
+                    onChange={(e) => {
+                      setSelectedEvent({ ...selectedEvent, end_time: e.target.value });
+                      setValidationErrors((prev) => ({ ...prev, end_time: undefined }));
+                    }}
+                    className={validationErrors.end_time ? "border-destructive" : ""}
+                  />
+                  {validationErrors.end_time && (
+                    <p className="text-sm text-destructive mt-1">
+                      {validationErrors.end_time}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium">Color</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={selectedEvent.color || "#3b82f6"}
+                    onChange={(e) =>
+                      setSelectedEvent({ ...selectedEvent, color: e.target.value })
+                    }
+                    className="w-16 h-10 p-1"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedEvent.color}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => selectedEvent && deleteEvent(selectedEvent.id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={updateEvent}>
+                <Edit className="mr-2 h-4 w-4" />
+                Update Event
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -327,32 +617,22 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="group relative cursor-pointer rounded px-1 py-0.5 text-xs"
+                    className="group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: `${event.color || "#3b82f6"}20`,
                       borderLeft: `3px solid ${event.color || "#3b82f6"}`,
                     }}
+                    onClick={() => handleEventClick(event)}
                   >
                     <div className="truncate font-medium">{event.title}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {event.start_time
-                        ? format(new Date(event.start_time), "HH:mm")
+                        ? format(parseISO(event.start_time), "HH:mm")
                         : ""}
                       {event.end_time && event.start_time
-                        ? ` - ${format(new Date(event.end_time), "HH:mm")}`
+                        ? ` - ${format(parseISO(event.end_time), "HH:mm")}`
                         : ""}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteEvent(event.id);
-                      }}
-                      className="absolute -right-1 -top-1 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
                   </div>
                 ))}
               </div>
