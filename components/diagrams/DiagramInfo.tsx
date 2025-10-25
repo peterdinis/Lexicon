@@ -518,6 +518,116 @@ const SettingsPanel: FC<SettingsPanelProps> = ({ selectedNode, onUpdateNode }) =
 };
 
 // --------------------
+// React Flow Wrapper Component
+// --------------------
+const DiagramFlow: FC<{
+  nodes: CustomNode[];
+  edges: CustomEdge[];
+  onNodesChange: any;
+  onEdgesChange: any;
+  onConnect: OnConnect;
+  onNodeClick: (event: MouseEvent, node: CustomNode) => void;
+  onPaneClick: () => void;
+  nodeTypes: NodeTypes;
+  edgeTypes: EdgeTypes;
+  connectionMode: ConnectionMode;
+  onAddNode: (type: string, data?: any) => void;
+  showGrid: boolean;
+  onConnectionModeChange: () => void;
+}> = ({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onNodeClick,
+  onPaneClick,
+  nodeTypes,
+  edgeTypes,
+  connectionMode,
+  onAddNode,
+  showGrid,
+  onConnectionModeChange,
+}) => {
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onNodeClick={onNodeClick}
+      onPaneClick={onPaneClick}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      connectionMode={connectionMode}
+      fitView
+      deleteKeyCode={["Backspace", "Delete"]}
+      selectionKeyCode={["Shift"]}
+      multiSelectionKeyCode={["Meta", "Control"]}
+      zoomOnScroll={false}
+      zoomOnPinch={true}
+      panOnScroll={true}
+      panOnScrollSpeed={1}
+      selectionOnDrag={true}
+    >
+      <Panel position="top-left" className="flex gap-2">
+        <NodeToolbar onAddNode={onAddNode} />
+      </Panel>
+      
+      <Panel position="top-right" className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onConnectionModeChange}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Connection Mode: {connectionMode === ConnectionMode.Strict ? "Strict" : "Loose"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Panel>
+
+      <Panel position="bottom-right" className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => zoomIn()}>
+          +
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => zoomOut()}>
+          -
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => fitView()}>
+          Fit
+        </Button>
+      </Panel>
+
+      <Controls />
+      <MiniMap 
+        nodeStrokeColor="#1f2937"
+        nodeColor="#f3f4f6"
+        maskColor="rgba(255, 255, 255, 0.6)"
+        position="bottom-left"
+      />
+      {showGrid && (
+        <Background 
+          variant={BackgroundVariant.Dots} 
+          gap={20} 
+          size={1}
+          color="#e5e7eb"
+        />
+      )}
+    </ReactFlow>
+  );
+};
+
+// --------------------
 // Main Component
 // --------------------
 const DiagramInfo: FC = () => {
@@ -538,8 +648,6 @@ const DiagramInfo: FC = () => {
     ConnectionMode.Strict
   );
   const [showGrid, setShowGrid] = useState<boolean>(true);
-
-  const { fitView, zoomIn, zoomOut } = useReactFlow();
 
   // Load diagram
   useEffect(() => {
@@ -731,8 +839,15 @@ const DiagramInfo: FC = () => {
       },
     }));
     setNodes(arrangedNodes);
-    setTimeout(() => fitView(), 100);
-  }, [nodes, setNodes, fitView]);
+  }, [nodes, setNodes]);
+
+  const handleConnectionModeChange = useCallback(() => {
+    setConnectionMode(
+      connectionMode === ConnectionMode.Strict
+        ? ConnectionMode.Loose
+        : ConnectionMode.Strict
+    );
+  }, [connectionMode]);
 
   if (loading) {
     return (
@@ -840,9 +955,6 @@ const DiagramInfo: FC = () => {
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => fitView()} variant="outline" size="sm" className="flex-1">
-                  Fit View
-                </Button>
                 <Button onClick={arrangeNodes} variant="outline" size="sm" className="flex-1">
                   Arrange
                 </Button>
@@ -863,7 +975,7 @@ const DiagramInfo: FC = () => {
         <div className="lg:col-span-3">
           <div className="bg-card rounded-lg border shadow-sm h-[800px]" ref={reactFlowWrapper}>
             <ReactFlowProvider>
-              <ReactFlow
+              <DiagramFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
@@ -874,71 +986,10 @@ const DiagramInfo: FC = () => {
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 connectionMode={connectionMode}
-                fitView
-                deleteKeyCode={["Backspace", "Delete"]}
-                selectionKeyCode={["Shift"]}
-                multiSelectionKeyCode={["Meta", "Control"]}
-                zoomOnScroll={false}
-                zoomOnPinch={true}
-                panOnScroll={true}
-                panOnScrollSpeed={1}
-                selectionOnDrag={true}
-              >
-                <Panel position="top-left" className="flex gap-2">
-                  <NodeToolbar onAddNode={addNode} />
-                </Panel>
-                
-                <Panel position="top-right" className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setConnectionMode(
-                            connectionMode === ConnectionMode.Strict
-                              ? ConnectionMode.Loose
-                              : ConnectionMode.Strict
-                          )}
-                        >
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Connection Mode: {connectionMode === ConnectionMode.Strict ? "Strict" : "Loose"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </Panel>
-
-                <Panel position="bottom-right" className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => zoomIn()}>
-                    +
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => zoomOut()}>
-                    -
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => fitView()}>
-                    Fit
-                  </Button>
-                </Panel>
-
-                <Controls />
-                <MiniMap 
-                  nodeStrokeColor="#1f2937"
-                  nodeColor="#f3f4f6"
-                  maskColor="rgba(255, 255, 255, 0.6)"
-                  position="bottom-left"
-                />
-                {showGrid && (
-                  <Background 
-                    variant={BackgroundVariant.Dots} 
-                    gap={20} 
-                    size={1}
-                    color="#e5e7eb"
-                  />
-                )}
-              </ReactFlow>
+                onAddNode={addNode}
+                showGrid={showGrid}
+                onConnectionModeChange={handleConnectionModeChange}
+              />
             </ReactFlowProvider>
           </div>
         </div>
