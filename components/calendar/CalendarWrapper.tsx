@@ -74,7 +74,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [newEvent, setNewEvent] = useState<CreateCalendarEventData>({
     title: "",
@@ -84,7 +86,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     all_day: false,
     color: "#3b82f6",
   });
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
 
   // Memoizovaný dátumový rozsah
   const dateRange = useMemo(() => {
@@ -115,85 +119,94 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   }, [loadEventsForMonth]);
 
   // Memoizovaná funkcia pre eventy podľa dňa
-  const getEventsForDay = useCallback((day: Date) => {
-    return events.filter((event) => {
-      if (!event.start_time) return false;
-      return isSameDay(parseISO(event.start_time), day);
-    });
-  }, [events]);
+  const getEventsForDay = useCallback(
+    (day: Date) => {
+      return events.filter((event) => {
+        if (!event.start_time) return false;
+        return isSameDay(parseISO(event.start_time), day);
+      });
+    },
+    [events],
+  );
 
   const formatDateTimeForInput = useCallback((date: Date) => {
     return format(date, "yyyy-MM-dd'T'HH:mm");
   }, []);
 
   // Validácia eventu
-  const validateEvent = useCallback((eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
-    const errors: ValidationErrors = {};
+  const validateEvent = useCallback(
+    (eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
+      const errors: ValidationErrors = {};
 
-    // Validácia titulu
-    if (!eventData.title.trim()) {
-      errors.title = "Title is required";
-    }
+      // Validácia titulu
+      if (!eventData.title.trim()) {
+        errors.title = "Title is required";
+      }
 
-    // Validácia dátumov
-    if (!eventData.start_time) {
-      errors.start_time = "Start time is required";
-    } else if (!eventData.end_time) {
-      errors.end_time = "End time is required";
-    } else {
-      const startDate = new Date(eventData.start_time);
-      const endDate = new Date(eventData.end_time);
-      const now = new Date();
-
-      // Validácia platnosti dátumov
-      if (!isValid(startDate)) {
-        errors.start_time = "Invalid start date";
-      } else if (!isValid(endDate)) {
-        errors.end_time = "Invalid end date";
+      // Validácia dátumov
+      if (!eventData.start_time) {
+        errors.start_time = "Start time is required";
+      } else if (!eventData.end_time) {
+        errors.end_time = "End time is required";
       } else {
-        // Event nemôže začínať v minulosti
-        if (isBefore(startDate, startOfDay(now))) {
-          errors.start_time = "Event cannot start in the past";
-        }
+        const startDate = new Date(eventData.start_time);
+        const endDate = new Date(eventData.end_time);
+        const now = new Date();
 
-        // End time nemôže byť pred start time
-        if (isBefore(endDate, startDate)) {
-          errors.end_time = "End time must be after start time";
-        }
+        // Validácia platnosti dátumov
+        if (!isValid(startDate)) {
+          errors.start_time = "Invalid start date";
+        } else if (!isValid(endDate)) {
+          errors.end_time = "Invalid end date";
+        } else {
+          // Event nemôže začínať v minulosti
+          if (isBefore(startDate, startOfDay(now))) {
+            errors.start_time = "Event cannot start in the past";
+          }
 
-        // Minimálna dĺžka eventu (5 minút)
-        const minDuration = 5 * 60 * 1000; // 5 minút v milisekundách
-        if (endDate.getTime() - startDate.getTime() < minDuration) {
-          errors.end_time = "Event must be at least 5 minutes long";
+          // End time nemôže byť pred start time
+          if (isBefore(endDate, startDate)) {
+            errors.end_time = "End time must be after start time";
+          }
+
+          // Minimálna dĺžka eventu (5 minút)
+          const minDuration = 5 * 60 * 1000; // 5 minút v milisekundách
+          if (endDate.getTime() - startDate.getTime() < minDuration) {
+            errors.end_time = "Event must be at least 5 minutes long";
+          }
         }
       }
-    }
 
-    return errors;
-  }, []);
+      return errors;
+    },
+    [],
+  );
 
-  const handleStartTimeChange = useCallback((value: string) => {
-    const start = new Date(value);
-    const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
+  const handleStartTimeChange = useCallback(
+    (value: string) => {
+      const start = new Date(value);
+      const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
 
-    setNewEvent((prev) => ({
-      ...prev,
-      start_time: value,
-      end_time: prev.end_time || formatDateTimeForInput(end),
-    }));
+      setNewEvent((prev) => ({
+        ...prev,
+        start_time: value,
+        end_time: prev.end_time || formatDateTimeForInput(end),
+      }));
 
-    // Clear validation errors when user types
-    setValidationErrors((prev) => ({
-      ...prev,
-      start_time: undefined,
-      end_time: undefined,
-    }));
-  }, [formatDateTimeForInput]);
+      // Clear validation errors when user types
+      setValidationErrors((prev) => ({
+        ...prev,
+        start_time: undefined,
+        end_time: undefined,
+      }));
+    },
+    [formatDateTimeForInput],
+  );
 
   // Vytvorenie eventu
   const createEvent = async () => {
     const errors = validateEvent(newEvent);
-    
+
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
@@ -234,7 +247,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     if (!selectedEvent) return;
 
     const errors = validateEvent(selectedEvent);
-    
+
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
@@ -306,7 +319,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     const monthEnd = endOfMonth(currentDate);
     const calendarStart = startOfWeek(monthStart);
     const calendarEnd = endOfWeek(monthEnd);
-    
+
     return eachDayOfInterval({
       start: calendarStart,
       end: calendarEnd,
@@ -364,7 +377,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 value={newEvent.title}
                 onChange={(e) => {
                   setNewEvent({ ...newEvent, title: e.target.value });
-                  setValidationErrors((prev) => ({ ...prev, title: undefined }));
+                  setValidationErrors((prev) => ({
+                    ...prev,
+                    title: undefined,
+                  }));
                 }}
                 className={validationErrors.title ? "border-destructive" : ""}
               />
@@ -396,7 +412,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   value={newEvent.start_time}
                   onChange={(e) => handleStartTimeChange(e.target.value)}
                   min={minDateTime}
-                  className={validationErrors.start_time ? "border-destructive" : ""}
+                  className={
+                    validationErrors.start_time ? "border-destructive" : ""
+                  }
                 />
                 {validationErrors.start_time && (
                   <p className="text-sm text-destructive mt-1">
@@ -413,10 +431,15 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   value={newEvent.end_time}
                   onChange={(e) => {
                     setNewEvent({ ...newEvent, end_time: e.target.value });
-                    setValidationErrors((prev) => ({ ...prev, end_time: undefined }));
+                    setValidationErrors((prev) => ({
+                      ...prev,
+                      end_time: undefined,
+                    }));
                   }}
                   min={newEvent.start_time || minDateTime}
-                  className={validationErrors.end_time ? "border-destructive" : ""}
+                  className={
+                    validationErrors.end_time ? "border-destructive" : ""
+                  }
                 />
                 {validationErrors.end_time && (
                   <p className="text-sm text-destructive mt-1">
@@ -443,12 +466,13 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={createEvent}>
-              Create Event
-            </Button>
+            <Button onClick={createEvent}>Create Event</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -465,12 +489,20 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           {selectedEvent && (
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium">Title *</label>
+                <label className="mb-2 block text-sm font-medium">
+                  Title *
+                </label>
                 <Input
                   value={selectedEvent.title}
                   onChange={(e) => {
-                    setSelectedEvent({ ...selectedEvent, title: e.target.value });
-                    setValidationErrors((prev) => ({ ...prev, title: undefined }));
+                    setSelectedEvent({
+                      ...selectedEvent,
+                      title: e.target.value,
+                    });
+                    setValidationErrors((prev) => ({
+                      ...prev,
+                      title: undefined,
+                    }));
                   }}
                   className={validationErrors.title ? "border-destructive" : ""}
                 />
@@ -487,7 +519,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 <Textarea
                   value={selectedEvent.description || ""}
                   onChange={(e) =>
-                    setSelectedEvent({ ...selectedEvent, description: e.target.value })
+                    setSelectedEvent({
+                      ...selectedEvent,
+                      description: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -498,12 +533,22 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formatDateTimeForInput(parseISO(selectedEvent.start_time))}
+                    value={formatDateTimeForInput(
+                      parseISO(selectedEvent.start_time),
+                    )}
                     onChange={(e) => {
-                      setSelectedEvent({ ...selectedEvent, start_time: e.target.value });
-                      setValidationErrors((prev) => ({ ...prev, start_time: undefined }));
+                      setSelectedEvent({
+                        ...selectedEvent,
+                        start_time: e.target.value,
+                      });
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        start_time: undefined,
+                      }));
                     }}
-                    className={validationErrors.start_time ? "border-destructive" : ""}
+                    className={
+                      validationErrors.start_time ? "border-destructive" : ""
+                    }
                   />
                   {validationErrors.start_time && (
                     <p className="text-sm text-destructive mt-1">
@@ -517,12 +562,22 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formatDateTimeForInput(parseISO(selectedEvent.end_time))}
+                    value={formatDateTimeForInput(
+                      parseISO(selectedEvent.end_time),
+                    )}
                     onChange={(e) => {
-                      setSelectedEvent({ ...selectedEvent, end_time: e.target.value });
-                      setValidationErrors((prev) => ({ ...prev, end_time: undefined }));
+                      setSelectedEvent({
+                        ...selectedEvent,
+                        end_time: e.target.value,
+                      });
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        end_time: undefined,
+                      }));
                     }}
-                    className={validationErrors.end_time ? "border-destructive" : ""}
+                    className={
+                      validationErrors.end_time ? "border-destructive" : ""
+                    }
                   />
                   {validationErrors.end_time && (
                     <p className="text-sm text-destructive mt-1">
@@ -538,7 +593,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                     type="color"
                     value={selectedEvent.color || "#3b82f6"}
                     onChange={(e) =>
-                      setSelectedEvent({ ...selectedEvent, color: e.target.value })
+                      setSelectedEvent({
+                        ...selectedEvent,
+                        color: e.target.value,
+                      })
                     }
                     className="w-16 h-10 p-1"
                   />
@@ -558,7 +616,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
               Delete
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setDetailDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={updateEvent}>
