@@ -2,29 +2,18 @@
 
 import { db } from "@/drizzle/db";
 import { calendarEvents } from "@/drizzle/schema";
-import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
-import { getSupabaseServerClient } from "@/supabase/server";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import {
-  CreateCalendarEventSchema,
-  UpdateCalendarEventSchema,
-} from "../schemas/calendarSchemas";
-import z from "zod";
+import type { InferInsertModel } from "drizzle-orm";
+import { getUserId } from "@/lib/supabase-user-id";
 
-async function getUserId() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  return user.id;
-}
+type CalendarEventInsert = InferInsertModel<typeof calendarEvents>;
 
 export async function createCalendarEventHandler(
-  data: any, // TODO: Fix me
+  data: Omit<CalendarEventInsert, 'id' | 'user_id' | 'created_at' | 'updated_at'>,
 ) {
   const userId = await getUserId();
-  const newEvent = {
+  const newEvent: CalendarEventInsert = {
     id: crypto.randomUUID(),
     user_id: userId,
     created_at: new Date().toISOString(),
@@ -65,8 +54,7 @@ export async function updateCalendarEventHandler(
 ) {
   const userId = await getUserId();
 
-  // Konvertujeme null na undefined pre databázu
-  const updateData: any = {
+  const updateData: Partial<CalendarEventInsert> = {
     updated_at: new Date().toISOString(),
   };
 
