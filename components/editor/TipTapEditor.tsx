@@ -79,17 +79,47 @@ export function TiptapEditor({
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const saveRef = useRef<((content: string) => void) | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  saveRef.current = debounce(async (description: string) => {
-    try {
-      await updatePageAction({ id: pageId, description });
-      setLastSaved(new Date());
-    } catch (err) {
-      console.error("❌ Failed to save description:", err);
+  // Vytvorenie debounced save funkcie
+  useEffect(() => {
+    saveRef.current = debounce(async (description: string) => {
+      try {
+        await updatePageAction({ id: pageId, description });
+        setLastSaved(new Date());
+        setIsTyping(false);
+      } catch (err) {
+        console.error("❌ Failed to save description:", err);
+        setIsTyping(false);
+      }
+    }, 2000); // Zvýšené na 2 sekundy
+  }, [pageId]);
+
+  const handleContentChange = useCallback((description: string) => {
+    // Zavolaj onUpdate callback
+    onUpdate?.(description);
+
+    // Nastav stav písania
+    setIsTyping(true);
+
+    // Resetuj predchádzajúci timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
-  }, 1500);
+
+    // Nastav nový timeout pre uloženie
+    typingTimeoutRef.current = setTimeout(() => {
+      // Debounced uloženie
+      startTransition(() => {
+        if (saveRef.current) {
+          saveRef.current(description);
+        }
+      });
+    }, 1000); // Uloží sa po 1 sekunde nečinnosti
+  }, [onUpdate]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -116,27 +146,42 @@ export function TiptapEditor({
     content: initialContent,
     onUpdate: ({ editor }) => {
       const description = editor.getHTML();
-      onUpdate?.(description);
-
-      // Debounced uloženie
+      handleContentChange(description);
+    },
+    onBlur: ({ editor }) => {
+      // Uloženie pri strate focusu
+      const description = editor.getHTML();
       startTransition(() => {
-        saveRef.current?.(description);
+        if (saveRef.current) {
+          saveRef.current(description);
+        }
       });
     },
+    editable: true,
+    enableInputRules: true,
+    enablePasteRules: true,
   });
 
+  // Synchronizácia initialContent
   useEffect(() => {
-    // Pri mount nastav obsah ak sa líši od inicializovaného
-    if (editor && initialContent && editor.getHTML() !== initialContent) {
-      editor.commands.setContent(initialContent);
+    if (editor && initialContent !== undefined) {
+      const currentContent = editor.getHTML();
+      if (currentContent !== initialContent) {
+        editor.commands.setContent(initialContent);
+      }
     }
   }, [editor, initialContent]);
 
-  // Volanie API pri unmount / focus loss
+  // Uloženie pri unmount a cleanup
   useEffect(() => {
     return () => {
-      if (editor) {
-        saveRef.current?.(editor.getHTML());
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      if (editor && saveRef.current) {
+        const currentContent = editor.getHTML();
+        saveRef.current(currentContent);
       }
     };
   }, [editor]);
@@ -157,10 +202,31 @@ export function TiptapEditor({
     }
   }, [editor, imageUrl]);
 
-  if (!editor) return null;
+  const removeLink = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().unsetLink().run();
+    }
+  }, [editor]);
+
+  const handleManualSave = useCallback(() => {
+    if (editor && saveRef.current) {
+      const currentContent = editor.getHTML();
+      startTransition(() => {
+        saveRef.current?.(currentContent);
+      });
+    }
+  }, [editor]);
+
+  if (!editor) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-muted-foreground">Loading editor...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-h-[500px]">
       {/* Toolbar */}
       <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-backdrop-filter:bg-background/60">
         {/* Text formatting */}
@@ -371,6 +437,15 @@ export function TiptapEditor({
         >
           <Link2 className="h-4 w-4" />
         </Button>
+        {editor.isActive("link") ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={removeLink}
+          >
+            Remove Link
+          </Button>
+        ) : null}
         <Button
           variant="ghost"
           size="sm"
@@ -384,6 +459,7 @@ export function TiptapEditor({
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
         >
           <Undo className="h-4 w-4" />
         </Button>
@@ -391,22 +467,43 @@ export function TiptapEditor({
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
         >
           <Redo className="h-4 w-4" />
+        </Button>
+        
+        {/* Manual Save Button */}
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleManualSave}
+          disabled={isPending}
+        >
+          Save
         </Button>
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} />
+      <div className="flex-1 p-8">
+        <EditorContent 
+          editor={editor} 
+          className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none"
+        />
+      </div>
 
       {/* Save indicator */}
-      {isPending ? (
-        <p className="text-sm text-muted-foreground px-8 py-2">Saving...</p>
-      ) : lastSaved ? (
-        <p className="text-sm text-muted-foreground px-8 py-2">
-          Saved at {lastSaved.toLocaleTimeString()}
-        </p>
-      ) : null}
+      <div className="border-t p-2">
+        {isTyping ? (
+          <p className="text-sm text-muted-foreground px-4">Typing...</p>
+        ) : isPending ? (
+          <p className="text-sm text-muted-foreground px-4">Saving...</p>
+        ) : lastSaved ? (
+          <p className="text-sm text-muted-foreground px-4">
+            Saved at {lastSaved.toLocaleTimeString()}
+          </p>
+        ) : null}
+      </div>
 
       {/* Link dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
