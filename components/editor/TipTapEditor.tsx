@@ -155,6 +155,7 @@ export function TiptapEditor({
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("text");
+  const [isInCodeBlock, setIsInCodeBlock] = useState(false);
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -225,6 +226,13 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => {
       const description = editor.getHTML();
       handleContentChange(description);
+      
+      // Aktualizácia stavu pre code block
+      updateCodeBlockState(editor);
+    },
+    onSelectionUpdate: ({ editor }) => {
+      // Aktualizácia stavu pri zmene výberu
+      updateCodeBlockState(editor);
     },
     onBlur: ({ editor }) => {
       const description = editor.getHTML();
@@ -238,6 +246,21 @@ export function TiptapEditor({
     enableInputRules: true,
     enablePasteRules: true,
   });
+
+  // Funkcia pre aktualizáciu stavu code blocku
+  const updateCodeBlockState = useCallback((editorInstance: any) => {
+    const isCodeBlockActive = editorInstance.isActive('codeBlock');
+    setIsInCodeBlock(isCodeBlockActive);
+    
+    if (isCodeBlockActive) {
+      // Pokúsime sa získať jazyk z aktuálneho code blocku
+      const { node } = editorInstance.state.selection.$from;
+      if (node && node.attrs) {
+        const language = node.attrs.language || 'text';
+        setSelectedLanguage(language);
+      }
+    }
+  }, []);
 
   // Synchronizácia initialContent
   useEffect(() => {
@@ -297,24 +320,27 @@ export function TiptapEditor({
   // Funkcia pre vytvorenie code blocku s konkrétnym jazykom
   const addCodeBlockWithLanguage = useCallback((language: string) => {
     if (editor) {
-      editor.chain().focus().toggleCodeBlock().run();
-      
-      // Ak nie je text, nastavíme class pre jazyk
-      if (language !== 'text') {
-        // Musíme počkať kým sa code block vytvorí a potom nastaviť atribút
-        setTimeout(() => {
-          const codeBlock = editor.view.dom.querySelector('pre:last-of-type');
-          if (codeBlock) {
-            codeBlock.setAttribute('data-language', language);
-          }
-        }, 0);
-      }
+      editor.chain().focus().setCodeBlock({ language }).run();
+    }
+  }, [editor]);
+
+  // Funkcia pre zmenu jazyka existujúceho code blocku
+  const changeCodeBlockLanguage = useCallback((language: string) => {
+    if (editor && editor.isActive('codeBlock')) {
+      editor.chain().focus().updateAttributes('codeBlock', { language }).run();
     }
   }, [editor]);
 
   const handleLanguageChange = (language: string) => {
     setSelectedLanguage(language);
-    addCodeBlockWithLanguage(language);
+    
+    if (editor?.isActive('codeBlock')) {
+      // Ak sme v code blocku, zmeníme jazyk existujúceho blocku
+      changeCodeBlockLanguage(language);
+    } else {
+      // Ak nie sme v code blocku, vytvoríme nový
+      addCodeBlockWithLanguage(language);
+    }
   };
 
   if (!editor) {
@@ -519,7 +545,7 @@ export function TiptapEditor({
             <Code className="h-4 w-4" />
           </Button>
           <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-[130px] h-8 text-xs">
+            <SelectTrigger className={`w-[130px] h-8 text-xs ${isInCodeBlock ? 'bg-blue-50 border-blue-200' : ''}`}>
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
@@ -530,6 +556,11 @@ export function TiptapEditor({
               ))}
             </SelectContent>
           </Select>
+          {isInCodeBlock && (
+            <span className="text-xs text-muted-foreground ml-1">
+              Editing code
+            </span>
+          )}
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
