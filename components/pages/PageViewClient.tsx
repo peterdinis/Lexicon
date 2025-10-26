@@ -16,7 +16,7 @@ export default function PageViewClient({
 }: {
   id: string;
   page: any;
-  pages: Page[];
+  pages: any[];
 }) {
   const [title, setTitle] = useState(page.title || "");
   const [isPending, startTransition] = useTransition();

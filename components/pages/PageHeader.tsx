@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { CoverImageSelector } from "../images/CoverImageSelector";
-import { EmojiPicker } from "../shared/EmojiPicker";
-import { ShareDialog } from "../dialogs/ShareDialog";
 import { debounce } from "@/lib/debounce";
 import { updatePageAction } from "@/actions/pagesActions";
 import Image from "next/image";
+import { ShareDialog } from "../dialogs/ShareDialog";
+import { CoverImageSelector } from "../images/CoverImageSelector";
+import { EmojiPicker } from "../shared/EmojiPicker";
 
 interface PageHeaderProps {
   pageId: string;
@@ -95,11 +95,11 @@ export function PageHeader({
       {coverImage && (
         <div className="relative h-64 w-full overflow-hidden">
           <Image
-            width={100}
-            height={100}
-            src={coverImage || "/placeholder.svg"}
+            src={coverImage}
             alt="Cover"
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
+            priority
           />
           <div className="absolute bottom-4 right-4 flex gap-2">
             <CoverImageSelector
@@ -125,7 +125,7 @@ export function PageHeader({
       <div className="mx-auto max-w-3xl p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <EmojiPicker value={icon} onChange={handleIconChange} />
+            <EmojiPicker value={icon || ""} onChange={handleIconChange} />
           </div>
           <ShareDialog pageId={pageId} />
         </div>
@@ -134,7 +134,7 @@ export function PageHeader({
           value={localTitle}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Untitled"
-          className="border-0 text-3xl font-bold focus-visible:ring-0"
+          className="border-0 text-3xl font-bold focus-visible:ring-0 focus-visible:ring-offset-0"
         />
 
         {isSaving && (

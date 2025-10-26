@@ -5,15 +5,17 @@ import { actionClient } from "@/lib/safe-action";
 import {
   createPageSchema,
   pageIdSchema,
-  updatePageSchema,
 } from "./schemas/pagesSchemas";
 import {
   createPageHandler,
   deletePageHandler,
   getAllPagesHandler,
   getPageHandler,
-  updatePageHandler,
 } from "./handlers/pageHandlers";
+import { revalidatePath } from "next/cache";
+import { db } from "@/drizzle/db";
+import {eq} from "drizzle-orm"
+import { pages } from "@/drizzle/schema";
 
 // CREATE
 export const createPageAction = actionClient
@@ -38,15 +40,37 @@ export const getPageAction = actionClient
   });
 
 // UPDATE
-export const updatePageAction = actionClient
-  .inputSchema(updatePageSchema)
-  .action(async ({ parsedInput: { id, title, description } }) => {
-    try {
-      return await updatePageHandler(id, { title, description });
-    } catch (err) {
-      throw new Error(getErrorMessage(err));
+export async function updatePageAction(data: {
+  id: string;
+  title?: string;
+  icon?: string;
+  description?: string;
+  coverImage?: string | null;
+}) {
+  try {
+    const updates: any = {};
+    
+    if (data.title !== undefined) updates.title = data.title;
+    if (data.icon !== undefined) updates.icon = data.icon;
+    if( data.description !== undefined) updates.description = data.description; 
+    if (data.coverImage !== undefined) updates.coverImage = data.coverImage;
+
+    if (Object.keys(updates).length === 0) {
+      return { success: false, error: "No valid fields to update" };
     }
-  });
+
+    await db.update(pages).set(updates).where(eq(pages.id, data.id));
+    
+    console.log("Updating page with data:", updates);
+    
+    revalidatePath(`/page/${data.id}`);
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Update page error:", error);
+    return { success: false, error: "Failed to update page" };
+  }
+}
 
 // GET ALL
 export const getAllPagesAction = actionClient.action(async () => {
