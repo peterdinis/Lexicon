@@ -64,22 +64,33 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       notes,
     } = data;
 
+    // Vytvoríme update data objekt
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Pridáme iba polia ktoré sú definované
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (priority !== undefined) updateData.priority = priority;
+    if (due_date !== undefined) updateData.due_date = due_date;
+    if (completed !== undefined) updateData.completed = completed;
+    if (status !== undefined) updateData.status = status;
+    if (tags !== undefined)
+      updateData.tags = tags ? JSON.stringify(tags) : null;
+    if (notes !== undefined) updateData.notes = notes;
+
+    console.log("Updating todo with data:", updateData);
+
     const result = await db
       .update(todos)
-      .set({
-        title,
-        description,
-        priority,
-        due_date,
-        completed: completed ? 1 : 0,
-        status,
-        tags: tags ? JSON.stringify(tags) : null,
-        notes,
-        updated_at: new Date().toISOString(),
-      })
+      .set(updateData)
       .where(eq(todos.id, id))
       .returning();
 
+    console.log("Update result:", result);
+
+    revalidatePath("/todos");
     return { success: true, data: result[0] };
   } catch (error) {
     console.error("Error updating todo:", error);
