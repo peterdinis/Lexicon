@@ -2,10 +2,7 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import {
-  createPageSchema,
-  pageIdSchema,
-} from "./schemas/pagesSchemas";
+import { createPageSchema, pageIdSchema } from "./schemas/pagesSchemas";
 import {
   createPageHandler,
   deletePageHandler,
@@ -14,7 +11,7 @@ import {
 } from "./handlers/pageHandlers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
-import {eq} from "drizzle-orm"
+import { eq } from "drizzle-orm";
 import { pages } from "@/drizzle/schema";
 
 // CREATE
@@ -49,10 +46,10 @@ export async function updatePageAction(data: {
 }) {
   try {
     const updates: any = {};
-    
+
     if (data.title !== undefined) updates.title = data.title;
     if (data.icon !== undefined) updates.icon = data.icon;
-    if( data.description !== undefined) updates.description = data.description; 
+    if (data.description !== undefined) updates.description = data.description;
     if (data.coverImage !== undefined) updates.coverImage = data.coverImage;
 
     if (Object.keys(updates).length === 0) {
@@ -60,11 +57,11 @@ export async function updatePageAction(data: {
     }
 
     await db.update(pages).set(updates).where(eq(pages.id, data.id));
-    
+
     console.log("Updating page with data:", updates);
-    
+
     revalidatePath(`/page/${data.id}`);
-    
+
     return { success: true };
   } catch (error) {
     console.error("Update page error:", error);

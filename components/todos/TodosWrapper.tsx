@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useTransition, useOptimistic } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useTransition,
+  useOptimistic,
+} from "react";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -106,13 +112,12 @@ type ViewMode = "list" | "board" | "table";
 type FilterStatus = "all" | "not_started" | "in_progress" | "done";
 type FilterPriority = "all" | "low" | "medium" | "high";
 
-type OptimisticAction = 
+type OptimisticAction =
   | { type: "add"; todo: Todo }
   | { type: "update"; id: string; updates: Partial<Todo> }
   | { type: "delete"; id: string }
   | { type: "reorder"; todos: Todo[] }
   | { type: "toggle"; id: string; completed: number; status: string };
-
 
 function BoardTodoItem({
   todo,
@@ -137,7 +142,7 @@ function BoardTodoItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : (todo.pending ? 0.6 : 1),
+    opacity: isDragging ? 0.5 : todo.pending ? 0.6 : 1,
   };
 
   const getPriorityColor = (priority: string | null) => {
@@ -194,8 +199,8 @@ function BoardTodoItem({
             onToggle(todo);
           }}
           className={`mt-0.5 shrink-0 rounded-full p-1.5 transition-colors ${
-            (todo.completed ?? 0) === 1 
-              ? "bg-primary text-primary-foreground" 
+            (todo.completed ?? 0) === 1
+              ? "bg-primary text-primary-foreground"
               : "bg-muted hover:bg-muted-foreground/20"
           }`}
           disabled={todo.pending}
@@ -206,17 +211,21 @@ function BoardTodoItem({
             <Circle className="h-3.5 w-3.5" />
           )}
         </button>
-        
+
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <h4
               className={`font-medium text-sm leading-tight ${
-                (todo.completed ?? 0) === 1 ? "line-through text-muted-foreground" : "text-foreground"
+                (todo.completed ?? 0) === 1
+                  ? "line-through text-muted-foreground"
+                  : "text-foreground"
               } ${todo.pending ? "text-muted-foreground" : ""}`}
             >
               {todo.title}
               {todo.pending && (
-                <span className="ml-2 text-xs text-yellow-600">(saving...)</span>
+                <span className="ml-2 text-xs text-yellow-600">
+                  (saving...)
+                </span>
               )}
             </h4>
             <div className="flex items-center gap-1 shrink-0">
@@ -232,15 +241,15 @@ function BoardTodoItem({
 
           <div className="flex flex-wrap items-center gap-1.5">
             {todo.priority && (
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`text-xs gap-1 ${getPriorityColor(todo.priority)}`}
               >
                 {getPriorityIcon(todo.priority)}
                 {todo.priority}
               </Badge>
             )}
-            
+
             {todo.tags?.slice(0, 2).map((tag) => (
               <Badge
                 key={tag}
@@ -267,9 +276,11 @@ function BoardTodoItem({
         </div>
       </div>
 
-      <div className={`absolute top-3 right-3 flex gap-1 transition-opacity ${
-        todo.pending ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'
-      }`}>
+      <div
+        className={`absolute top-3 right-3 flex gap-1 transition-opacity ${
+          todo.pending ? "opacity-50" : "opacity-0 group-hover:opacity-100"
+        }`}
+      >
         <Button
           variant="ghost"
           size="icon"
@@ -328,7 +339,7 @@ function SortableTodoItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : (todo.pending ? 0.6 : 1),
+    opacity: isDragging ? 0.5 : todo.pending ? 0.6 : 1,
   };
 
   const getPriorityColor = (priority: string | null) => {
@@ -375,7 +386,9 @@ function SortableTodoItem({
       className={`group flex items-start gap-4 rounded-xl border-l-4 p-4 transition-all hover:shadow-md ${
         (todo.completed ?? 0) === 1 ? "opacity-70 bg-muted/30" : ""
       } ${isDragging ? "shadow-lg border-primary scale-105" : "bg-card"} ${
-        todo.pending ? "animate-pulse border-yellow-400" : getPriorityColor(todo.priority)
+        todo.pending
+          ? "animate-pulse border-yellow-400"
+          : getPriorityColor(todo.priority)
       }`}
     >
       <button
@@ -387,11 +400,11 @@ function SortableTodoItem({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
 
-      <button 
-        onClick={() => onToggle(todo)} 
+      <button
+        onClick={() => onToggle(todo)}
         className={`mt-1 shrink-0 rounded-full p-2 transition-colors ${
-          (todo.completed ?? 0) === 1 
-            ? "bg-primary text-primary-foreground" 
+          (todo.completed ?? 0) === 1
+            ? "bg-primary text-primary-foreground"
             : "bg-muted hover:bg-muted-foreground/20"
         }`}
         disabled={todo.pending}
@@ -408,12 +421,16 @@ function SortableTodoItem({
           <div className="flex-1 min-w-0">
             <h3
               className={`font-semibold leading-tight ${
-                (todo.completed ?? 0) === 1 ? "line-through text-muted-foreground" : "text-foreground"
+                (todo.completed ?? 0) === 1
+                  ? "line-through text-muted-foreground"
+                  : "text-foreground"
               } ${todo.pending ? "text-muted-foreground" : ""}`}
             >
               {todo.title}
               {todo.pending && (
-                <span className="ml-2 text-sm text-yellow-600">(saving...)</span>
+                <span className="ml-2 text-sm text-yellow-600">
+                  (saving...)
+                </span>
               )}
             </h3>
             {todo.description && (
@@ -429,16 +446,16 @@ function SortableTodoItem({
 
         <div className="flex flex-wrap items-center gap-2">
           {todo.priority && (
-            <Badge
-              variant="outline"
-              className="gap-1.5 font-medium"
-            >
+            <Badge variant="outline" className="gap-1.5 font-medium">
               <Flag className="h-3 w-3" />
               {todo.priority.toUpperCase()}
             </Badge>
           )}
           {todo.status && (
-            <Badge variant="outline" className={`gap-1.5 ${getStatusColor(todo.status)}`}>
+            <Badge
+              variant="outline"
+              className={`gap-1.5 ${getStatusColor(todo.status)}`}
+            >
               {getStatusIcon(todo.status)}
               {todo.status.replace("_", " ").toUpperCase()}
             </Badge>
@@ -462,20 +479,22 @@ function SortableTodoItem({
         </div>
       </div>
 
-      <div className={`flex gap-1 ${todo.pending ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'} transition-opacity shrink-0`}>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => onEdit(todo)} 
+      <div
+        className={`flex gap-1 ${todo.pending ? "opacity-50" : "opacity-0 group-hover:opacity-100"} transition-opacity shrink-0`}
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit(todo)}
           disabled={todo.pending}
           className="rounded-lg"
         >
           <Edit className="h-4 w-4" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => onDelete(todo.id)} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(todo.id)}
           disabled={todo.pending}
           className="rounded-lg text-destructive hover:text-destructive"
         >
@@ -507,40 +526,38 @@ export default function TodoWrapper() {
       switch (action.type) {
         case "add":
           return [{ ...action.todo, pending: true }, ...state];
-        
+
         case "update":
-          return state.map(todo =>
+          return state.map((todo) =>
             todo.id === action.id
               ? { ...todo, ...action.updates, pending: true }
-              : todo
+              : todo,
           );
-        
+
         case "delete":
-          return state.map(todo =>
-            todo.id === action.id
-              ? { ...todo, pending: true }
-              : todo
+          return state.map((todo) =>
+            todo.id === action.id ? { ...todo, pending: true } : todo,
           );
-        
+
         case "toggle":
-          return state.map(todo =>
+          return state.map((todo) =>
             todo.id === action.id
-              ? { 
-                  ...todo, 
-                  completed: action.completed, 
+              ? {
+                  ...todo,
+                  completed: action.completed,
                   status: action.status,
-                  pending: true 
+                  pending: true,
                 }
-              : todo
+              : todo,
           );
-        
+
         case "reorder":
-          return action.todos.map(todo => ({ ...todo, pending: false }));
-        
+          return action.todos.map((todo) => ({ ...todo, pending: false }));
+
         default:
           return state;
       }
-    }
+    },
   );
 
   const form = useForm<
@@ -583,9 +600,9 @@ export default function TodoWrapper() {
               created_at: todo.created_at ?? new Date().toISOString(),
               updated_at: todo.updated_at ?? new Date().toISOString(),
               status: todo.status ?? "not_started",
-              tags: todo.tags 
-                ? typeof todo.tags === 'string' 
-                  ? JSON.parse(todo.tags) 
+              tags: todo.tags
+                ? typeof todo.tags === "string"
+                  ? JSON.parse(todo.tags)
                   : todo.tags
                 : [],
               completed: todo.completed ?? 0,
@@ -644,61 +661,66 @@ export default function TodoWrapper() {
 
     if (!over) return;
 
-    const activeTodo = optimisticTodos.find(t => t.id === active.id);
-    
+    const activeTodo = optimisticTodos.find((t) => t.id === active.id);
+
     if (!activeTodo) return;
 
     let targetStatus: any;
 
-    const overTodo = optimisticTodos.find(t => t.id === over.id);
+    const overTodo = optimisticTodos.find((t) => t.id === over.id);
     if (overTodo) {
-      targetStatus = overTodo.status || 'not_started';
+      targetStatus = overTodo.status || "not_started";
     } else {
       const columnId = over.id as string;
-      if (columnId.includes('not_started') || columnId === 'not_started') {
-        targetStatus = 'not_started';
-      } else if (columnId.includes('in_progress') || columnId === 'in_progress') {
-        targetStatus = 'in_progress';
-      } else if (columnId.includes('done') || columnId === 'done') {
-        targetStatus = 'done';
+      if (columnId.includes("not_started") || columnId === "not_started") {
+        targetStatus = "not_started";
+      } else if (
+        columnId.includes("in_progress") ||
+        columnId === "in_progress"
+      ) {
+        targetStatus = "in_progress";
+      } else if (columnId.includes("done") || columnId === "done") {
+        targetStatus = "done";
       } else {
-        targetStatus = activeTodo.status || 'not_started';
+        targetStatus = activeTodo.status || "not_started";
       }
     }
 
     if (activeTodo.status !== targetStatus) {
       startTransition(async () => {
-        setOptimisticTodos({ 
-          type: "update", 
-          id: activeTodo.id, 
-          updates: { 
-            status: targetStatus, 
-            completed: targetStatus === 'done' ? 1 : 0 
-          } 
+        setOptimisticTodos({
+          type: "update",
+          id: activeTodo.id,
+          updates: {
+            status: targetStatus,
+            completed: targetStatus === "done" ? 1 : 0,
+          },
         });
 
         const result = await updateTodoAction(activeTodo.id, {
           status: targetStatus,
-          completed: targetStatus === 'done' ? 1 : 0,
+          completed: targetStatus === "done" ? 1 : 0,
         });
 
         if (result.success) {
-          setTodos(prev =>
-            prev.map(todo =>
+          setTodos((prev) =>
+            prev.map((todo) =>
               todo.id === activeTodo.id
-                ? { 
-                    ...todo, 
-                    status: targetStatus, 
-                    completed: targetStatus === 'done' ? 1 : 0 
+                ? {
+                    ...todo,
+                    status: targetStatus,
+                    completed: targetStatus === "done" ? 1 : 0,
                   }
-                : todo
-            )
+                : todo,
+            ),
           );
         }
       });
-    } 
-
-    else if (active.id !== over.id && overTodo && activeTodo.status === overTodo.status) {
+    } else if (
+      active.id !== over.id &&
+      overTodo &&
+      activeTodo.status === overTodo.status
+    ) {
       const oldIndex = optimisticTodos.findIndex((t) => t.id === active.id);
       const newIndex = optimisticTodos.findIndex((t) => t.id === over.id);
 
@@ -729,7 +751,7 @@ export default function TodoWrapper() {
               status: data.status || "not_started",
               tags: data.tags || [],
               notes: data.notes || "",
-            }
+            },
           });
 
           const updatedData: any = {
@@ -738,12 +760,15 @@ export default function TodoWrapper() {
             due_date: data.due_date || null,
             priority: data.priority,
             status: data.status || "not_started",
-            tags: data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : JSON.stringify([]),
+            tags:
+              data.tags && data.tags.length > 0
+                ? JSON.stringify(data.tags)
+                : JSON.stringify([]),
             notes: data.notes || "",
           };
-          
+
           const result = await updateTodoAction(editingTodo.id, updatedData);
-          
+
           if (result.success && result.data) {
             setTodos((prev) =>
               prev.map((todo) =>
@@ -784,12 +809,15 @@ export default function TodoWrapper() {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
-          
+
           setOptimisticTodos({ type: "add", todo: newTodo });
 
           const createData = {
             ...data,
-            tags: data.tags && data.tags.length > 0 ? JSON.stringify(data.tags) : JSON.stringify([]),
+            tags:
+              data.tags && data.tags.length > 0
+                ? JSON.stringify(data.tags)
+                : JSON.stringify([]),
           };
 
           const result = await createTodoAction(createData);
@@ -834,19 +862,19 @@ export default function TodoWrapper() {
     startTransition(async () => {
       const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
       const newStatus = newCompleted === 1 ? "done" : "not_started";
-      
-      setOptimisticTodos({ 
-        type: "toggle", 
-        id: todo.id, 
-        completed: newCompleted, 
-        status: newStatus 
+
+      setOptimisticTodos({
+        type: "toggle",
+        id: todo.id,
+        completed: newCompleted,
+        status: newStatus,
       });
-      
+
       const result = await updateTodoAction(todo.id, {
         completed: newCompleted,
         status: newStatus,
       });
-      
+
       if (result.success) {
         setTodos((prev) =>
           prev.map((t) =>
@@ -895,7 +923,9 @@ export default function TodoWrapper() {
     );
   };
 
-  const activeTodo = activeId ? optimisticTodos.find(todo => todo.id === activeId) : null;
+  const activeTodo = activeId
+    ? optimisticTodos.find((todo) => todo.id === activeId)
+    : null;
 
   if (loading) {
     return (
@@ -905,7 +935,9 @@ export default function TodoWrapper() {
             <h1 className="text-3xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               My Tasks
             </h1>
-            <p className="text-muted-foreground mt-2">Organize your work and life</p>
+            <p className="text-muted-foreground mt-2">
+              Organize your work and life
+            </p>
           </div>
           <Button disabled className="rounded-xl">
             <Plus className="mr-2 h-4 w-4" />
@@ -928,8 +960,9 @@ export default function TodoWrapper() {
             My Tasks
           </h1>
           <p className="text-muted-foreground mt-1">
-            {filteredTodos.length} {filteredTodos.length === 1 ? 'task' : 'tasks'} 
-            {filterStatus !== 'all' && ` in ${filterStatus.replace('_', ' ')}`}
+            {filteredTodos.length}{" "}
+            {filteredTodos.length === 1 ? "task" : "tasks"}
+            {filterStatus !== "all" && ` in ${filterStatus.replace("_", " ")}`}
           </p>
         </div>
 
@@ -975,7 +1008,9 @@ export default function TodoWrapper() {
 
             <Select
               value={filterPriority}
-              onValueChange={(value: FilterPriority) => setFilterPriority(value)}
+              onValueChange={(value: FilterPriority) =>
+                setFilterPriority(value)
+              }
               disabled={isPending}
             >
               <SelectTrigger className="w-[140px] rounded-xl">
@@ -991,7 +1026,11 @@ export default function TodoWrapper() {
             </Select>
 
             {allTags.length > 0 && (
-              <Select value={filterTag} onValueChange={setFilterTag} disabled={isPending}>
+              <Select
+                value={filterTag}
+                onValueChange={setFilterTag}
+                disabled={isPending}
+              >
                 <SelectTrigger className="w-[140px] rounded-xl">
                   <TagIcon className="mr-2 h-4 w-4" />
                   <SelectValue />
@@ -1053,12 +1092,12 @@ export default function TodoWrapper() {
                     <div>
                       <h3 className="font-semibold text-lg">No tasks found</h3>
                       <p className="text-muted-foreground mt-1">
-                        {Object.keys(filteredTodos).length === 0 
-                          ? "Create your first task to get started!" 
+                        {Object.keys(filteredTodos).length === 0
+                          ? "Create your first task to get started!"
                           : "No tasks match your current filters"}
                       </p>
                     </div>
-                    <Button 
+                    <Button
                       onClick={() => {
                         setEditingTodo(null);
                         form.reset({
@@ -1121,17 +1160,19 @@ export default function TodoWrapper() {
         >
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {(["not_started", "in_progress", "done"] as const).map((status) => (
-              <Card 
-                key={status} 
-                className="rounded-xl"
-                data-column-id={status}
-              >
+              <Card key={status} className="rounded-xl" data-column-id={status}>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
-                    {status === "not_started" && <Clock className="h-4 w-4 text-gray-500" />}
-                    {status === "in_progress" && <PlayCircle className="h-4 w-4 text-blue-500" />}
-                    {status === "done" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                    {status.replace("_", " ")} 
+                    {status === "not_started" && (
+                      <Clock className="h-4 w-4 text-gray-500" />
+                    )}
+                    {status === "in_progress" && (
+                      <PlayCircle className="h-4 w-4 text-blue-500" />
+                    )}
+                    {status === "done" && (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    )}
+                    {status.replace("_", " ")}
                     <Badge variant="secondary" className="ml-auto">
                       {groupedByStatus[status].length}
                     </Badge>
@@ -1153,7 +1194,7 @@ export default function TodoWrapper() {
                         />
                       ))}
                       {groupedByStatus[status].length === 0 && (
-                        <div 
+                        <div
                           className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg h-full flex flex-col items-center justify-center"
                           data-column-id={status}
                         >
@@ -1187,19 +1228,27 @@ export default function TodoWrapper() {
           </DragOverlay>
         </DndContext>
       )}
-      
+
       {viewMode === "table" && (
         <Card className="rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="p-4 text-left text-sm font-semibold">Status</th>
+                  <th className="p-4 text-left text-sm font-semibold">
+                    Status
+                  </th>
                   <th className="p-4 text-left text-sm font-semibold">Title</th>
-                  <th className="p-4 text-left text-sm font-semibold">Priority</th>
+                  <th className="p-4 text-left text-sm font-semibold">
+                    Priority
+                  </th>
                   <th className="p-4 text-left text-sm font-semibold">Tags</th>
-                  <th className="p-4 text-left text-sm font-semibold">Due Date</th>
-                  <th className="p-4 text-left text-sm font-semibold">Actions</th>
+                  <th className="p-4 text-left text-sm font-semibold">
+                    Due Date
+                  </th>
+                  <th className="p-4 text-left text-sm font-semibold">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1212,8 +1261,8 @@ export default function TodoWrapper() {
                       <div className="space-y-2">
                         <p className="font-medium">No tasks found</p>
                         <p className="text-sm">
-                          {Object.keys(filteredTodos).length === 0 
-                            ? "Create your first task to get started!" 
+                          {Object.keys(filteredTodos).length === 0
+                            ? "Create your first task to get started!"
                             : "No tasks match your current filters"}
                         </p>
                       </div>
@@ -1224,16 +1273,18 @@ export default function TodoWrapper() {
                     <tr
                       key={todo.id}
                       className={`border-b transition-colors hover:bg-muted/30 ${
-                        todo.pending ? 'animate-pulse bg-yellow-50 dark:bg-yellow-950/20' : ''
+                        todo.pending
+                          ? "animate-pulse bg-yellow-50 dark:bg-yellow-950/20"
+                          : ""
                       }`}
                     >
                       <td className="p-4">
-                        <button 
-                          onClick={() => handleToggleComplete(todo)} 
+                        <button
+                          onClick={() => handleToggleComplete(todo)}
                           disabled={todo.pending}
                           className={`rounded-full p-2 transition-colors ${
-                            (todo.completed ?? 0) === 1 
-                              ? "bg-primary text-primary-foreground" 
+                            (todo.completed ?? 0) === 1
+                              ? "bg-primary text-primary-foreground"
                               : "bg-muted hover:bg-muted-foreground/20"
                           }`}
                         >
@@ -1253,7 +1304,9 @@ export default function TodoWrapper() {
                           >
                             {todo.title}
                             {todo.pending && (
-                              <span className="ml-2 text-xs text-yellow-600">(saving...)</span>
+                              <span className="ml-2 text-xs text-yellow-600">
+                                (saving...)
+                              </span>
                             )}
                           </p>
                           {todo.description && (
@@ -1318,7 +1371,7 @@ export default function TodoWrapper() {
           </div>
         </Card>
       )}
-      
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl rounded-2xl">
           <DialogHeader className="pb-4">
@@ -1332,23 +1385,39 @@ export default function TodoWrapper() {
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-3 rounded-xl">
-              <TabsTrigger value="basic" className="rounded-lg">Basic</TabsTrigger>
-              <TabsTrigger value="details" className="rounded-lg">Details</TabsTrigger>
-              <TabsTrigger value="advanced" className="rounded-lg">Advanced</TabsTrigger>
+              <TabsTrigger value="basic" className="rounded-lg">
+                Basic
+              </TabsTrigger>
+              <TabsTrigger value="details" className="rounded-lg">
+                Details
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="rounded-lg">
+                Advanced
+              </TabsTrigger>
             </TabsList>
-            
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 mt-6">
+
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6 mt-6"
+            >
               <TabsContent value="basic" className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="title" className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Label
+                      htmlFor="title"
+                      className="text-sm font-medium mb-2 flex items-center gap-2"
+                    >
                       <Circle className="h-4 w-4" />
                       Task Title *
                     </Label>
-                    <Input 
-                      {...form.register("title")} 
+                    <Input
+                      {...form.register("title")}
                       placeholder="What needs to be done?"
                       disabled={isPending}
                       className="rounded-lg"
@@ -1362,7 +1431,10 @@ export default function TodoWrapper() {
                   </div>
 
                   <div>
-                    <Label htmlFor="description" className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium mb-2 flex items-center gap-2"
+                    >
                       <Edit className="h-4 w-4" />
                       Description
                     </Label>
@@ -1395,15 +1467,24 @@ export default function TodoWrapper() {
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low" className="flex items-center gap-2">
+                        <SelectItem
+                          value="low"
+                          className="flex items-center gap-2"
+                        >
                           <Star className="h-4 w-4 text-green-500" />
                           Low Priority
                         </SelectItem>
-                        <SelectItem value="medium" className="flex items-center gap-2">
+                        <SelectItem
+                          value="medium"
+                          className="flex items-center gap-2"
+                        >
                           <AlertCircle className="h-4 w-4 text-yellow-500" />
                           Medium Priority
                         </SelectItem>
-                        <SelectItem value="high" className="flex items-center gap-2">
+                        <SelectItem
+                          value="high"
+                          className="flex items-center gap-2"
+                        >
                           <Flag className="h-4 w-4 text-red-500" />
                           High Priority
                         </SelectItem>
@@ -1418,24 +1499,33 @@ export default function TodoWrapper() {
                     </Label>
                     <Select
                       value={form.watch("status")}
-                      onValueChange={(v: "not_started" | "in_progress" | "done") =>
-                        form.setValue("status", v)
-                      }
+                      onValueChange={(
+                        v: "not_started" | "in_progress" | "done",
+                      ) => form.setValue("status", v)}
                       disabled={isPending}
                     >
                       <SelectTrigger className="rounded-lg">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="not_started" className="flex items-center gap-2">
+                        <SelectItem
+                          value="not_started"
+                          className="flex items-center gap-2"
+                        >
                           <Clock className="h-4 w-4 text-gray-500" />
                           Not Started
                         </SelectItem>
-                        <SelectItem value="in_progress" className="flex items-center gap-2">
+                        <SelectItem
+                          value="in_progress"
+                          className="flex items-center gap-2"
+                        >
                           <PlayCircle className="h-4 w-4 text-blue-500" />
                           In Progress
                         </SelectItem>
-                        <SelectItem value="done" className="flex items-center gap-2">
+                        <SelectItem
+                          value="done"
+                          className="flex items-center gap-2"
+                        >
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
                           Done
                         </SelectItem>
@@ -1471,14 +1561,23 @@ export default function TodoWrapper() {
                       disabled
                       className="rounded-lg bg-muted"
                     />
-                    <Button type="button" onClick={addTag} disabled={isPending} className="rounded-lg">
+                    <Button
+                      type="button"
+                      onClick={addTag}
+                      disabled={isPending}
+                      className="rounded-lg"
+                    >
                       Add Tag
                     </Button>
                   </div>
                   {form.watch("tags") && form.watch("tags")!.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {form.watch("tags")!.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="gap-1 rounded-lg py-1">
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="gap-1 rounded-lg py-1"
+                        >
                           {tag}
                           <button
                             type="button"
@@ -1495,7 +1594,10 @@ export default function TodoWrapper() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="notes" className="text-sm font-medium flex items-center gap-2">
+                  <Label
+                    htmlFor="notes"
+                    className="text-sm font-medium flex items-center gap-2"
+                  >
                     <Edit className="h-4 w-4" />
                     Additional Notes
                   </Label>
@@ -1523,8 +1625,8 @@ export default function TodoWrapper() {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isPending}
                   className="rounded-lg bg-primary hover:bg-primary/90"
                 >
@@ -1554,9 +1656,12 @@ export default function TodoWrapper() {
           </Tabs>
         </DialogContent>
       </Dialog>
-      
+
       <Sheet open={!!selectedTodo} onOpenChange={() => setSelectedTodo(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl rounded-l-2xl">
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl rounded-l-2xl"
+        >
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -1620,11 +1725,11 @@ export default function TodoWrapper() {
                           variant="outline"
                           className={`
                             text-sm px-3 py-1 ${
-                            (selectedTodo.completed ?? 0) === 1
-                              ? "bg-green-500/10 text-green-600 border-green-500/20"
-                              : selectedTodo.status === "in_progress"
-                                ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                                : "bg-gray-500/10 text-gray-600 border-gray-500/20"
+                              (selectedTodo.completed ?? 0) === 1
+                                ? "bg-green-500/10 text-green-600 border-green-500/20"
+                                : selectedTodo.status === "in_progress"
+                                  ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                  : "bg-gray-500/10 text-gray-600 border-gray-500/20"
                             }
                             capitalize
                           `}
@@ -1650,12 +1755,12 @@ export default function TodoWrapper() {
                         variant="outline"
                         className={`
                           text-sm px-3 py-1 ${
-                          selectedTodo.priority === "high"
-                            ? "bg-red-500/10 text-red-600 border-red-500/20"
-                            : selectedTodo.priority === "medium"
-                              ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-                              : "bg-green-500/10 text-green-600 border-green-500/20"
-                        }
+                            selectedTodo.priority === "high"
+                              ? "bg-red-500/10 text-red-600 border-red-500/20"
+                              : selectedTodo.priority === "medium"
+                                ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
+                                : "bg-green-500/10 text-green-600 border-green-500/20"
+                          }
                         capitalize
                       `}
                       >
@@ -1677,8 +1782,14 @@ export default function TodoWrapper() {
                     <div className="flex items-center gap-2">
                       {selectedTodo.due_date ? (
                         <>
-                          <Badge variant="secondary" className="font-normal text-sm px-3 py-1">
-                            {format(new Date(selectedTodo.due_date), "MMM d, yyyy")}
+                          <Badge
+                            variant="secondary"
+                            className="font-normal text-sm px-3 py-1"
+                          >
+                            {format(
+                              new Date(selectedTodo.due_date),
+                              "MMM d, yyyy",
+                            )}
                           </Badge>
                           <span className="text-sm text-muted-foreground">
                             {format(new Date(selectedTodo.due_date), "EEEE")}
@@ -1725,7 +1836,9 @@ export default function TodoWrapper() {
                 <Card className="rounded-xl">
                   <CardContent className="p-4">
                     <div className="space-y-2">
-                      <p className="text-sm font-semibold text-foreground">Notes</p>
+                      <p className="text-sm font-semibold text-foreground">
+                        Notes
+                      </p>
                       <div className="rounded-lg border bg-muted/20 p-4">
                         <p className="text-sm whitespace-pre-wrap">
                           {selectedTodo.notes}
@@ -1754,7 +1867,9 @@ export default function TodoWrapper() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Last Updated</span>
+                        <span className="text-muted-foreground">
+                          Last Updated
+                        </span>
                         <span className="font-medium">
                           {format(
                             new Date(selectedTodo.updated_at),
