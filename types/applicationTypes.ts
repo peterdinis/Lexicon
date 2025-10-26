@@ -4,6 +4,7 @@ export interface Page {
   user_id: string;
   title: string;
   content?: string;
+  description?: string;
   icon?: string;
   cover_image?: string;
   parent_id?: string | null;

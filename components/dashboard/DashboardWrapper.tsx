@@ -5,12 +5,17 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { File } from "lucide-react";
 import Link from "next/link";
+import { getFoldersAction } from "@/actions/folderActions";
+import { extractData } from "@/lib/extract-data";
+import { Page } from "@/types/applicationTypes";
 
 export default async function DashboardPage() {
   let pages = [];
+  let folders = [];
 
   try {
-    pages = await getAllPagesHandler();
+    pages = extractData<Page>(await getAllPagesHandler());
+folders = extractData<any>(await getFoldersAction());
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
