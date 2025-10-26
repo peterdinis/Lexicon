@@ -154,7 +154,7 @@ function BoardTodoItem({
             e.stopPropagation();
             onToggle(todo);
           }}
-          className="mt-0.5 flex-shrink-0"
+          className="mt-0.5 shrink-0"
         >
           {(todo.completed ?? 0) === 1 ? (
             <Check className="h-4 w-4 text-primary" />
@@ -190,7 +190,7 @@ function BoardTodoItem({
             ))}
           </div>
         </div>
-        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0">
+        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -291,13 +291,13 @@ function SortableTodoItem({
       <button
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing hover:bg-accent rounded p-1 flex-shrink-0"
+        className="mt-1 cursor-grab active:cursor-grabbing hover:bg-accent rounded p-1 shrink-0"
       >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
       <button 
         onClick={() => onToggle(todo)} 
-        className="mt-0.5 flex-shrink-0"
+        className="mt-0.5 shrink-0"
       >
         {(todo.completed ?? 0) === 1 ? (
           <Check className="h-5 w-5 text-primary" />
@@ -347,7 +347,7 @@ function SortableTodoItem({
           )}
         </div>
       </div>
-      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0">
+      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => onEdit(todo)}>
           <Edit className="h-4 w-4" />
         </Button>
@@ -359,9 +359,6 @@ function SortableTodoItem({
   );
 }
 
-// ----------------------
-// Hlavní komponent
-// ----------------------
 export default function TodoWrapper() {
   const router = useRouter();
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -779,7 +776,7 @@ export default function TodoWrapper() {
             {activeTodo ? (
               <div className="rounded-lg border p-4 bg-background shadow-lg border-primary opacity-80">
                 <div className="flex items-start gap-3">
-                  <GripVertical className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                  <GripVertical className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium">{activeTodo.title}</h3>
                     {activeTodo.description && (
@@ -837,7 +834,7 @@ export default function TodoWrapper() {
             {activeTodo ? (
               <div className="rounded-lg border p-3 bg-background shadow-lg border-primary opacity-80 rotate-2">
                 <div className="flex items-start gap-2">
-                  <div className="mt-0.5 flex-shrink-0">
+                  <div className="mt-0.5 shrink-0">
                     {(activeTodo.completed ?? 0) === 1 ? (
                       <Check className="h-4 w-4 text-primary" />
                     ) : (
@@ -1117,7 +1114,7 @@ export default function TodoWrapper() {
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <SheetTitle className="text-xl font-bold break-words">
+                <SheetTitle className="text-xl font-bold wrap-break-word">
                   {selectedTodo?.title}
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-base">
