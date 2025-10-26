@@ -51,6 +51,7 @@ import { Page } from "@/types/applicationTypes";
 import { createPageAction, deletePageAction } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
+import { moveToTrashAction } from "@/actions/trashActions";
 
 interface DashboardSidebarProps {
   initialPages: Page[];
@@ -67,15 +68,13 @@ export function DashboardSidebar({
   initialPages,
   currentPageId,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<Page[]>(initialPages);
+  const [pages, setPages] = useState<Page[]>(initialPages.filter(p => !p.in_trash));
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -140,6 +139,7 @@ export function DashboardSidebar({
       user_id: "",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      in_trash: 0,
     };
 
     setPages((prev) => [...prev, tempPage]);
@@ -197,18 +197,13 @@ export function DashboardSidebar({
     }
   };
 
-  const deletePage = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Are you sure you want to move this to trash?")) return;
-
+  const movePageToTrash = async (id: string) => {
     const prevPages = [...pages];
     setPages((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      const result = await deletePageAction({ id });
-      if (!result?.data) throw new Error("Failed to delete page");
-
-      if (currentPageId === id) router.push("/");
+      const result = await moveToTrashAction({ id, table: "pages" });
+      if (!result.data) throw new Error("Failed to move page to trash");
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -252,13 +247,13 @@ export function DashboardSidebar({
     const targetId = over.id as string;
 
     const draggedPage = pages.find((p) => p.id === draggedPageId);
-    if (draggedPage?.is_folder && targetId === draggedPageId) return;
+    if (draggedPage?.is_folder === 1 && targetId === draggedPageId) return;
 
     if (targetId === "root") {
       movePageDebounced(draggedPageId, null);
     } else {
       const targetPage = pages.find((p) => p.id === targetId);
-      if (targetPage?.is_folder) {
+      if (targetPage?.is_folder === 1) {
         movePageDebounced(draggedPageId, targetId);
         setExpandedFolders((prev) => new Set([...prev, targetId]));
       }
@@ -311,9 +306,8 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${
-          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-        }`}
+        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+          }`}
       >
         {children}
       </div>
@@ -337,9 +331,8 @@ export function DashboardSidebar({
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
-            currentPageId === page.id ? "bg-accent" : ""
-          }`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
+            }`}
         >
           <button
             {...dragHandleProps}
@@ -348,7 +341,7 @@ export function DashboardSidebar({
             <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
 
-          {page.is_folder ? (
+          {page.is_folder === 1 ? (
             <>
               <button
                 onClick={() => toggleFolder(page.id)}
@@ -404,7 +397,7 @@ export function DashboardSidebar({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {page.is_folder ? (
+              {page.is_folder === 1 && (
                 <>
                   <DropdownMenuItem onClick={() => createPage()}>
                     <Plus className="mr-2 h-4 w-4" />
@@ -415,8 +408,10 @@ export function DashboardSidebar({
                     New Folder
                   </DropdownMenuItem>
                 </>
-              ) : null}
-              <DropdownMenuItem onClick={(e) => deletePage(page.id, e)}>
+              )}
+              <DropdownMenuItem
+                onClick={() => movePageToTrash(page.id)}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Move to Trash
               </DropdownMenuItem>
@@ -427,12 +422,14 @@ export function DashboardSidebar({
 
       return (
         <div>
-          {page.is_folder ? (
-            <DroppableFolder page={page}>{content}</DroppableFolder>
+          {page.is_folder === 1 ? (
+            <DroppableFolder page={page}>
+              {content}
+            </DroppableFolder>
           ) : (
             content
           )}
-          {page.is_folder && isExpanded && hasChildren && (
+          {page.is_folder === 1 && isExpanded && hasChildren && (
             <div className="ml-6">
               {page.children!.map((child: any) => (
                 <DraggablePageItem key={child.id} page={child} />
@@ -576,11 +573,10 @@ export function DashboardSidebar({
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                  }`}
+                    }`}
                 >
                   {hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
@@ -649,7 +645,7 @@ export function DashboardSidebar({
         <DragOverlay>
           {activePage ? (
             <div className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 shadow-lg ring-2 ring-primary">
-              {activePage.is_folder ? (
+              {activePage.is_folder === 1 ? (
                 <Folder className="h-4 w-4 text-muted-foreground" />
               ) : (
                 <FileText className="h-4 w-4 text-muted-foreground" />

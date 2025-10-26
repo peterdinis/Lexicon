@@ -14,7 +14,8 @@ export const pages = sqliteTable("pages", {
   parent_id: text("parent_id").references((): any => pages.id, {
     onDelete: "cascade",
   }),
-  is_folder: integer("is_folder").notNull().default(0),
+  is_folder: integer("is_folder").notNull().default(1),
+  in_trash: integer("in_trash").notNull().default(1), // bezpečný default
   created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
@@ -30,6 +31,7 @@ export const blocks = sqliteTable("blocks", {
   type: text("type").notNull(),
   content: text("content").notNull().default("{}"),
   position: integer("position").notNull(),
+  in_trash: integer("in_trash").notNull().default(1), // bezpečný default
   created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
@@ -41,6 +43,7 @@ export const folders = sqliteTable("folders", {
   id: text("id").primaryKey(),
   user_id: text("user_id").notNull(),
   title: text("title").notNull().default("New Folder"),
+  in_trash: integer("in_trash").notNull().default(1), // doplnené pre konzistenciu
   created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
@@ -75,8 +78,9 @@ export const calendarEvents = sqliteTable("calendar_events", {
   end_time: text("end_time").notNull(),
   all_day: integer("all_day").default(0),
   color: text("color"),
-  created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  in_trash: integer("in_trash").notNull().default(1), // doplnené pre konzistenciu
+  created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 // ----------------------
@@ -91,8 +95,9 @@ export const diagrams = sqliteTable("diagrams", {
   edges: text("edges").notNull().default("[]"),
   viewport: text("viewport").notNull().default('{"x":0,"y":0,"zoom":1}'),
   deleted_at: text("deleted_at"),
-  created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  in_trash: integer("in_trash").notNull().default(0), // bezpečný default
+  created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 // ----------------------
@@ -106,8 +111,9 @@ export const notifications = sqliteTable("notifications", {
   message: text("message"),
   link: text("link"),
   read: integer("read").notNull().default(0),
-  created_at: text("created_at").default(sql`CURRENT_TIMESTAMP`),
-  updated_at: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  in_trash: integer("in_trash").notNull().default(1), // doplnené pre konzistenciu
+  created_at: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 // ----------------------

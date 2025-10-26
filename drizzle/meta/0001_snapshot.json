@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "01e83d3c-9b89-4500-b888-5b8f4da84838",
-  "prevId": "207fd6f7-4949-4a0e-919a-0a180f5fa950",
+  "id": "ea8ffe85-3858-4aa8-9b20-09caa97870a3",
+  "prevId": "e7a48129-72d5-49d5-83e9-a5ada76c88e2",
   "tables": {
     "blocks": {
       "name": "blocks",
@@ -43,6 +43,14 @@
           "notNull": true,
           "autoincrement": false
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
@@ -66,8 +74,12 @@
           "name": "blocks_page_id_pages_id_fk",
           "tableFrom": "blocks",
           "tableTo": "pages",
-          "columnsFrom": ["page_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "page_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -136,11 +148,19 @@
           "notNull": false,
           "autoincrement": false
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -148,7 +168,7 @@
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
@@ -167,8 +187,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -223,11 +242,19 @@
           "notNull": false,
           "autoincrement": false
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -235,7 +262,7 @@
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
@@ -271,6 +298,14 @@
           "autoincrement": false,
           "default": "'New Folder'"
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
@@ -302,8 +337,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false,
-          "default": "lower(hex(randomblob(16)))"
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -348,11 +382,19 @@
           "autoincrement": false,
           "default": 0
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -360,7 +402,7 @@
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
@@ -404,13 +446,28 @@
           "autoincrement": false,
           "default": "''"
         },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "is_folder": {
           "name": "is_folder",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 0
+          "default": 1
+        },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         },
         "created_at": {
           "name": "created_at",
@@ -430,7 +487,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "pages_parent_id_pages_id_fk": {
+          "name": "pages_parent_id_pages_id_fk",
+          "tableFrom": "pages",
+          "tableTo": "pages",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
@@ -489,11 +560,19 @@
           "notNull": false,
           "autoincrement": false
         },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         },
@@ -501,7 +580,7 @@
           "name": "updated_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": "CURRENT_TIMESTAMP"
         }
