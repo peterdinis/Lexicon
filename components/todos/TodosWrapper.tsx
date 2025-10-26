@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useTransition, useOptimistic } from "react";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -11,7 +11,6 @@ import {
   Circle,
   GripVertical,
   LayoutList,
-  LayoutGrid,
   TableIcon,
   Filter,
   TagIcon,
@@ -58,6 +57,8 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
+  DragOverlay,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -74,9 +75,6 @@ import {
   updateTodoAction,
 } from "@/actions/todosActions";
 
-// ----------------------
-// Typy
-// ----------------------
 export type Todo = {
   id: string;
   user_id: string;
@@ -92,23 +90,31 @@ export type Todo = {
   notes?: string;
 };
 
+// Rozšířený typ pro optimistic updates
+type OptimisticTodo = Todo & { pending?: boolean };
+
 type ViewMode = "list" | "board" | "table";
 type FilterStatus = "all" | "not_started" | "in_progress" | "done";
 type FilterPriority = "all" | "low" | "medium" | "high";
 
-// ----------------------
-// Sortable Component
-// ----------------------
-function SortableTodoItem({
+// Optimistic update types
+type OptimisticAction = 
+  | { type: "add"; todo: Todo }
+  | { type: "update"; id: string; updates: Partial<Todo> }
+  | { type: "delete"; id: string }
+  | { type: "reorder"; todos: Todo[] }
+  | { type: "toggle"; id: string; completed: number; status: string };
+
+function BoardTodoItem({
   todo,
   onToggle,
   onDelete,
   onEdit,
 }: {
-  todo: Todo;
-  onToggle: (todo: Todo) => void;
+  todo: OptimisticTodo;
+  onToggle: (todo: OptimisticTodo) => void;
   onDelete: (id: string) => void;
-  onEdit: (todo: Todo) => void;
+  onEdit: (todo: OptimisticTodo) => void;
 }) {
   const {
     attributes,
@@ -122,7 +128,138 @@ function SortableTodoItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : (todo.pending ? 0.6 : 1),
+  };
+
+  const getPriorityColor = (priority: string | null) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-500/10 text-red-500 border-red-500/20";
+      case "medium":
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      case "low":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${
+        (todo.completed ?? 0) === 1 ? "opacity-60" : ""
+      } ${isDragging ? "shadow-lg border-primary rotate-2" : ""} ${
+        todo.pending ? "animate-pulse border-yellow-400" : "bg-background"
+      }`}
+    >
+      <div className="flex items-start gap-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(todo);
+          }}
+          className="mt-0.5 shrink-0"
+          disabled={todo.pending}
+        >
+          {(todo.completed ?? 0) === 1 ? (
+            <Check className="h-4 w-4 text-primary" />
+          ) : (
+            <Circle className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+        <div className="flex-1 min-w-0">
+          <h4
+            className={`text-sm font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""} ${
+              todo.pending ? "text-muted-foreground" : ""
+            }`}
+          >
+            {todo.title}
+            {todo.pending && " (saving...)"}
+          </h4>
+          {todo.description && (
+            <p className="mt-1 text-xs text-muted-foreground truncate">
+              {todo.description}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-1">
+            {todo.priority && (
+              <Badge variant="outline" className={`text-xs ${getPriorityColor(todo.priority)}`}>
+                {todo.priority}
+              </Badge>
+            )}
+            {todo.tags?.map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="text-xs"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        <div className={`flex gap-1 ${todo.pending ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'} transition-opacity shrink-0`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(todo);
+            }}
+            disabled={todo.pending}
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(todo.id);
+            }}
+            disabled={todo.pending}
+          >
+            <Trash2 className="h-3 w-3 text-destructive" />
+          </Button>
+        </div>
+      </div>
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing rounded-lg"
+      />
+    </div>
+  );
+}
+
+function SortableTodoItem({
+  todo,
+  onToggle,
+  onDelete,
+  onEdit,
+}: {
+  todo: OptimisticTodo;
+  onToggle: (todo: OptimisticTodo) => void;
+  onDelete: (id: string) => void;
+  onEdit: (todo: OptimisticTodo) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : (todo.pending ? 0.6 : 1),
   };
 
   const getPriorityColor = (priority: string | null) => {
@@ -157,27 +294,37 @@ function SortableTodoItem({
       style={style}
       className={`group flex items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-accent ${
         (todo.completed ?? 0) === 1 ? "opacity-60" : ""
+      } ${isDragging ? "shadow-lg border-primary" : ""} ${
+        todo.pending ? "animate-pulse border-yellow-400" : "bg-background"
       }`}
     >
       <button
         {...attributes}
         {...listeners}
-        className="mt-1 cursor-grab active:cursor-grabbing"
+        className="mt-1 cursor-grab active:cursor-grabbing hover:bg-accent rounded p-1 shrink-0"
+        disabled={todo.pending}
       >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
-      <button onClick={() => onToggle(todo)} className="mt-0.5">
+      <button 
+        onClick={() => onToggle(todo)} 
+        className="mt-0.5 shrink-0"
+        disabled={todo.pending}
+      >
         {(todo.completed ?? 0) === 1 ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (
           <Circle className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <h3
-          className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
+          className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""} ${
+            todo.pending ? "text-muted-foreground" : ""
+          }`}
         >
           {todo.title}
+          {todo.pending && " (saving...)"}
         </h3>
         {todo.description && (
           <p className="mt-1 text-sm text-muted-foreground">
@@ -215,11 +362,11 @@ function SortableTodoItem({
           )}
         </div>
       </div>
-      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <Button variant="ghost" size="icon" onClick={() => onEdit(todo)}>
+      <div className={`flex gap-1 ${todo.pending ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'} transition-opacity shrink-0`}>
+        <Button variant="ghost" size="icon" onClick={() => onEdit(todo)} disabled={todo.pending}>
           <Edit className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onDelete(todo.id)}>
+        <Button variant="ghost" size="icon" onClick={() => onDelete(todo.id)} disabled={todo.pending}>
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
       </div>
@@ -227,11 +374,9 @@ function SortableTodoItem({
   );
 }
 
-// ----------------------
-// Hlavní komponent
-// ----------------------
 export default function TodoWrapper() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -241,6 +386,50 @@ export default function TodoWrapper() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterPriority, setFilterPriority] = useState<FilterPriority>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Optimistic updates - použijeme OptimisticTodo[]
+  const [optimisticTodos, setOptimisticTodos] = useOptimistic(
+    todos as OptimisticTodo[],
+    (state: OptimisticTodo[], action: OptimisticAction): OptimisticTodo[] => {
+      switch (action.type) {
+        case "add":
+          return [{ ...action.todo, pending: true }, ...state];
+        
+        case "update":
+          return state.map(todo =>
+            todo.id === action.id
+              ? { ...todo, ...action.updates, pending: true }
+              : todo
+          );
+        
+        case "delete":
+          return state.map(todo =>
+            todo.id === action.id
+              ? { ...todo, pending: true }
+              : todo
+          );
+        
+        case "toggle":
+          return state.map(todo =>
+            todo.id === action.id
+              ? { 
+                  ...todo, 
+                  completed: action.completed, 
+                  status: action.status,
+                  pending: true 
+                }
+              : todo
+          );
+        
+        case "reorder":
+          return action.todos.map(todo => ({ ...todo, pending: false }));
+        
+        default:
+          return state;
+      }
+    }
+  );
 
   const form = useForm<
     CreateTodoSchema & { status?: string; tags?: string[]; notes?: string }
@@ -260,7 +449,11 @@ export default function TodoWrapper() {
   });
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -279,6 +472,9 @@ export default function TodoWrapper() {
               created_at: todo.created_at ?? new Date().toISOString(),
               updated_at: todo.updated_at ?? new Date().toISOString(),
               status: todo.status ?? "not_started",
+              tags: todo.tags ? JSON.parse(todo.tags) : [],
+              completed: todo.completed ?? 0,
+              notes: todo.notes ?? "",
             })),
           );
         }
@@ -301,23 +497,106 @@ export default function TodoWrapper() {
   }, [todos]);
 
   const filteredTodos = useMemo(() => {
-    return todos.filter((todo) => {
+    return optimisticTodos.filter((todo) => {
       if (filterStatus !== "all" && todo.status !== filterStatus) return false;
       if (filterPriority !== "all" && todo.priority !== filterPriority)
         return false;
       if (filterTag !== "all" && !todo.tags?.includes(filterTag)) return false;
       return true;
     });
-  }, [todos, filterStatus, filterPriority, filterTag]);
+  }, [optimisticTodos, filterStatus, filterPriority, filterTag]);
+
+  const groupedByStatus = useMemo(() => {
+    const groups = {
+      not_started: filteredTodos.filter(
+        (t) => t.status === "not_started" || !t.status,
+      ),
+      in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
+      done: filteredTodos.filter(
+        (t) => t.status === "done" || (t.completed ?? 0) === 1,
+      ),
+    };
+    return groups;
+  }, [filteredTodos]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
-    if (over && active.id !== over.id) {
-      const oldIndex = todos.findIndex((t) => t.id === active.id);
-      const newIndex = todos.findIndex((t) => t.id === over.id);
+    if (!over) return;
 
-      const newTodos = arrayMove(todos, oldIndex, newIndex);
+    const activeTodo = optimisticTodos.find(t => t.id === active.id);
+    
+    if (!activeTodo) return;
+
+    // Get the target status from the over element
+    let targetStatus: any;
+
+    // Check if we're dropping on a todo item or on the column itself
+    const overTodo = optimisticTodos.find(t => t.id === over.id);
+    if (overTodo) {
+      // Dropping on another todo - use its status
+      targetStatus = overTodo.status || 'not_started';
+    } else {
+      // Dropping on empty column area - determine status from the column ID
+      // The over.id should be the column ID in board view
+      const columnId = over.id as string;
+      if (columnId.includes('not_started') || columnId === 'not_started') {
+        targetStatus = 'not_started';
+      } else if (columnId.includes('in_progress') || columnId === 'in_progress') {
+        targetStatus = 'in_progress';
+      } else if (columnId.includes('done') || columnId === 'done') {
+        targetStatus = 'done';
+      } else {
+        targetStatus = activeTodo.status || 'not_started';
+      }
+    }
+
+    // Only update if status actually changed
+    if (activeTodo.status !== targetStatus) {
+      startTransition(async () => {
+        // Optimistic update
+        setOptimisticTodos({ 
+          type: "update", 
+          id: activeTodo.id, 
+          updates: { 
+            status: targetStatus, 
+            completed: targetStatus === 'done' ? 1 : 0 
+          } 
+        });
+
+        // Update todo status in database
+        const result = await updateTodoAction(activeTodo.id, {
+          status: targetStatus,
+          completed: targetStatus === 'done' ? 1 : 0,
+        });
+
+        if (result.success) {
+          setTodos(prev =>
+            prev.map(todo =>
+              todo.id === activeTodo.id
+                ? { 
+                    ...todo, 
+                    status: targetStatus, 
+                    completed: targetStatus === 'done' ? 1 : 0 
+                  }
+                : todo
+            )
+          );
+        }
+      });
+    } 
+    // If dragging within the same column (reordering)
+    else if (active.id !== over.id && overTodo && activeTodo.status === overTodo.status) {
+      const oldIndex = optimisticTodos.findIndex((t) => t.id === active.id);
+      const newIndex = optimisticTodos.findIndex((t) => t.id === over.id);
+
+      const newTodos = arrayMove(optimisticTodos, oldIndex, newIndex);
+      setOptimisticTodos({ type: "reorder", todos: newTodos });
       setTodos(newTodos);
     }
   };
@@ -329,81 +608,147 @@ export default function TodoWrapper() {
       notes?: string;
     },
   ) => {
-    try {
-      if (editingTodo) {
-        const updatedData = { ...data, completed: editingTodo.completed ?? 0 };
-        const result = await updateTodoAction(editingTodo.id, updatedData);
-        console.log("Result of update:", result);
-        console.log("Updated data:", updatedData);
-        if (result.success) {
-          setTodos((prev) =>
-            prev.map((todo) =>
-              todo.id === editingTodo.id
-                ? {
-                    ...todo,
-                    ...updatedData,
-                    description: updatedData.description ?? null,
-                    status: updatedData.status ?? todo.status,
-                  }
-                : todo,
-            ),
-          );
-        }
-      } else {
-        const result = await createTodoAction(data);
-        if (result.success && result.data) {
-          const newTodo: Todo = {
-            ...result.data,
-            description: result.data.description ?? null,
-            due_date: result.data.due_date ?? null,
-            status: data.status ?? "not_started",
+    startTransition(async () => {
+      try {
+        if (editingTodo) {
+          // Optimistic update
+          setOptimisticTodos({
+            type: "update",
+            id: editingTodo.id,
+            updates: {
+              title: data.title,
+              description: data.description || null,
+              due_date: data.due_date || null,
+              priority: data.priority,
+              status: data.status || "not_started",
+              tags: data.tags || [],
+              notes: data.notes || "",
+            }
+          });
+
+          const updatedData: any = {
+            title: data.title,
+            description: data.description || null,
+            due_date: data.due_date || null,
+            priority: data.priority,
+            status: data.status,
             tags: data.tags,
             notes: data.notes,
           };
-          setTodos((prev) => [newTodo, ...prev]);
+          
+          const result = await updateTodoAction(editingTodo.id, updatedData);
+          
+          if (result.success && result.data) {
+            setTodos((prev) =>
+              prev.map((todo) =>
+                todo.id === editingTodo.id
+                  ? {
+                      ...todo,
+                      ...updatedData,
+                      updated_at: new Date().toISOString(),
+                    }
+                  : todo,
+              ),
+            );
+            setDialogOpen(false);
+            setEditingTodo(null);
+            form.reset();
+            router.refresh();
+          }
+        } else {
+          // Optimistic update
+          const tempId = `temp-${Date.now()}`;
+          const newTodo: Todo = {
+            id: tempId,
+            user_id: "",
+            title: data.title,
+            description: data.description || null,
+            due_date: data.due_date || null,
+            priority: data.priority,
+            status: data.status || "not_started",
+            tags: data.tags || [],
+            notes: data.notes || "",
+            completed: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          
+          setOptimisticTodos({ type: "add", todo: newTodo });
+
+          const result = await createTodoAction(data);
+          if (result.success && result.data) {
+            const finalTodo: Todo = {
+              ...result.data,
+              description: result.data.description ?? null,
+              due_date: result.data.due_date ?? null,
+              status: data.status ?? "not_started",
+              tags: data.tags ?? [],
+              notes: data.notes ?? "",
+            };
+            setTodos((prev) => [finalTodo, ...prev]);
+            setDialogOpen(false);
+            setEditingTodo(null);
+            form.reset();
+            router.refresh();
+          }
         }
+      } catch (error) {
+        console.error("Failed to save todo:", error);
       }
-      setDialogOpen(false);
-      setEditingTodo(null);
-      form.reset();
-      router.refresh();
-    } catch (error) {
-      console.error("Failed to save todo:", error);
-    }
+    });
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this todo?")) {
-      const result = await deleteTodoAction(id);
+      startTransition(async () => {
+        // Optimistic update
+        setOptimisticTodos({ type: "delete", id });
+
+        const result = await deleteTodoAction(id);
+        if (result.success) {
+          setTodos((prev) => prev.filter((t) => t.id !== id));
+          router.refresh();
+        }
+      });
+    }
+  };
+
+  const handleToggleComplete = async (todo: OptimisticTodo) => {
+    startTransition(async () => {
+      const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
+      const newStatus = newCompleted === 1 ? "done" : "not_started";
+      
+      // Optimistic update
+      setOptimisticTodos({ 
+        type: "toggle", 
+        id: todo.id, 
+        completed: newCompleted, 
+        status: newStatus 
+      });
+      
+      const result = await updateTodoAction(todo.id, {
+        completed: newCompleted,
+        status: newStatus,
+      });
+      
       if (result.success) {
-        setTodos((prev) => prev.filter((t) => t.id !== id));
+        setTodos((prev) =>
+          prev.map((t) =>
+            t.id === todo.id
+              ? {
+                  ...t,
+                  completed: newCompleted,
+                  status: newStatus,
+                }
+              : t,
+          ),
+        );
         router.refresh();
       }
-    }
-  };
-
-  const handleToggleComplete = async (todo: Todo) => {
-    const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
-    const result = await updateTodoAction(todo.id, {
-      completed: newCompleted,
     });
-    if (result.success) {
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === todo.id
-            ? {
-                ...t,
-                completed: newCompleted,
-                status: newCompleted === 1 ? "done" : "not_started",
-              }
-            : t,
-        ),
-      );
-      router.refresh();
-    }
   };
 
-  const openEditDialog = (todo: Todo) => {
+  const openEditDialog = (todo: OptimisticTodo) => {
     setEditingTodo(todo);
     form.reset({
       title: todo.title,
@@ -419,7 +764,7 @@ export default function TodoWrapper() {
 
   const addTag = () => {
     const tagInput = form.getValues("tags") || [];
-    const newTag = form.getValues("title").split(" ")[0]; // Simple tag from title
+    const newTag = form.getValues("title").split(" ")[0];
     if (newTag && !tagInput.includes(newTag)) {
       form.setValue("tags", [...tagInput, newTag]);
     }
@@ -433,18 +778,7 @@ export default function TodoWrapper() {
     );
   };
 
-  const groupedByStatus = useMemo(() => {
-    const groups = {
-      not_started: filteredTodos.filter(
-        (t) => t.status === "not_started" || !t.status,
-      ),
-      in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
-      done: filteredTodos.filter(
-        (t) => t.status === "done" || (t.completed ?? 0) === 1,
-      ),
-    };
-    return groups;
-  }, [filteredTodos]);
+  const activeTodo = activeId ? optimisticTodos.find(todo => todo.id === activeId) : null;
 
   if (loading) {
     return (
@@ -469,20 +803,15 @@ export default function TodoWrapper() {
             variant={viewMode === "list" ? "default" : "outline"}
             size="icon"
             onClick={() => setViewMode("list")}
+            disabled={isPending}
           >
             <LayoutList className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "board" ? "default" : "outline"}
-            size="icon"
-            onClick={() => setViewMode("board")}
-          >
-            <LayoutGrid className="h-4 w-4" />
           </Button>
           <Button
             variant={viewMode === "table" ? "default" : "outline"}
             size="icon"
             onClick={() => setViewMode("table")}
+            disabled={isPending}
           >
             <TableIcon className="h-4 w-4" />
           </Button>
@@ -492,6 +821,7 @@ export default function TodoWrapper() {
           <Select
             value={filterStatus}
             onValueChange={(value: FilterStatus) => setFilterStatus(value)}
+            disabled={isPending}
           >
             <SelectTrigger className="w-[140px]">
               <Filter className="mr-2 h-4 w-4" />
@@ -508,6 +838,7 @@ export default function TodoWrapper() {
           <Select
             value={filterPriority}
             onValueChange={(value: FilterPriority) => setFilterPriority(value)}
+            disabled={isPending}
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
@@ -521,7 +852,7 @@ export default function TodoWrapper() {
           </Select>
 
           {allTags.length > 0 && (
-            <Select value={filterTag} onValueChange={setFilterTag}>
+            <Select value={filterTag} onValueChange={setFilterTag} disabled={isPending}>
               <SelectTrigger className="w-[140px]">
                 <TagIcon className="mr-2 h-4 w-4" />
                 <SelectValue />
@@ -551,6 +882,7 @@ export default function TodoWrapper() {
               });
               setDialogOpen(true);
             }}
+            disabled={isPending}
           >
             <Plus className="mr-2 h-4 w-4" />
             New Task
@@ -563,6 +895,7 @@ export default function TodoWrapper() {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
@@ -587,104 +920,90 @@ export default function TodoWrapper() {
               )}
             </div>
           </SortableContext>
+          <DragOverlay>
+            {activeTodo ? (
+              <div className="rounded-lg border p-4 bg-background shadow-lg border-primary opacity-80">
+                <div className="flex items-start gap-3">
+                  <GripVertical className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium">{activeTodo.title}</h3>
+                    {activeTodo.description && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {activeTodo.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
       {/* Board View */}
       {viewMode === "board" && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {(["not_started", "in_progress", "done"] as const).map((status) => (
-            <div key={status} className="rounded-lg border p-4">
-              <h3 className="mb-4 font-semibold capitalize">
-                {status.replace("_", " ")} ({groupedByStatus[status].length})
-              </h3>
-              <div className="space-y-2">
-                {groupedByStatus[status].map((todo) => (
-                  <div
-                    key={todo.id}
-                    className={`group rounded-lg border p-3 transition-colors hover:bg-accent ${
-                      (todo.completed ?? 0) === 1 ? "opacity-60" : ""
-                    }`}
-                    onClick={() => setSelectedTodo(todo)}
-                  >
-                    <div className="flex items-start gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleComplete(todo);
-                        }}
-                        className="mt-0.5"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {(["not_started", "in_progress", "done"] as const).map((status) => (
+              <div 
+                key={status} 
+                className="rounded-lg border p-4 bg-muted/20 min-h-[400px]"
+                data-column-id={status}
+              >
+                <h3 className="mb-4 font-semibold capitalize">
+                  {status.replace("_", " ")} ({groupedByStatus[status].length})
+                </h3>
+                <SortableContext
+                  items={groupedByStatus[status].map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2 h-full">
+                    {groupedByStatus[status].map((todo) => (
+                      <BoardTodoItem
+                        key={todo.id}
+                        todo={todo}
+                        onToggle={handleToggleComplete}
+                        onDelete={handleDelete}
+                        onEdit={openEditDialog}
+                      />
+                    ))}
+                    {groupedByStatus[status].length === 0 && (
+                      <div 
+                        className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg h-full flex items-center justify-center"
+                        data-column-id={status}
                       >
-                        {(todo.completed ?? 0) === 1 ? (
-                          <Check className="h-4 w-4 text-primary" />
-                        ) : (
-                          <Circle className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <h4
-                          className={`text-sm font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
-                        >
-                          {todo.title}
-                        </h4>
-                        {todo.description && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {todo.description}
-                          </p>
-                        )}
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {todo.priority && (
-                            <Badge variant="outline" className="text-xs">
-                              {todo.priority}
-                            </Badge>
-                          )}
-                          {todo.tags?.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
+                        <p className="text-sm">Drop tasks here</p>
                       </div>
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditDialog(todo);
-                          }}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(todo.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                ))}
-                {groupedByStatus[status].length === 0 && (
-                  <p className="py-4 text-center text-sm text-muted-foreground">
-                    No todos
-                  </p>
-                )}
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <DragOverlay>
+            {activeTodo ? (
+              <div className="rounded-lg border p-3 bg-background shadow-lg border-primary opacity-80 rotate-2">
+                <div className="flex items-start gap-2">
+                  <div className="mt-0.5 shrink-0">
+                    {(activeTodo.completed ?? 0) === 1 ? (
+                      <Check className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium">{activeTodo.title}</h4>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* Table View */}
@@ -715,10 +1034,15 @@ export default function TodoWrapper() {
                 filteredTodos.map((todo) => (
                   <tr
                     key={todo.id}
-                    className="border-b transition-colors hover:bg-muted/50"
+                    className={`border-b transition-colors hover:bg-muted/50 ${
+                      todo.pending ? 'animate-pulse bg-yellow-50' : ''
+                    }`}
                   >
                     <td className="p-3">
-                      <button onClick={() => handleToggleComplete(todo)}>
+                      <button 
+                        onClick={() => handleToggleComplete(todo)} 
+                        disabled={todo.pending}
+                      >
                         {(todo.completed ?? 0) === 1 ? (
                           <Check className="h-4 w-4 text-primary" />
                         ) : (
@@ -729,9 +1053,12 @@ export default function TodoWrapper() {
                     <td className="p-3">
                       <div>
                         <p
-                          className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""}`}
+                          className={`font-medium ${(todo.completed ?? 0) === 1 ? "line-through" : ""} ${
+                            todo.pending ? "text-muted-foreground" : ""
+                          }`}
                         >
                           {todo.title}
+                          {todo.pending && " (saving...)"}
                         </p>
                         {todo.description && (
                           <p className="text-xs text-muted-foreground">
@@ -772,6 +1099,7 @@ export default function TodoWrapper() {
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => openEditDialog(todo)}
+                          disabled={todo.pending}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -780,6 +1108,7 @@ export default function TodoWrapper() {
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => handleDelete(todo.id)}
+                          disabled={todo.pending}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -793,6 +1122,7 @@ export default function TodoWrapper() {
         </div>
       )}
 
+      {/* Dialog pre vytvorenie/úpravu todo */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -810,7 +1140,11 @@ export default function TodoWrapper() {
           >
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
-              <Input {...form.register("title")} placeholder="Task title" />
+              <Input 
+                {...form.register("title")} 
+                placeholder="Task title" 
+                disabled={isPending}
+              />
               {form.formState.errors.title && (
                 <p className="text-sm text-destructive mt-1">
                   {form.formState.errors.title.message}
@@ -826,6 +1160,7 @@ export default function TodoWrapper() {
                 {...form.register("description")}
                 placeholder="Details..."
                 rows={3}
+                disabled={isPending}
               />
             </div>
 
@@ -839,6 +1174,7 @@ export default function TodoWrapper() {
                   onValueChange={(v: "low" | "medium" | "high") =>
                     form.setValue("priority", v)
                   }
+                  disabled={isPending}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
@@ -858,6 +1194,7 @@ export default function TodoWrapper() {
                   onValueChange={(v: "not_started" | "in_progress" | "done") =>
                     form.setValue("status", v)
                   }
+                  disabled={isPending}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -880,6 +1217,7 @@ export default function TodoWrapper() {
                   {...form.register("due_date")}
                   type="date"
                   placeholder="Select date"
+                  disabled={isPending}
                 />
               </div>
 
@@ -894,8 +1232,9 @@ export default function TodoWrapper() {
                         addTag();
                       }
                     }}
+                    disabled={isPending}
                   />
-                  <Button type="button" onClick={addTag}>
+                  <Button type="button" onClick={addTag} disabled={isPending}>
                     Add Tag
                   </Button>
                 </div>
@@ -908,6 +1247,7 @@ export default function TodoWrapper() {
                           type="button"
                           onClick={() => removeTag(tag)}
                           className="ml-1"
+                          disabled={isPending}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -924,6 +1264,7 @@ export default function TodoWrapper() {
                 {...form.register("notes")}
                 placeholder="Additional notes..."
                 rows={4}
+                disabled={isPending}
               />
             </div>
 
@@ -935,10 +1276,13 @@ export default function TodoWrapper() {
                   setDialogOpen(false);
                   setEditingTodo(null);
                 }}
+                disabled={isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit">{editingTodo ? "Update" : "Create"}</Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving..." : editingTodo ? "Update" : "Create"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -949,7 +1293,7 @@ export default function TodoWrapper() {
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <SheetTitle className="text-xl font-bold wrap-break">
+                <SheetTitle className="text-xl font-bold wrap-break-word">
                   {selectedTodo?.title}
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-base">
@@ -978,6 +1322,7 @@ export default function TodoWrapper() {
                   }
                 }}
                 className="shrink-0 mt-6"
+                disabled={isPending}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -1170,6 +1515,7 @@ export default function TodoWrapper() {
                   setDialogOpen(true);
                 }
               }}
+              disabled={isPending}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit Task
@@ -1178,6 +1524,7 @@ export default function TodoWrapper() {
               variant="outline"
               onClick={() => setSelectedTodo(null)}
               className="flex-1"
+              disabled={isPending}
             >
               Close
             </Button>

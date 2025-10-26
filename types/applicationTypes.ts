@@ -32,8 +32,8 @@ export interface Todo {
   id: string;
   user_id: string;
   title: string;
-  description?: string;
-  completed: boolean;
+  description: string;
+  completed: number;
   priority?: "low" | "medium" | "high";
   status?: "not_started" | "in_progress" | "done";
   due_date?: string;
