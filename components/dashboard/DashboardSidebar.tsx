@@ -54,7 +54,7 @@ import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
 
 interface DashboardSidebarProps {
-  initialPages: Page[];
+  initialPages: any[];
   currentPageId?: string;
 }
 
