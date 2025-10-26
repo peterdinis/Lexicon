@@ -76,7 +76,8 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
     if (due_date !== undefined) updateData.due_date = due_date;
     if (completed !== undefined) updateData.completed = completed;
     if (status !== undefined) updateData.status = status;
-    if (tags !== undefined) updateData.tags = tags ? JSON.stringify(tags) : null;
+    if (tags !== undefined)
+      updateData.tags = tags ? JSON.stringify(tags) : null;
     if (notes !== undefined) updateData.notes = notes;
 
     console.log("Updating todo with data:", updateData);

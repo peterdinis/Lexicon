@@ -168,16 +168,15 @@ function BoardTodoItem({
           )}
           <div className="mt-2 flex flex-wrap gap-1">
             {todo.priority && (
-              <Badge variant="outline" className={`text-xs ${getPriorityColor(todo.priority)}`}>
+              <Badge
+                variant="outline"
+                className={`text-xs ${getPriorityColor(todo.priority)}`}
+              >
                 {todo.priority}
               </Badge>
             )}
             {todo.tags?.map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="text-xs"
-              >
+              <Badge key={tag} variant="secondary" className="text-xs">
                 {tag}
               </Badge>
             ))}
@@ -284,10 +283,7 @@ function SortableTodoItem({
       >
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
-      <button 
-        onClick={() => onToggle(todo)} 
-        className="mt-0.5 shrink-0"
-      >
+      <button onClick={() => onToggle(todo)} className="mt-0.5 shrink-0">
         {(todo.completed ?? 0) === 1 ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (
@@ -459,30 +455,33 @@ export default function TodoWrapper() {
 
     if (!over) return;
 
-    const activeTodo = todos.find(t => t.id === active.id);
-    
+    const activeTodo = todos.find((t) => t.id === active.id);
+
     if (!activeTodo) return;
 
     // Get the target status from the over element
     let targetStatus: any;
 
     // Check if we're dropping on a todo item or on the column itself
-    const overTodo = todos.find(t => t.id === over.id);
+    const overTodo = todos.find((t) => t.id === over.id);
     if (overTodo) {
       // Dropping on another todo - use its status
-      targetStatus = overTodo.status || 'not_started';
+      targetStatus = overTodo.status || "not_started";
     } else {
       // Dropping on empty column area - determine status from the column ID
       // The over.id should be the column ID in board view
       const columnId = over.id as string;
-      if (columnId.includes('not_started') || columnId === 'not_started') {
-        targetStatus = 'not_started';
-      } else if (columnId.includes('in_progress') || columnId === 'in_progress') {
-        targetStatus = 'in_progress';
-      } else if (columnId.includes('done') || columnId === 'done') {
-        targetStatus = 'done';
+      if (columnId.includes("not_started") || columnId === "not_started") {
+        targetStatus = "not_started";
+      } else if (
+        columnId.includes("in_progress") ||
+        columnId === "in_progress"
+      ) {
+        targetStatus = "in_progress";
+      } else if (columnId.includes("done") || columnId === "done") {
+        targetStatus = "done";
       } else {
-        targetStatus = activeTodo.status || 'not_started';
+        targetStatus = activeTodo.status || "not_started";
       }
     }
 
@@ -491,25 +490,29 @@ export default function TodoWrapper() {
       // Update todo status in database
       const result = await updateTodoAction(activeTodo.id, {
         status: targetStatus,
-        completed: targetStatus === 'done' ? 1 : 0,
+        completed: targetStatus === "done" ? 1 : 0,
       });
 
       if (result.success) {
-        setTodos(prev =>
-          prev.map(todo =>
+        setTodos((prev) =>
+          prev.map((todo) =>
             todo.id === activeTodo.id
-              ? { 
-                  ...todo, 
-                  status: targetStatus, 
-                  completed: targetStatus === 'done' ? 1 : 0 
+              ? {
+                  ...todo,
+                  status: targetStatus,
+                  completed: targetStatus === "done" ? 1 : 0,
                 }
-              : todo
-          )
+              : todo,
+          ),
         );
       }
-    } 
+    }
     // If dragging within the same column (reordering)
-    else if (active.id !== over.id && overTodo && activeTodo.status === overTodo.status) {
+    else if (
+      active.id !== over.id &&
+      overTodo &&
+      activeTodo.status === overTodo.status
+    ) {
       const oldIndex = todos.findIndex((t) => t.id === active.id);
       const newIndex = todos.findIndex((t) => t.id === over.id);
 
@@ -538,10 +541,15 @@ export default function TodoWrapper() {
           notes: data.notes,
         };
 
-        console.log("Updating todo:", editingTodo.id, "with data:", updatedData);
-        
+        console.log(
+          "Updating todo:",
+          editingTodo.id,
+          "with data:",
+          updatedData,
+        );
+
         const result = await updateTodoAction(editingTodo.id, updatedData);
-        
+
         if (result.success && result.data) {
           setTodos((prev) =>
             prev.map((todo) =>
@@ -602,12 +610,12 @@ export default function TodoWrapper() {
   const handleToggleComplete = async (todo: Todo) => {
     const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
     const newStatus = newCompleted === 1 ? "done" : "not_started";
-    
+
     const result = await updateTodoAction(todo.id, {
       completed: newCompleted,
       status: newStatus,
     });
-    
+
     if (result.success) {
       setTodos((prev) =>
         prev.map((t) =>
@@ -654,7 +662,9 @@ export default function TodoWrapper() {
     );
   };
 
-  const activeTodo = activeId ? todos.find(todo => todo.id === activeId) : null;
+  const activeTodo = activeId
+    ? todos.find((todo) => todo.id === activeId)
+    : null;
 
   if (loading) {
     return (
@@ -821,8 +831,8 @@ export default function TodoWrapper() {
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {(["not_started", "in_progress", "done"] as const).map((status) => (
-              <div 
-                key={status} 
+              <div
+                key={status}
                 className="rounded-lg border p-4 bg-muted/20 min-h-[400px]"
                 data-column-id={status}
               >
@@ -844,7 +854,7 @@ export default function TodoWrapper() {
                       />
                     ))}
                     {groupedByStatus[status].length === 0 && (
-                      <div 
+                      <div
                         className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg h-full flex items-center justify-center"
                         data-column-id={status}
                       >
