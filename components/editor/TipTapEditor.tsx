@@ -162,7 +162,7 @@ export function TiptapEditor({
   return (
     <div className="flex flex-col">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-backdrop-filter:bg-background/60">
         {/* Text formatting */}
         <Button
           variant="ghost"

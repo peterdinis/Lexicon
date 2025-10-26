@@ -27,7 +27,6 @@ export default function PageViewClient({
       startTransition(async () => {
         try {
           await updatePageAction({ id, title: newTitle });
-          // Aktualizuj sidebar pages
           setSidebarPages(prev => 
             prev.map(p => p.id === id ? { ...p, title: newTitle } : p)
           );
@@ -94,7 +93,7 @@ export default function PageViewClient({
             pageId={id}
             title={title}
             icon={currentPage.icon}
-            coverImage={currentPage.cover_image} // Použite cover_image z databázy
+            coverImage={currentPage.cover_image}
             onTitleChange={handleTitleChange}
             onIconChange={handleIconChange}
             onCoverChange={handleCoverChange}
