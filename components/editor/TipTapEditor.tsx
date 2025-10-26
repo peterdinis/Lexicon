@@ -44,6 +44,7 @@ import {
   SubscriptIcon,
   SuperscriptIcon,
   TableIcon,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -56,10 +57,87 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updatePageAction } from "@/actions/pagesActions";
 import { debounce } from "@/lib/debounce";
 
+// Import ďalších jazykov pre syntax highlighting
+import php from 'highlight.js/lib/languages/php';
+import python from 'highlight.js/lib/languages/python';
+import java from 'highlight.js/lib/languages/java';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import ruby from 'highlight.js/lib/languages/ruby';
+import go from 'highlight.js/lib/languages/go';
+import rust from 'highlight.js/lib/languages/rust';
+import swift from 'highlight.js/lib/languages/swift';
+import kotlin from 'highlight.js/lib/languages/kotlin';
+import typescript from 'highlight.js/lib/languages/typescript';
+import javascript from 'highlight.js/lib/languages/javascript';
+import sql from 'highlight.js/lib/languages/sql';
+import json from 'highlight.js/lib/languages/json';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import scss from 'highlight.js/lib/languages/scss';
+import bash from 'highlight.js/lib/languages/bash';
+import yaml from 'highlight.js/lib/languages/yaml';
+import markdown from 'highlight.js/lib/languages/markdown';
+
 const lowlight = createLowlight(common);
+
+// Registrácia ďalších jazykov
+lowlight.register('php', php);
+lowlight.register('python', python);
+lowlight.register('java', java);
+lowlight.register('cpp', cpp);
+lowlight.register('csharp', csharp);
+lowlight.register('ruby', ruby);
+lowlight.register('go', go);
+lowlight.register('rust', rust);
+lowlight.register('swift', swift);
+lowlight.register('kotlin', kotlin);
+lowlight.register('typescript', typescript);
+lowlight.register('javascript', javascript);
+lowlight.register('sql', sql);
+lowlight.register('json', json);
+lowlight.register('xml', xml);
+lowlight.register('css', css);
+lowlight.register('scss', scss);
+lowlight.register('bash', bash);
+lowlight.register('yaml', yaml);
+lowlight.register('markdown', markdown);
+
+// Zoznam podporovaných jazykov
+const LANGUAGE_OPTIONS = [
+  { value: 'text', label: 'Plain Text' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'php', label: 'PHP' },
+  { value: 'java', label: 'Java' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'csharp', label: 'C#' },
+  { value: 'ruby', label: 'Ruby' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+  { value: 'swift', label: 'Swift' },
+  { value: 'kotlin', label: 'Kotlin' },
+  { value: 'sql', label: 'SQL' },
+  { value: 'json', label: 'JSON' },
+  { value: 'xml', label: 'XML' },
+  { value: 'html', label: 'HTML' },
+  { value: 'css', label: 'CSS' },
+  { value: 'scss', label: 'SCSS' },
+  { value: 'bash', label: 'Bash' },
+  { value: 'yaml', label: 'YAML' },
+  { value: 'markdown', label: 'Markdown' },
+];
 
 interface TiptapEditorProps {
   pageId: string;
@@ -76,6 +154,7 @@ export function TiptapEditor({
   const [linkUrl, setLinkUrl] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("text");
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -95,30 +174,24 @@ export function TiptapEditor({
         console.error("❌ Failed to save description:", err);
         setIsTyping(false);
       }
-    }, 2000); // Zvýšené na 2 sekundy
+    }, 2000);
   }, [pageId]);
 
   const handleContentChange = useCallback((description: string) => {
-    // Zavolaj onUpdate callback
     onUpdate?.(description);
-
-    // Nastav stav písania
     setIsTyping(true);
 
-    // Resetuj predchádzajúci timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Nastav nový timeout pre uloženie
     typingTimeoutRef.current = setTimeout(() => {
-      // Debounced uloženie
       startTransition(() => {
         if (saveRef.current) {
           saveRef.current(description);
         }
       });
-    }, 1000); // Uloží sa po 1 sekunde nečinnosti
+    }, 1000);
   }, [onUpdate]);
 
   const editor = useEditor({
@@ -130,7 +203,12 @@ export function TiptapEditor({
       }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      CodeBlockLowlight.configure({ lowlight }),
+      CodeBlockLowlight.configure({ 
+        lowlight,
+        HTMLAttributes: {
+          class: 'code-block',
+        },
+      }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -149,7 +227,6 @@ export function TiptapEditor({
       handleContentChange(description);
     },
     onBlur: ({ editor }) => {
-      // Uloženie pri strate focusu
       const description = editor.getHTML();
       startTransition(() => {
         if (saveRef.current) {
@@ -216,6 +293,29 @@ export function TiptapEditor({
       });
     }
   }, [editor]);
+
+  // Funkcia pre vytvorenie code blocku s konkrétnym jazykom
+  const addCodeBlockWithLanguage = useCallback((language: string) => {
+    if (editor) {
+      editor.chain().focus().toggleCodeBlock().run();
+      
+      // Ak nie je text, nastavíme class pre jazyk
+      if (language !== 'text') {
+        // Musíme počkať kým sa code block vytvorí a potom nastaviť atribút
+        setTimeout(() => {
+          const codeBlock = editor.view.dom.querySelector('pre:last-of-type');
+          if (codeBlock) {
+            codeBlock.setAttribute('data-language', language);
+          }
+        }, 0);
+      }
+    }
+  }, [editor]);
+
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language);
+    addCodeBlockWithLanguage(language);
+  };
 
   if (!editor) {
     return (
@@ -407,14 +507,31 @@ export function TiptapEditor({
         >
           <Quote className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={editor.isActive("codeBlock") ? "bg-accent" : ""}
-        >
-          <Code className="h-4 w-4" />
-        </Button>
+        
+        {/* Code Block with Language Selector */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => addCodeBlockWithLanguage(selectedLanguage)}
+            className={editor.isActive("codeBlock") ? "bg-accent" : ""}
+          >
+            <Code className="h-4 w-4" />
+          </Button>
+          <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+            <SelectTrigger className="w-[130px] h-8 text-xs">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGE_OPTIONS.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Separator orientation="vertical" className="mx-1 h-6" />
         {/* Table, Link, Image */}
         <Button
