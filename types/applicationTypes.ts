@@ -105,3 +105,13 @@ export interface Notification {
   created_at: string;
   updated_at: string;
 }
+
+
+export interface Folder {
+  id: string;
+  user_id: string;
+  title: string;
+  in_trash?: number;
+  created_at: string;
+  updated_at: string;
+}
