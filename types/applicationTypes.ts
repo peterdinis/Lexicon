@@ -9,7 +9,7 @@ export interface Page {
   parent_id?: string | null;
   is_folder?: number;
   deleted_at?: string | null;
-  created_at: string;
+  created_at: any;
   updated_at: string;
 }
 
