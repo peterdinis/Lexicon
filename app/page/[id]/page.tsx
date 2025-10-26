@@ -11,12 +11,12 @@ export default async function PageView(props: {
   const { id } = params;
 
   const pageResult = await getPageAction({ id });
-  const page = pageResult.data;
+  const page = pageResult?.data;
 
   if (!page) redirect("/");
 
   const pagesResult = await getAllPagesAction();
-  const pages = pagesResult.data;
+  const pages = pagesResult?.data || [];
 
-  return <PageViewClient id={id} page={page} pages={pages || []} />;
+  return <PageViewClient id={id} page={page} pages={pages} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo, ReactNode } from "react";
+import { useState, useMemo, useCallback, memo, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -58,6 +58,12 @@ interface DashboardSidebarProps {
   currentPageId?: string;
 }
 
+// Pomocná funkcia pre formátovanie ikony
+const formatIcon = (icon: string | null | undefined): string => {
+  if (!icon || icon === "0" || icon === "null") return "";
+  return icon;
+};
+
 export function DashboardSidebar({
   initialPages,
   currentPageId,
@@ -76,6 +82,19 @@ export function DashboardSidebar({
   const [folderParentId, setFolderParentId] = useState<string | null>(null);
 
   const router = useRouter();
+
+  // useEffect na kontrolu a opravu ikoniek
+  useEffect(() => {
+    const hasZeroIcons = pages.some(page => page.icon === "0");
+    if (hasZeroIcons) {
+      setPages(prevPages => 
+        prevPages.map(page => ({
+          ...page,
+          icon: page.icon === "0" ? "" : page.icon
+        }))
+      );
+    }
+  }, [pages]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -308,6 +327,7 @@ export function DashboardSidebar({
     }) => {
       const isExpanded = expandedFolders.has(page.id);
       const hasChildren = page.children && page.children.length > 0;
+      const formattedIcon = formatIcon(page.icon);
 
       const content = (
         <div
@@ -347,7 +367,7 @@ export function DashboardSidebar({
               >
                 <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <span className="flex-1 truncate text-left">
-                  {page.icon} {page.title}
+                  {formattedIcon} {page.title}
                 </span>
               </button>
             </>
@@ -363,7 +383,7 @@ export function DashboardSidebar({
               >
                 <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <span className="flex-1 truncate text-left">
-                  {page.icon ? `${page.icon} ` : ""}
+                  {formattedIcon ? `${formattedIcon} ` : ""}
                   {page.title}
                 </span>
               </button>
@@ -630,7 +650,9 @@ export function DashboardSidebar({
               ) : (
                 <FileText className="h-4 w-4 text-muted-foreground" />
               )}
-              <span className="truncate">{activePage.title}</span>
+              <span className="truncate">
+                {formatIcon(activePage.icon)} {activePage.title}
+              </span>
             </div>
           ) : null}
         </DragOverlay>

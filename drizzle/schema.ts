@@ -9,6 +9,8 @@ export const pages = sqliteTable("pages", {
   user_id: text("user_id").notNull(),
   title: text("title").notNull().default("Untitled"),
   description: text("description").notNull().default(""),
+  icon: text("icon"),
+  coverImage: text("cover_image"),
   parent_id: text("parent_id").references((): any => pages.id, {
     onDelete: "cascade",
   }),
