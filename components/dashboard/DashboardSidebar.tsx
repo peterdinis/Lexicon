@@ -48,7 +48,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction, deletePageAction } from "@/actions/pagesActions";
+import { createPageAction} from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
@@ -83,18 +83,10 @@ export function DashboardSidebar({
 
   const router = useRouter();
 
-  // useEffect na kontrolu a opravu ikoniek
+  // SYNCHRONIZÁCIA: Keď sa zmení initialPages, aktualizuj state
   useEffect(() => {
-    const hasZeroIcons = pages.some(page => page.icon === "0");
-    if (hasZeroIcons) {
-      setPages(prevPages => 
-        prevPages.map(page => ({
-          ...page,
-          icon: page.icon === "0" ? "" : page.icon
-        }))
-      );
-    }
-  }, [pages]);
+    setPages(initialPages.filter(p => !p.in_trash));
+  }, [initialPages]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -152,14 +144,25 @@ export function DashboardSidebar({
       });
 
       if (!result?.data) throw new Error("No data returned from server");
+      
+      const serverPage = result.data as unknown as Page;
+      const finalPage: Page = {
+        ...serverPage,
+        is_folder: 0,
+      };
 
+      // Aktualizujeme state s novou stránkou
       setPages((prev) =>
         prev.map((p) =>
-          p.id === tempId ? (result.data as unknown as Page) : p,
+          p.id === tempId ? finalPage : p,
         ),
       );
 
-      router.push(`/page/${result.data.id}`);
+      // DÔLEŽITÉ: Revalidácia serverových dát
+      router.refresh();
+
+      console.log("Page created successfully:", finalPage.id);
+      
     } catch (error) {
       console.error("Error creating page:", error);
       setPages((prev) => prev.filter((p) => p.id !== tempId));
@@ -188,7 +191,8 @@ export function DashboardSidebar({
         parent_id: folderParentId,
       });
       setFolderModalOpen(false);
-      window.location.reload();
+      // Revalidácia serverových dát
+      router.refresh();
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "Unknown error");
@@ -204,6 +208,7 @@ export function DashboardSidebar({
     try {
       const result = await moveToTrashAction({ id, table: "pages" });
       if (!result.data) throw new Error("Failed to move page to trash");
+      router.refresh(); // Revalidácia po presunutí do koša
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -225,6 +230,7 @@ export function DashboardSidebar({
         body: JSON.stringify({ parent_id: targetFolderId }),
       });
       if (!response.ok) throw new Error("Failed to move page");
+      router.refresh(); // Revalidácia po presunutí
     } catch (error) {
       console.error(error);
       setPages(prevPages);

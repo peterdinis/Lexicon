@@ -19,12 +19,13 @@ export const createPageAction = actionClient
   .inputSchema(createPageSchema)
   .action(async ({ parsedInput: { title = "Untitled", description = "" } }) => {
     try {
-      return await createPageHandler(title, description);
+      const result = await createPageHandler(title, description);
+      
+      return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
   });
-
 // GET SINGLE
 export const getPageAction = actionClient
   .inputSchema(pageIdSchema)
