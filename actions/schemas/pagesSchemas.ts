@@ -13,4 +13,6 @@ export const updatePageSchema = z.object({
   id: z.string().uuid(),
   title: z.string().optional(),
   description: z.string().optional(),
+  icon: z.string().optional(),
+  coverImage: z.string().nullable().optional(),
 });

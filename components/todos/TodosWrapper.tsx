@@ -1318,12 +1318,11 @@ export default function TodoWrapper() {
           </div>
         </Card>
       )}
-
-      {/* Dialog pre vytvorenie/úpravu todo */}
+      
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl rounded-2xl">
           <DialogHeader className="pb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <DialogTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               {editingTodo ? "Edit Task" : "Create New Task"}
             </DialogTitle>
             <DialogDescription>
@@ -1555,14 +1554,13 @@ export default function TodoWrapper() {
           </Tabs>
         </DialogContent>
       </Dialog>
-
-      {/* Sheet pre detail todo */}
+      
       <Sheet open={!!selectedTodo} onOpenChange={() => setSelectedTodo(null)}>
         <SheetContent side="right" className="w-full sm:max-w-2xl rounded-l-2xl">
           <SheetHeader className="pb-4 border-b">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <SheetTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                   {selectedTodo?.title}
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-base">

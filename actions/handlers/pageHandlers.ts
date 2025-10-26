@@ -63,13 +63,28 @@ export async function createPageHandler(
 // ----------------------
 export async function updatePageHandler(
   id: string,
-  data: { title?: string; description?: string },
+  data: {
+    title?: string;
+    description?: string;
+    icon?: string;
+    coverImage?: string | null;
+  },
 ) {
   const updateData: Partial<typeof pages.$inferInsert> = {
-    ...(data.title ? { title: data.title } : {}),
-    ...(data.description ? { description: data.description } : {}),
+    ...(data.title !== undefined ? { title: data.title } : {}),
+    ...(data.description !== undefined
+      ? { description: data.description }
+      : {}),
+    ...(data.icon !== undefined ? { icon: data.icon } : {}),
+    ...(data.coverImage !== undefined ? { cover_image: data.coverImage } : {}),
     updated_at: new Date().toISOString(),
   };
+
+  // Check if there's anything to update
+  if (Object.keys(updateData).length <= 1) {
+    // only updated_at
+    throw new Error("No valid fields to update");
+  }
 
   const [updatedPage] = await db
     .update(pages)
