@@ -48,8 +48,8 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction} from "@/actions/pagesActions";
-import { createFolderAction } from "@/actions/folderActions";
+import { createPageAction, getAllPagesAction, movePageAction } from "@/actions/pagesActions";
+import { createFolderAction, getFoldersAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
 
@@ -58,17 +58,12 @@ interface DashboardSidebarProps {
   currentPageId?: string;
 }
 
-// Pomocná funkcia pre formátovanie ikony
-const formatIcon = (icon: string | null | undefined): string => {
-  if (!icon || icon === "0" || icon === "null") return "";
-  return icon;
-};
-
 export function DashboardSidebar({
   initialPages,
   currentPageId,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<Page[]>(initialPages.filter(p => !p.in_trash));
+  // Filtrujeme: in_trash === 0 znamená NIE je v koši
+  const [pages, setPages] = useState<Page[]>(initialPages.filter(p => p.in_trash === 0));
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
@@ -83,9 +78,40 @@ export function DashboardSidebar({
 
   const router = useRouter();
 
+  // Načítanie všetkých dát (pages + folders) pomocou server actions
+  const loadAllData = useCallback(async () => {
+    try {
+      // Načítame pages
+      const pagesResult = await getAllPagesAction() as any;
+      if (pagesResult?.data) {
+        console.log("Fetched pages:", pagesResult.data);
+        // Filtrujeme: iba stránky ktoré NIE sú v koši (in_trash === 0)
+        setPages(pagesResult.data.filter((p: Page) => p.in_trash === 0));
+      }
+
+      // Načítame folders (ak sú oddelené)
+      const foldersResult = await getFoldersAction() as any;
+      if (foldersResult?.data) {
+        // Ak sú foldery oddelené od pages, spojíme ich
+        const folders = foldersResult.data.filter((f: Page) => f.in_trash === 0);
+        setPages(prev => {
+          const pagesWithoutFolders = prev.filter(p => p.in_trash === 0);
+          return [...pagesWithoutFolders, ...folders];
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
+  }, []);
+
+  // Načítanie všetkých dát pri načítaní komponentu
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
   // SYNCHRONIZÁCIA: Keď sa zmení initialPages, aktualizuj state
   useEffect(() => {
-    setPages(initialPages.filter(p => !p.in_trash));
+    setPages(initialPages.filter(p => p.in_trash === 0));
   }, [initialPages]);
 
   const sensors = useSensors(
@@ -127,11 +153,11 @@ export function DashboardSidebar({
       title: "Untitled",
       icon: "",
       parent_id: null,
-      is_folder: 0,
+      is_folder: 0, // 0 = stránka (nie folder)
       user_id: "",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      in_trash: 0,
+      in_trash: 0, // 0 = nie je v koši
     };
 
     setPages((prev) => [...prev, tempPage]);
@@ -148,7 +174,7 @@ export function DashboardSidebar({
       const serverPage = result.data as unknown as Page;
       const finalPage: Page = {
         ...serverPage,
-        is_folder: 0,
+        is_folder: 0, // Zachováme ako stránku
       };
 
       // Aktualizujeme state s novou stránkou
@@ -158,8 +184,10 @@ export function DashboardSidebar({
         ),
       );
 
-      // DÔLEŽITÉ: Revalidácia serverových dát
-      router.refresh();
+      console.log("Created page:", finalPage);
+
+      // Načítame aktualizované dáta zo servera
+      await loadAllData();
 
       console.log("Page created successfully:", finalPage.id);
       
@@ -186,15 +214,21 @@ export function DashboardSidebar({
     if (!newFolderName.trim()) return;
     setLoading(true);
     try {
-      await createFolderAction({
+      const result = await createFolderAction({
         title: newFolderName,
         parent_id: folderParentId,
       });
+      
+      if (!result?.data) throw new Error("No data returned from server");
+      
       setFolderModalOpen(false);
-      // Revalidácia serverových dát
-      router.refresh();
+      
+      // Načítame aktualizované dáta po vytvorení foldera
+      await loadAllData();
+      
+      console.log("Folder created successfully:", result.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error creating folder:", err);
       alert(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
@@ -208,7 +242,8 @@ export function DashboardSidebar({
     try {
       const result = await moveToTrashAction({ id, table: "pages" });
       if (!result.data) throw new Error("Failed to move page to trash");
-      router.refresh(); // Revalidácia po presunutí do koša
+      // Načítame aktualizované dáta po presunutí do koša
+      await loadAllData();
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -216,7 +251,7 @@ export function DashboardSidebar({
     }
   };
 
-  const movePage = async (pageId: string, targetFolderId: string | null) => {
+  const movePage = async (pageId: string, targetFolderId: string) => {
     const prevPages = [...pages];
     setPages((prev) =>
       prev.map((p) =>
@@ -224,13 +259,16 @@ export function DashboardSidebar({
       ),
     );
     try {
-      const response = await fetch(`/api/pages/${pageId}/move`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parent_id: targetFolderId }),
+      // Použijeme server action namiesto API endpointu
+      const result = await movePageAction({
+        id: pageId,
+        parent_id: targetFolderId,
       });
-      if (!response.ok) throw new Error("Failed to move page");
-      router.refresh(); // Revalidácia po presunutí
+
+      if (!result?.data) throw new Error("Failed to move page");
+
+      // Načítame aktualizované dáta po presunutí
+      await loadAllData();
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -256,7 +294,7 @@ export function DashboardSidebar({
     if (draggedPage?.is_folder === 1 && targetId === draggedPageId) return;
 
     if (targetId === "root") {
-      movePageDebounced(draggedPageId, null);
+      movePageDebounced(draggedPageId, "");
     } else {
       const targetPage = pages.find((p) => p.id === targetId);
       if (targetPage?.is_folder === 1) {
@@ -333,7 +371,15 @@ export function DashboardSidebar({
     }) => {
       const isExpanded = expandedFolders.has(page.id);
       const hasChildren = page.children && page.children.length > 0;
-      const formattedIcon = formatIcon(page.icon);
+
+      // Správne ikonky podľa typu
+      const getIcon = () => {
+        if (page.is_folder === 1) {
+          return <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />;
+        } else {
+          return <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />;
+        }
+      };
 
       const content = (
         <div
@@ -371,9 +417,9 @@ export function DashboardSidebar({
                   setMobileOpen(false);
                 }}
               >
-                <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {formattedIcon} {page.title}
+                  {page.icon} {page.title}
                 </span>
               </button>
             </>
@@ -387,9 +433,9 @@ export function DashboardSidebar({
                   setMobileOpen(false);
                 }}
               >
-                <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {formattedIcon ? `${formattedIcon} ` : ""}
+                  {page.icon ? `${page.icon} ` : ""}
                   {page.title}
                 </span>
               </button>
@@ -548,11 +594,6 @@ export function DashboardSidebar({
                   onClick={() => setPagesExpanded(!pagesExpanded)}
                   className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
                 >
-                  {pagesExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
                   Pages
                 </button>
                 <div className="flex gap-1">
@@ -657,7 +698,7 @@ export function DashboardSidebar({
                 <FileText className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="truncate">
-                {formatIcon(activePage.icon)} {activePage.title}
+                {activePage.icon} {activePage.title}
               </span>
             </div>
           ) : null}

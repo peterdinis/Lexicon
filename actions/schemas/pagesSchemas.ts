@@ -16,3 +16,8 @@ export const updatePageSchema = z.object({
   icon: z.string().optional(),
   coverImage: z.string().nullable().optional(),
 });
+
+export const movePageSchema = z.object({
+  id: z.string().uuid(),
+  parent_id: z.string().uuid().nullable().optional(),
+});

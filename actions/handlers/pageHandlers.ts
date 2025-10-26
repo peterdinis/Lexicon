@@ -3,6 +3,7 @@ import { pages } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
 import { eq, asc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 // ----------------------
 // Get Single Page
@@ -140,7 +141,10 @@ export async function deletePageHandler(pageId: string) {
 // ----------------------
 // Move Page
 // ----------------------
-export async function movePageHandler(pageId: string) {
+export async function movePageHandler(
+  id: string,
+  parent_id: string | null = null
+) {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -152,10 +156,13 @@ export async function movePageHandler(pageId: string) {
 
   const [updatedPage] = await db
     .update(pages)
-    .set({ updated_at: new Date().toISOString() }) // len aktualizujeme timestamp
-    .where(eq(pages.id, pageId))
+    .set({ 
+      parent_id: parent_id,
+      updated_at: new Date().toISOString()
+    })
+    .where(eq(pages.id, id))
     .returning();
 
-  if (!updatedPage) throw new Error("Failed to update page");
+  if (!updatedPage) throw new Error("Failed to move page");
   return updatedPage;
 }

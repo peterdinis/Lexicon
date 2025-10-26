@@ -2,12 +2,13 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { createPageSchema, pageIdSchema } from "./schemas/pagesSchemas";
+import { createPageSchema, movePageSchema, pageIdSchema } from "./schemas/pagesSchemas";
 import {
   createPageHandler,
   deletePageHandler,
   getAllPagesHandler,
   getPageHandler,
+  movePageHandler,
 } from "./handlers/pageHandlers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
@@ -20,7 +21,7 @@ export const createPageAction = actionClient
   .action(async ({ parsedInput: { title = "Untitled", description = "" } }) => {
     try {
       const result = await createPageHandler(title, description);
-      
+
       return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));
@@ -86,6 +87,19 @@ export const deletePageAction = actionClient
   .action(async ({ parsedInput: { id } }) => {
     try {
       return await deletePageHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+export const movePageAction = actionClient
+  .inputSchema(movePageSchema) // Použi novú schému
+  .action(async ({ parsedInput: { id, parent_id } }) => {
+    try {
+      const result = await movePageHandler(id, parent_id);
+      revalidatePath("/"); // Revalidate hlavnú stránku kde sú zoznam stránok
+      revalidatePath(`/folder/${parent_id}`); // Revalidate cieľový priečinok
+      return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
