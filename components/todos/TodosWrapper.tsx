@@ -527,12 +527,18 @@ export default function TodoWrapper() {
   ) => {
     try {
       if (editingTodo) {
-        const updatedData = { 
-          ...data, 
-          completed: editingTodo.completed ?? 0,
+        // Vytvoríme update data objekt
+        const updatedData: any = {
+          title: data.title,
           description: data.description || null,
           due_date: data.due_date || null,
-        } as any;
+          priority: data.priority,
+          status: data.status,
+          tags: data.tags,
+          notes: data.notes,
+        };
+
+        console.log("Updating todo:", editingTodo.id, "with data:", updatedData);
         
         const result = await updateTodoAction(editingTodo.id, updatedData);
         
@@ -542,16 +548,23 @@ export default function TodoWrapper() {
               todo.id === editingTodo.id
                 ? {
                     ...todo,
-                    ...updatedData,
-                    description: updatedData.description,
-                    due_date: updatedData.due_date,
-                    status: updatedData.status ?? todo.status,
-                    tags: updatedData.tags ?? todo.tags,
-                    notes: updatedData.notes ?? todo.notes,
+                    // Aktualizujeme iba zmenené polia
+                    title: data.title,
+                    description: data.description || null,
+                    due_date: data.due_date || null,
+                    priority: data.priority,
+                    status: data.status || "not_started",
+                    tags: data.tags || [],
+                    notes: data.notes || "",
+                    updated_at: new Date().toISOString(),
                   }
                 : todo,
             ),
           );
+          setDialogOpen(false);
+          setEditingTodo(null);
+          form.reset();
+          router.refresh();
         }
       } else {
         const result = await createTodoAction(data);
@@ -565,12 +578,12 @@ export default function TodoWrapper() {
             notes: data.notes ?? "",
           };
           setTodos((prev) => [newTodo, ...prev]);
+          setDialogOpen(false);
+          setEditingTodo(null);
+          form.reset();
+          router.refresh();
         }
       }
-      setDialogOpen(false);
-      setEditingTodo(null);
-      form.reset();
-      router.refresh();
     } catch (error) {
       console.error("Failed to save todo:", error);
     }
