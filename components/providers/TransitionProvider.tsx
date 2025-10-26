@@ -1,6 +1,7 @@
 "use client";
 
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 type TransitionProviderProps = {
@@ -9,27 +10,58 @@ type TransitionProviderProps = {
 
 const TransitionProvider: FC<TransitionProviderProps> = ({ children }) => {
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentChildren, setCurrentChildren] = useState(children);
 
   useEffect(() => {
-    setIsVisible(false);
-
+    // Keď sa zmení pathname, spusti loading
+    setIsLoading(true);
+    
+    // Aktualizuj children a až potom skry loading
+    setCurrentChildren(children);
+    
+    // Skry loading po krátkom čase alebo keď sa obsah načíta
     const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 300);
+      setIsLoading(false);
+    }, 100);
 
     return () => clearTimeout(timer);
-  }, [pathname]);
+  }, [pathname, children]);
 
   return (
-    <div
-      className={`
-      transition-all duration-300 ease-in-out
-      ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
-    `}
-    >
-      {children}
-    </div>
+    <>
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-white dark:bg-neutral-900 z-50 flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-8 h-8 border-3 border-neutral-200 border-t-blue-500 rounded-full animate-spin" />
+              <p className="text-sm text-neutral-500">Loading...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait" onExitComplete={() => setIsLoading(false)}>
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+          }}
+        >
+          {currentChildren}
+        </motion.div>
+      </AnimatePresence>
+    </>
   );
 };
 
