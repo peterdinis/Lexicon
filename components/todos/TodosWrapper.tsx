@@ -11,7 +11,6 @@ import {
   Circle,
   GripVertical,
   LayoutList,
-  LayoutGrid,
   TableIcon,
   Filter,
   TagIcon,
@@ -76,9 +75,6 @@ import {
   updateTodoAction,
 } from "@/actions/todosActions";
 
-// ----------------------
-// Typy
-// ----------------------
 export type Todo = {
   id: string;
   user_id: string;
@@ -98,9 +94,6 @@ type ViewMode = "list" | "board" | "table";
 type FilterStatus = "all" | "not_started" | "in_progress" | "done";
 type FilterPriority = "all" | "low" | "medium" | "high";
 
-// ----------------------
-// Sortable Component pre Board
-// ----------------------
 function BoardTodoItem({
   todo,
   onToggle,
@@ -215,7 +208,6 @@ function BoardTodoItem({
           </Button>
         </div>
       </div>
-      {/* Drag handle - celá plocha pre drag */}
       <div
         {...attributes}
         {...listeners}
@@ -225,9 +217,6 @@ function BoardTodoItem({
   );
 }
 
-// ----------------------
-// Sortable Component pre List
-// ----------------------
 function SortableTodoItem({
   todo,
   onToggle,
@@ -471,32 +460,56 @@ export default function TodoWrapper() {
     if (!over) return;
 
     const activeTodo = todos.find(t => t.id === active.id);
-    const overTodo = todos.find(t => t.id === over.id) as any;
+    
+    if (!activeTodo) return;
 
-    if (!activeTodo || !overTodo) return;
+    // Get the target status from the over element
+    let targetStatus: any;
 
-    // Ak ťaháme medzi stĺpcami (zmena statusu)
-    if (activeTodo.status !== overTodo.status) {
-      const newStatus = overTodo.status;
-      
-      // Update todo status v databáze
+    // Check if we're dropping on a todo item or on the column itself
+    const overTodo = todos.find(t => t.id === over.id);
+    if (overTodo) {
+      // Dropping on another todo - use its status
+      targetStatus = overTodo.status || 'not_started';
+    } else {
+      // Dropping on empty column area - determine status from the column ID
+      // The over.id should be the column ID in board view
+      const columnId = over.id as string;
+      if (columnId.includes('not_started') || columnId === 'not_started') {
+        targetStatus = 'not_started';
+      } else if (columnId.includes('in_progress') || columnId === 'in_progress') {
+        targetStatus = 'in_progress';
+      } else if (columnId.includes('done') || columnId === 'done') {
+        targetStatus = 'done';
+      } else {
+        targetStatus = activeTodo.status || 'not_started';
+      }
+    }
+
+    // Only update if status actually changed
+    if (activeTodo.status !== targetStatus) {
+      // Update todo status in database
       const result = await updateTodoAction(activeTodo.id, {
-        status: newStatus,
-        completed: newStatus === 'done' ? 1 : 0,
+        status: targetStatus,
+        completed: targetStatus === 'done' ? 1 : 0,
       });
 
       if (result.success) {
         setTodos(prev =>
           prev.map(todo =>
             todo.id === activeTodo.id
-              ? { ...todo, status: newStatus, completed: newStatus === 'done' ? 1 : 0 }
+              ? { 
+                  ...todo, 
+                  status: targetStatus, 
+                  completed: targetStatus === 'done' ? 1 : 0 
+                }
               : todo
           )
         );
       }
     } 
-    // Ak ťaháme v rámci toho istého stĺpca (zmena poradia)
-    else if (active.id !== over.id) {
+    // If dragging within the same column (reordering)
+    else if (active.id !== over.id && overTodo && activeTodo.status === overTodo.status) {
       const oldIndex = todos.findIndex((t) => t.id === active.id);
       const newIndex = todos.findIndex((t) => t.id === over.id);
 
@@ -657,13 +670,6 @@ export default function TodoWrapper() {
             <LayoutList className="h-4 w-4" />
           </Button>
           <Button
-            variant={viewMode === "board" ? "default" : "outline"}
-            size="icon"
-            onClick={() => setViewMode("board")}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
             variant={viewMode === "table" ? "default" : "outline"}
             size="icon"
             onClick={() => setViewMode("table")}
@@ -802,7 +808,11 @@ export default function TodoWrapper() {
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {(["not_started", "in_progress", "done"] as const).map((status) => (
-              <div key={status} className="rounded-lg border p-4 bg-muted/20 min-h-[400px]">
+              <div 
+                key={status} 
+                className="rounded-lg border p-4 bg-muted/20 min-h-[400px]"
+                data-column-id={status}
+              >
                 <h3 className="mb-4 font-semibold capitalize">
                   {status.replace("_", " ")} ({groupedByStatus[status].length})
                 </h3>
@@ -810,7 +820,7 @@ export default function TodoWrapper() {
                   items={groupedByStatus[status].map((t) => t.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-2 h-full">
                     {groupedByStatus[status].map((todo) => (
                       <BoardTodoItem
                         key={todo.id}
@@ -821,7 +831,10 @@ export default function TodoWrapper() {
                       />
                     ))}
                     {groupedByStatus[status].length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                      <div 
+                        className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg h-full flex items-center justify-center"
+                        data-column-id={status}
+                      >
                         <p className="text-sm">Drop tasks here</p>
                       </div>
                     )}
@@ -957,7 +970,7 @@ export default function TodoWrapper() {
         </div>
       )}
 
-      {/* Ostatný kód (Dialog, Sheet) zostáva rovnaký */}
+      {/* Dialog pre vytvorenie/úpravu todo */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
