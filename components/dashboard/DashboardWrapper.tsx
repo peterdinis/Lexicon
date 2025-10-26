@@ -4,6 +4,7 @@ import { AnimatedPageWrapper } from "../shared/AnimatedPageWrapper";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { File } from "lucide-react";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   let pages = [];
@@ -44,14 +45,18 @@ export default async function DashboardPage() {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {pages.slice(0, 6).map((page) => (
-                      <div
+                      <Link
                         key={page.id}
-                        className="p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
+                        href={`/page/${page.id}`}
+                        className="p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors block"
                       >
                         <h3 className="font-medium text-neutral-900 dark:text-white mb-2">
                           {page.title || "Untitled"}
                         </h3>
-                      </div>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
+                          {page.description || "No description available"}
+                        </p>
+                      </Link>
                     ))}
                   </div>
                 </div>
