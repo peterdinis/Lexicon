@@ -92,7 +92,6 @@ const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
   };
 
   const handleClick = () => {
-    console.log('🔗 Navigating to:', result.url);
     router.push(result.url as any);
     onSelect();
   };
@@ -153,11 +152,8 @@ const DashboardTopBar: FC = () => {
   useEffect(() => {
     if (!isSearchOpen) return;
 
-    console.log('🔍 Search effect triggered:', { searchQuery, isSearchOpen });
-
     if (searchQuery.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
-        console.log('🎯 Executing search with query:', searchQuery);
         search(
           searchQuery,
           ["pages", "todos", "events", "diagrams", "folders"],
@@ -166,12 +162,9 @@ const DashboardTopBar: FC = () => {
       }, 300);
 
       return () => {
-        console.log('🧹 Cleaning up previous search timeout');
         clearTimeout(timeoutId);
       };
     } else if (searchQuery.trim().length === 0) {
-      // Clear results when search query is empty
-      console.log('🗑️ Clearing results due to empty query');
       search("", ["pages"], 0, true);
     }
   }, [searchQuery, isSearchOpen, search]);
@@ -179,10 +172,9 @@ const DashboardTopBar: FC = () => {
   // Reset search when dialog opens/closes
   useEffect(() => {
     if (!isSearchOpen) {
-      console.log('🚪 Dialog closed, resetting search');
       setSearchQuery("");
     } else {
-      console.log('🚪 Dialog opened');
+      throw new Error("Something went wrong");
     }
   }, [isSearchOpen]);
 
