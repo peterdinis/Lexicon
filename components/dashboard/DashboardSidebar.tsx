@@ -20,6 +20,7 @@ import {
   MoreHorizontal,
   GripVertical,
   ChartNoAxesColumnIncreasing,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,7 +49,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction, deletePageAction } from "@/actions/pagesActions";
+import { createPageAction, getAllPagesAction, movePageAction } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
@@ -58,18 +59,15 @@ interface DashboardSidebarProps {
   currentPageId?: string;
 }
 
-// Pomocná funkcia pre formátovanie ikony
-const formatIcon = (icon: string | null | undefined): string => {
-  if (!icon || icon === "0" || icon === "null") return "";
-  return icon;
-};
-
 export function DashboardSidebar({
   initialPages,
   currentPageId,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<Page[]>(initialPages.filter(p => !p.in_trash));
+  const [pages, setPages] = useState<Page[]>(
+    initialPages.filter(p => p.in_trash === 0)
+  );
   const [loading, setLoading] = useState(false);
+  const [loadingPages, setLoadingPages] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
@@ -83,18 +81,32 @@ export function DashboardSidebar({
 
   const router = useRouter();
 
-  // useEffect na kontrolu a opravu ikoniek
-  useEffect(() => {
-    const hasZeroIcons = pages.some(page => page.icon === "0");
-    if (hasZeroIcons) {
-      setPages(prevPages => 
-        prevPages.map(page => ({
-          ...page,
-          icon: page.icon === "0" ? "" : page.icon
-        }))
-      );
+  // Načítanie všetkých dát zo servera
+  const loadAllData = useCallback(async () => {
+    setLoadingPages(true);
+    try {
+      const pagesResult = await getAllPagesAction() as any;
+      if (pagesResult?.data) {
+        const allPages = pagesResult.data.filter((p: Page) => p.in_trash === 0);
+        setPages(allPages);
+        console.log("Loaded pages:", allPages);
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoadingPages(false);
     }
-  }, [pages]);
+  }, []);
+
+  // Načítaj dáta iba pri prvom renderi - ODSTRÁNENÉ druhý useEffect
+  useEffect(() => {
+    // Ak máme initialPages, použijeme ich, inak načítame zo servera
+    if (initialPages && initialPages.length > 0) {
+      setPages(initialPages.filter(p => p.in_trash === 0));
+    } else {
+      loadAllData();
+    }
+  }, []); // Prázdne závislosti - spustí sa iba raz
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -105,10 +117,8 @@ export function DashboardSidebar({
     const pageMap = new Map<string, any>();
     const rootPages: any[] = [];
 
-    // Initialize all pages
     pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
 
-    // Build hierarchy
     pages.forEach((p) => {
       const pageWithChildren = pageMap.get(p.id)!;
       if (p.parent_id && pageMap.has(p.parent_id)) {
@@ -126,24 +136,8 @@ export function DashboardSidebar({
     [pages, buildHierarchy],
   );
 
-  const createPage = async () => {
+  const createPage = async (parentId?: string | null) => {
     setLoading(true);
-
-    const tempId = `temp-${Date.now()}`;
-    const tempPage: Page = {
-      id: tempId,
-      title: "Untitled",
-      icon: "",
-      parent_id: null,
-      is_folder: 0,
-      user_id: "",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      in_trash: 0,
-    };
-
-    setPages((prev) => [...prev, tempPage]);
-    setMobileOpen(false);
 
     try {
       const result = await createPageAction({
@@ -152,17 +146,26 @@ export function DashboardSidebar({
       });
 
       if (!result?.data) throw new Error("No data returned from server");
-
-      setPages((prev) =>
-        prev.map((p) =>
-          p.id === tempId ? (result.data as unknown as Page) : p,
-        ),
-      );
-
+      
+      console.log("Page created:", result.data);
+      
+      // Ak je parentId definované, presuň stránku do foldera
+      if (parentId) {
+        await movePageAction({
+          id: result.data.id,
+          parent_id: parentId,
+        });
+      }
+      
+      // Načítame aktualizované dáta
+      await loadAllData();
+      
+      // Navigujeme na novú stránku
       router.push(`/page/${result.data.id}`);
+      setMobileOpen(false);
+      
     } catch (error) {
       console.error("Error creating page:", error);
-      setPages((prev) => prev.filter((p) => p.id !== tempId));
       alert(
         `Failed to create page: ${
           error instanceof Error ? error.message : "Unknown error"
@@ -180,30 +183,51 @@ export function DashboardSidebar({
   };
 
   const handleFolderSubmit = async () => {
-    if (!newFolderName.trim()) return;
+    if (!newFolderName.trim()) {
+      alert("Please enter a folder name");
+      return;
+    }
+    
     setLoading(true);
     try {
-      await createFolderAction({
+      const result = await createFolderAction({
         title: newFolderName,
         parent_id: folderParentId,
       });
+      
+      if (!result?.data) throw new Error("No data returned from server");
+      
+      console.log("Folder created:", result.data);
+      
       setFolderModalOpen(false);
-      window.location.reload();
+      setNewFolderName("");
+      
+      // Načítame aktualizované dáta
+      await loadAllData();
+      
+      // Rozbalíme nový folder
+      if (result.data.id) {
+        setExpandedFolders(prev => new Set([...prev, result.data!.id]));
+      }
+      
     } catch (err) {
-      console.error(err);
-      alert(err instanceof Error ? err.message : "Unknown error");
+      console.error("Error creating folder:", err);
+      alert(err instanceof Error ? err.message : "Failed to create folder");
     } finally {
       setLoading(false);
     }
   };
 
   const movePageToTrash = async (id: string) => {
+    if (!confirm("Are you sure you want to move this to trash?")) return;
+    
     const prevPages = [...pages];
     setPages((prev) => prev.filter((p) => p.id !== id));
 
     try {
       const result = await moveToTrashAction({ id, table: "pages" });
       if (!result.data) throw new Error("Failed to move page to trash");
+      await loadAllData();
     } catch (error) {
       console.error(error);
       setPages(prevPages);
@@ -211,23 +235,26 @@ export function DashboardSidebar({
     }
   };
 
-  const movePage = async (pageId: string, targetFolderId: string | null) => {
+  const movePage = async (pageId: string, targetFolderId: string) => {
     const prevPages = [...pages];
     setPages((prev) =>
       prev.map((p) =>
-        p.id === pageId ? { ...p, parent_id: targetFolderId } : p,
+        p.id === pageId ? { ...p, parent_id: targetFolderId || null } : p,
       ),
     );
     try {
-      const response = await fetch(`/api/pages/${pageId}/move`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parent_id: targetFolderId }),
+      const result = await movePageAction({
+        id: pageId,
+        parent_id: targetFolderId || null,
       });
-      if (!response.ok) throw new Error("Failed to move page");
+
+      if (!result?.data) throw new Error("Failed to move page");
+
+      await loadAllData();
     } catch (error) {
       console.error(error);
       setPages(prevPages);
+      alert(error instanceof Error ? error.message : "Failed to move page");
     }
   };
 
@@ -250,7 +277,7 @@ export function DashboardSidebar({
     if (draggedPage?.is_folder === 1 && targetId === draggedPageId) return;
 
     if (targetId === "root") {
-      movePageDebounced(draggedPageId, null);
+      movePageDebounced(draggedPageId, "");
     } else {
       const targetPage = pages.find((p) => p.id === targetId);
       if (targetPage?.is_folder === 1) {
@@ -306,8 +333,9 @@ export function DashboardSidebar({
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-lg transition-colors ${isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-          }`}
+        className={`rounded-lg transition-colors ${
+          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
+        }`}
       >
         {children}
       </div>
@@ -327,12 +355,20 @@ export function DashboardSidebar({
     }) => {
       const isExpanded = expandedFolders.has(page.id);
       const hasChildren = page.children && page.children.length > 0;
-      const formattedIcon = formatIcon(page.icon);
+
+      const getIcon = () => {
+        if (page.is_folder === 1) {
+          return <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />;
+        } else {
+          return <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />;
+        }
+      };
 
       const content = (
         <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${currentPageId === page.id ? "bg-accent" : ""
-            }`}
+          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
+            currentPageId === page.id ? "bg-accent" : ""
+          }`}
         >
           <button
             {...dragHandleProps}
@@ -365,9 +401,9 @@ export function DashboardSidebar({
                   setMobileOpen(false);
                 }}
               >
-                <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {formattedIcon} {page.title}
+                  {page.icon && `${page.icon} `}{page.title}
                 </span>
               </button>
             </>
@@ -381,10 +417,9 @@ export function DashboardSidebar({
                   setMobileOpen(false);
                 }}
               >
-                <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {formattedIcon ? `${formattedIcon} ` : ""}
-                  {page.title}
+                  {page.icon && `${page.icon} `}{page.title}
                 </span>
               </button>
             </>
@@ -399,19 +434,17 @@ export function DashboardSidebar({
             <DropdownMenuContent align="end">
               {page.is_folder === 1 && (
                 <>
-                  <DropdownMenuItem onClick={() => createPage()}>
+                  <DropdownMenuItem onClick={() => createPage(page.id)} disabled={loading}>
                     <Plus className="mr-2 h-4 w-4" />
                     New Page
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => createFolder(page.id)}>
+                  <DropdownMenuItem onClick={() => createFolder(page.id)} disabled={loading}>
                     <FolderPlus className="mr-2 h-4 w-4" />
                     New Folder
                   </DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuItem
-                onClick={() => movePageToTrash(page.id)}
-              >
+              <DropdownMenuItem onClick={() => movePageToTrash(page.id)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Move to Trash
               </DropdownMenuItem>
@@ -423,9 +456,7 @@ export function DashboardSidebar({
       return (
         <div>
           {page.is_folder === 1 ? (
-            <DroppableFolder page={page}>
-              {content}
-            </DroppableFolder>
+            <DroppableFolder page={page}>{content}</DroppableFolder>
           ) : (
             content
           )}
@@ -542,11 +573,6 @@ export function DashboardSidebar({
                   onClick={() => setPagesExpanded(!pagesExpanded)}
                   className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
                 >
-                  {pagesExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
                   Pages
                 </button>
                 <div className="flex gap-1">
@@ -556,29 +582,44 @@ export function DashboardSidebar({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
+                    title="New Folder"
                   >
-                    <FolderPlus className="h-3.5 w-3.5" />
+                    {loading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <FolderPlus className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                   <Button
-                    onClick={createPage}
+                    onClick={() => createPage()}
                     disabled={loading}
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
+                    title="New Page"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    {loading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Plus className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                 </div>
               </div>
               {pagesExpanded && (
                 <div
                   ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${isOverRoot && activeId
+                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
+                    isOverRoot && activeId
                       ? "bg-primary/10 ring-2 ring-primary/50"
                       : ""
-                    }`}
+                  }`}
                 >
-                  {hierarchicalPages.length === 0 ? (
+                  {loadingPages ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : hierarchicalPages.length === 0 ? (
                     <div className="px-3 py-4 text-center text-xs text-muted-foreground">
                       No pages yet. Create your first page!
                     </div>
@@ -607,7 +648,6 @@ export function DashboardSidebar({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* Desktop Sidebar */}
         <aside
           className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex ${
             desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
@@ -616,7 +656,6 @@ export function DashboardSidebar({
           <SidebarContent />
         </aside>
 
-        {/* Mobile Menu Button - vždy viditeľný */}
         <div className="md:hidden">
           <Button
             variant="ghost"
@@ -628,7 +667,6 @@ export function DashboardSidebar({
           </Button>
         </div>
 
-        {/* Desktop Toggle Button - viditeľný keď je sidebar zatvorený */}
         {desktopCollapsed && (
           <div className="hidden md:flex items-center">
             <Button
@@ -651,21 +689,19 @@ export function DashboardSidebar({
                 <FileText className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="truncate">
-                {formatIcon(activePage.icon)} {activePage.title}
+                {activePage.icon && `${activePage.icon} `}{activePage.title}
               </span>
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="p-0 w-64">
           <SidebarContent isMobile />
         </SheetContent>
       </Sheet>
 
-      {/* Folder Modal */}
       <Sheet open={folderModalOpen} onOpenChange={setFolderModalOpen}>
         <SheetContent side="right" className="max-w-md">
           <div className="flex items-center justify-between border-b p-4">
@@ -674,27 +710,51 @@ export function DashboardSidebar({
               variant="ghost"
               size="icon"
               onClick={() => setFolderModalOpen(false)}
+              disabled={loading}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="p-4">
-            <input
-              type="text"
-              placeholder="Folder name"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              className="w-full rounded border px-3 py-2 text-sm"
-            />
-            <div className="mt-4 flex justify-end gap-2">
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Folder name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter folder name"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !loading) {
+                    handleFolderSubmit();
+                  }
+                }}
+                disabled={loading}
+                className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-2">
               <Button
                 variant="secondary"
                 onClick={() => setFolderModalOpen(false)}
+                disabled={loading}
               >
                 Cancel
               </Button>
-              <Button onClick={handleFolderSubmit} disabled={loading}>
-                Create
+              <Button 
+                onClick={handleFolderSubmit} 
+                disabled={loading || !newFolderName.trim()}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create"
+                )}
               </Button>
             </div>
           </div>

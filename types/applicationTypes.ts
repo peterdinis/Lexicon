@@ -4,6 +4,7 @@ export interface Page {
   user_id: string;
   title: string;
   content?: string;
+  description?: string;
   icon?: string;
   cover_image?: string;
   parent_id?: string | null;
@@ -101,6 +102,16 @@ export interface Notification {
   message?: string;
   link?: string;
   read: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+
+export interface Folder {
+  id: string;
+  user_id: string;
+  title: string;
+  in_trash?: number;
   created_at: string;
   updated_at: string;
 }

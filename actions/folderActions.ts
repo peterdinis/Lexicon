@@ -7,12 +7,20 @@ import {
   getFoldersHandler,
 } from "./handlers/folderHandlers";
 import { createFolderSchema } from "./schemas/folderSchemas";
+import { revalidatePath } from "next/cache";
 
 export const createFolderAction = actionClient
   .inputSchema(createFolderSchema)
   .action(async ({ parsedInput: { parent_id = null, title } }) => {
     try {
-      return await createFolderHandler(parent_id, title);
+      const result = await createFolderHandler(parent_id, title);
+      
+      // Revalidácia ciest kde sa zobrazujú foldery
+      revalidatePath("/dashboard");
+      revalidatePath("/page/[id]", "page");
+      revalidatePath("/");
+      
+      return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
