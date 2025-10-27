@@ -18,7 +18,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { common, createLowlight } from "lowlight";
-import { useEffect, useCallback, useState, useTransition, useRef } from "react";
+import { useEffect, useCallback, useState, useTransition } from "react";
 import {
   Bold,
   Italic,
@@ -33,18 +33,19 @@ import {
   Undo,
   Redo,
   CheckSquare,
-  ImageIcon,
+  Image as ImageIcon,
   Link2,
   Highlighter,
   AlignLeft,
   AlignCenter,
   AlignRight,
   AlignJustify,
-  UnderlineIcon,
-  SubscriptIcon,
-  SuperscriptIcon,
-  TableIcon,
-  ChevronDown,
+  Underline as UnderlineIcon,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  Table as TableIcon,
+  Loader2,
+  Save,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -65,55 +66,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updatePageAction } from "@/actions/pagesActions";
-import { debounce } from "@/lib/debounce";
 
-// Import ďalších jazykov pre syntax highlighting
-import php from 'highlight.js/lib/languages/php';
-import python from 'highlight.js/lib/languages/python';
-import java from 'highlight.js/lib/languages/java';
-import cpp from 'highlight.js/lib/languages/cpp';
-import csharp from 'highlight.js/lib/languages/csharp';
-import ruby from 'highlight.js/lib/languages/ruby';
-import go from 'highlight.js/lib/languages/go';
-import rust from 'highlight.js/lib/languages/rust';
-import swift from 'highlight.js/lib/languages/swift';
-import kotlin from 'highlight.js/lib/languages/kotlin';
-import typescript from 'highlight.js/lib/languages/typescript';
-import javascript from 'highlight.js/lib/languages/javascript';
-import sql from 'highlight.js/lib/languages/sql';
-import json from 'highlight.js/lib/languages/json';
-import xml from 'highlight.js/lib/languages/xml';
-import css from 'highlight.js/lib/languages/css';
-import scss from 'highlight.js/lib/languages/scss';
-import bash from 'highlight.js/lib/languages/bash';
-import yaml from 'highlight.js/lib/languages/yaml';
-import markdown from 'highlight.js/lib/languages/markdown';
+// Lazy load languages
+const loadLanguage = async (lang: string) => {
+  try {
+    const module = await import(`highlight.js/lib/languages/${lang}`);
+    return module.default;
+  } catch (err) {
+    console.warn(`Failed to load language: ${lang}`);
+    return null;
+  }
+};
 
 const lowlight = createLowlight(common);
 
-// Registrácia ďalších jazykov
-lowlight.register('php', php);
-lowlight.register('python', python);
-lowlight.register('java', java);
-lowlight.register('cpp', cpp);
-lowlight.register('csharp', csharp);
-lowlight.register('ruby', ruby);
-lowlight.register('go', go);
-lowlight.register('rust', rust);
-lowlight.register('swift', swift);
-lowlight.register('kotlin', kotlin);
-lowlight.register('typescript', typescript);
-lowlight.register('javascript', javascript);
-lowlight.register('sql', sql);
-lowlight.register('json', json);
-lowlight.register('xml', xml);
-lowlight.register('css', css);
-lowlight.register('scss', scss);
-lowlight.register('bash', bash);
-lowlight.register('yaml', yaml);
-lowlight.register('markdown', markdown);
+// Pre-register common languages in background
+const PRELOAD_LANGUAGES = ['javascript', 'typescript', 'python', 'php', 'css', 'json'];
 
-// Zoznam podporovaných jazykov
+// Language options
 const LANGUAGE_OPTIONS = [
   { value: 'text', label: 'Plain Text' },
   { value: 'javascript', label: 'JavaScript' },
@@ -156,44 +126,32 @@ export function TiptapEditor({
   const [imageUrl, setImageUrl] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("text");
   const [isInCodeBlock, setIsInCodeBlock] = useState(false);
+  const [loadedLanguages, setLoadedLanguages] = useState<Set<string>>(new Set(PRELOAD_LANGUAGES));
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const saveRef = useRef<((content: string) => void) | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Vytvorenie debounced save funkcie
   useEffect(() => {
-    saveRef.current = debounce(async (description: string) => {
-      try {
-        await updatePageAction({ id: pageId, description });
-        setLastSaved(new Date());
-        setIsTyping(false);
-      } catch (err) {
-        console.error("❌ Failed to save description:", err);
-        setIsTyping(false);
-      }
-    }, 2000);
-  }, [pageId]);
-
-  const handleContentChange = useCallback((description: string) => {
-    onUpdate?.(description);
-    setIsTyping(true);
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = setTimeout(() => {
-      startTransition(() => {
-        if (saveRef.current) {
-          saveRef.current(description);
+    const loadLanguagesInBackground = async () => {
+      for (const lang of PRELOAD_LANGUAGES) {
+        if (!loadedLanguages.has(lang)) {
+          const langModule = await loadLanguage(lang);
+          if (langModule) {
+            lowlight.register(lang, langModule);
+            setLoadedLanguages(prev => new Set([...prev, lang]));
+          }
         }
-      });
-    }, 1000);
-  }, [onUpdate]);
+      }
+    };
+    
+    const timer = setTimeout(loadLanguagesInBackground, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleContentChange = useCallback(() => {
+    setHasUnsavedChanges(true);
+  }, []);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -224,45 +182,37 @@ export function TiptapEditor({
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
-      const description = editor.getHTML();
-      handleContentChange(description);
+      // Len označíme že sú neuložené zmeny
+      handleContentChange();
       
-      // Aktualizácia stavu pre code block
-      updateCodeBlockState(editor);
+      const isCodeBlockActive = editor.isActive('codeBlock');
+      setIsInCodeBlock(isCodeBlockActive);
+      
+      if (isCodeBlockActive) {
+        const { node } = editor.state.selection.$from;
+        if (node?.attrs) {
+          const language = node.attrs.language || 'text';
+          setSelectedLanguage(language);
+        }
+      }
     },
     onSelectionUpdate: ({ editor }) => {
-      // Aktualizácia stavu pri zmene výberu
-      updateCodeBlockState(editor);
-    },
-    onBlur: ({ editor }) => {
-      const description = editor.getHTML();
-      startTransition(() => {
-        if (saveRef.current) {
-          saveRef.current(description);
+      const isCodeBlockActive = editor.isActive('codeBlock');
+      setIsInCodeBlock(isCodeBlockActive);
+      
+      if (isCodeBlockActive) {
+        const { node } = editor.state.selection.$from;
+        if (node?.attrs) {
+          const language = node.attrs.language || 'text';
+          setSelectedLanguage(language);
         }
-      });
+      }
     },
     editable: true,
     enableInputRules: true,
     enablePasteRules: true,
   });
 
-  // Funkcia pre aktualizáciu stavu code blocku
-  const updateCodeBlockState = useCallback((editorInstance: any) => {
-    const isCodeBlockActive = editorInstance.isActive('codeBlock');
-    setIsInCodeBlock(isCodeBlockActive);
-    
-    if (isCodeBlockActive) {
-      // Pokúsime sa získať jazyk z aktuálneho code blocku
-      const { node } = editorInstance.state.selection.$from;
-      if (node && node.attrs) {
-        const language = node.attrs.language || 'text';
-        setSelectedLanguage(language);
-      }
-    }
-  }, []);
-
-  // Synchronizácia initialContent
   useEffect(() => {
     if (editor && initialContent !== undefined) {
       const currentContent = editor.getHTML();
@@ -272,18 +222,46 @@ export function TiptapEditor({
     }
   }, [editor, initialContent]);
 
-  // Uloženie pri unmount a cleanup
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+  const handleManualSave = useCallback(() => {
+    if (editor) {
+      const currentContent = editor.getHTML();
+      startTransition(async () => {
+        try {
+          // Volanie onUpdate callback až pri manuálnom save
+          onUpdate?.(currentContent);
+          
+          await updatePageAction({ id: pageId, description: currentContent });
+          setLastSaved(new Date());
+          setHasUnsavedChanges(false);
+        } catch (err) {
+          console.error("❌ Failed to save description:", err);
+        }
+      });
+    }
+  }, [editor, pageId, onUpdate]);
+
+  const handleLanguageChange = useCallback(async (language: string) => {
+    setSelectedLanguage(language);
+    
+    if (!loadedLanguages.has(language) && language !== 'text') {
+      const langModule = await loadLanguage(language);
+      if (langModule) {
+        lowlight.register(language, langModule);
+        setLoadedLanguages(prev => new Set([...prev, language]));
       }
-      
-      if (editor && saveRef.current) {
-        const currentContent = editor.getHTML();
-        saveRef.current(currentContent);
-      }
-    };
+    }
+    
+    if (editor?.isActive('codeBlock')) {
+      editor.chain().focus().updateAttributes('codeBlock', { language }).run();
+    } else {
+      editor?.chain().focus().setCodeBlock({ language }).run();
+    }
+  }, [editor, loadedLanguages]);
+
+  const addCodeBlockWithLanguage = useCallback((language: string) => {
+    if (editor) {
+      editor.chain().focus().setCodeBlock({ language }).run();
+    }
   }, [editor]);
 
   const addLink = useCallback(() => {
@@ -308,45 +286,13 @@ export function TiptapEditor({
     }
   }, [editor]);
 
-  const handleManualSave = useCallback(() => {
-    if (editor && saveRef.current) {
-      const currentContent = editor.getHTML();
-      startTransition(() => {
-        saveRef.current?.(currentContent);
-      });
-    }
-  }, [editor]);
-
-  // Funkcia pre vytvorenie code blocku s konkrétnym jazykom
-  const addCodeBlockWithLanguage = useCallback((language: string) => {
-    if (editor) {
-      editor.chain().focus().setCodeBlock({ language }).run();
-    }
-  }, [editor]);
-
-  // Funkcia pre zmenu jazyka existujúceho code blocku
-  const changeCodeBlockLanguage = useCallback((language: string) => {
-    if (editor && editor.isActive('codeBlock')) {
-      editor.chain().focus().updateAttributes('codeBlock', { language }).run();
-    }
-  }, [editor]);
-
-  const handleLanguageChange = (language: string) => {
-    setSelectedLanguage(language);
-    
-    if (editor?.isActive('codeBlock')) {
-      // Ak sme v code blocku, zmeníme jazyk existujúceho blocku
-      changeCodeBlockLanguage(language);
-    } else {
-      // Ak nie sme v code blocku, vytvoríme nový
-      addCodeBlockWithLanguage(language);
-    }
-  };
-
   if (!editor) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">Loading editor...</div>
+      <div className="flex items-center justify-center p-8 min-h-[500px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="text-muted-foreground">Loading editor...</div>
+        </div>
       </div>
     );
   }
@@ -585,7 +531,7 @@ export function TiptapEditor({
         >
           <Link2 className="h-4 w-4" />
         </Button>
-        {editor.isActive("link") ? (
+        {editor.isActive("link") && (
           <Button
             variant="ghost"
             size="sm"
@@ -593,7 +539,7 @@ export function TiptapEditor({
           >
             Remove Link
           </Button>
-        ) : null}
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -623,12 +569,14 @@ export function TiptapEditor({
         {/* Manual Save Button */}
         <Separator orientation="vertical" className="mx-1 h-6" />
         <Button
-          variant="ghost"
+          variant={hasUnsavedChanges ? "default" : "ghost"}
           size="sm"
           onClick={handleManualSave}
-          disabled={isPending}
+          disabled={isPending || !hasUnsavedChanges}
+          className={hasUnsavedChanges ? "bg-primary text-primary-foreground" : ""}
         >
-          Save
+          <Save className="h-4 w-4 mr-1" />
+          {isPending ? "Saving..." : hasUnsavedChanges ? "Save *" : "Saved"}
         </Button>
       </div>
 
@@ -642,15 +590,21 @@ export function TiptapEditor({
 
       {/* Save indicator */}
       <div className="border-t p-2">
-        {isTyping ? (
-          <p className="text-sm text-muted-foreground px-4">Typing...</p>
-        ) : isPending ? (
-          <p className="text-sm text-muted-foreground px-4">Saving...</p>
-        ) : lastSaved ? (
-          <p className="text-sm text-muted-foreground px-4">
-            Saved at {lastSaved.toLocaleTimeString()}
+        {hasUnsavedChanges ? (
+          <p className="text-sm text-yellow-600 px-4 font-medium">
+            ⚠️ You have unsaved changes. Click Save to keep your work.
           </p>
-        ) : null}
+        ) : isPending ? (
+          <p className="text-sm text-blue-600 px-4">💾 Saving...</p>
+        ) : lastSaved ? (
+          <p className="text-sm text-green-600 px-4">
+            ✓ Last saved at {lastSaved.toLocaleTimeString()}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground px-4">
+            Ready to edit
+          </p>
+        )}
       </div>
 
       {/* Link dialog */}

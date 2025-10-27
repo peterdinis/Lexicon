@@ -932,9 +932,6 @@ export default function TodoWrapper() {
       <div className="p-6">
         <div className="flex justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              My Tasks
-            </h1>
             <p className="text-muted-foreground mt-2">
               Organize your work and life
             </p>
@@ -956,9 +953,6 @@ export default function TodoWrapper() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            My Tasks
-          </h1>
           <p className="text-muted-foreground mt-1">
             {filteredTodos.length}{" "}
             {filteredTodos.length === 1 ? "task" : "tasks"}

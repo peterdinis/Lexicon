@@ -98,15 +98,15 @@ export function DashboardSidebar({
     }
   }, []);
 
-  // Načítaj dáta pri prvom renderi
+  // Načítaj dáta iba pri prvom renderi - ODSTRÁNENÉ druhý useEffect
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
-
-  // Synchronizuj s initialPages
-  useEffect(() => {
-    setPages(initialPages.filter(p => p.in_trash === 0));
-  }, [initialPages]);
+    // Ak máme initialPages, použijeme ich, inak načítame zo servera
+    if (initialPages && initialPages.length > 0) {
+      setPages(initialPages.filter(p => p.in_trash === 0));
+    } else {
+      loadAllData();
+    }
+  }, []); // Prázdne závislosti - spustí sa iba raz
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -219,6 +219,8 @@ export function DashboardSidebar({
   };
 
   const movePageToTrash = async (id: string) => {
+    if (!confirm("Are you sure you want to move this to trash?")) return;
+    
     const prevPages = [...pages];
     setPages((prev) => prev.filter((p) => p.id !== id));
 
