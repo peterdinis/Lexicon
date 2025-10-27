@@ -33,14 +33,14 @@ import {
 import { createFolderAction } from "@/actions/folderActions";
 
 interface DashboardSidebarProps {
-  initialPages: any[];
+  initialPages: Page[];
   currentPageId?: string;
 }
 
 export function DashboardSidebar({
   initialPages,
 }: DashboardSidebarProps) {
-  const [pages, setPages] = useState<Page[]>(
+  const [, setPages] = useState<Page[]>(
     initialPages.filter((p) => p.in_trash === 0),
   );
   const [loading, setLoading] = useState(false);
@@ -73,24 +73,6 @@ export function DashboardSidebar({
     } finally {
       setLoadingPages(false);
     }
-  }, []);
-
-  const buildHierarchy = useCallback((pages: Page[]): any[] => {
-    const pageMap = new Map<string, any>();
-    const rootPages: any[] = [];
-
-    pages.forEach((p) => pageMap.set(p.id, { ...p, children: [] }));
-
-    pages.forEach((p) => {
-      const pageWithChildren = pageMap.get(p.id)!;
-      if (p.parent_id && pageMap.has(p.parent_id)) {
-        pageMap.get(p.parent_id)!.children!.push(pageWithChildren);
-      } else {
-        rootPages.push(pageWithChildren);
-      }
-    });
-
-    return rootPages;
   }, []);
 
   const createPage = async (parentId?: string | null) => {
