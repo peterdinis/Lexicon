@@ -149,7 +149,7 @@ export function DashboardSidebar({
     return (
       <div className="flex h-full flex-col">
         {!isMobile && (
-          <div className="flex items-center justify-between border-b p-4">
+          <div className="flex items-center justify-between border-b p-4 shrink-0">
             <h2 className="font-semibold">Workspace</h2>
             <Button
               variant="ghost"
@@ -167,112 +167,114 @@ export function DashboardSidebar({
         )}
 
         <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2">
-            <div className="mb-2">
-              <button
-                onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                {workspaceExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-                Workspace
-              </button>
-              {workspaceExpanded && (
-                <div className="ml-2 mt-1 space-y-1">
-                  <button
-                    onClick={() => {
-                      window.location.replace("/dashboard");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <Home className="h-4 w-4 text-muted-foreground" />
-                    Home
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/todos");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                    Todos
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/diagrams");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
-                    Diagrams
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/calendar");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    Calendar
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/trash");
-                      if (isMobile) setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                    Trash
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="p-2 h-full flex flex-col">
+            <div className="space-y-1 flex-1">
+              <div className="mb-2">
                 <button
-                  onClick={() => setPagesExpanded(!pagesExpanded)}
-                  className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
+                  onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  Pages
+                  {workspaceExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                  Workspace
                 </button>
-                <div className="flex gap-1">
-                  <Button
-                    onClick={() => createFolder()}
-                    disabled={loading}
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    title="New Folder"
+                {workspaceExpanded && (
+                  <div className="ml-2 mt-1 space-y-1">
+                    <button
+                      onClick={() => {
+                        window.location.replace("/dashboard");
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      <Home className="h-4 w-4 text-muted-foreground" />
+                      Home
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push("/todos");
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                      Todos
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push("/diagrams");
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
+                      Diagrams
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push("/calendar");
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      Calendar
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push("/trash");
+                        if (isMobile) setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                    >
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      Trash
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <button
+                    onClick={() => setPagesExpanded(!pagesExpanded)}
+                    className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
                   >
-                    {loading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <FolderPlus className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                  <Button
-                    onClick={() => createPage()}
-                    disabled={loading}
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    title="New Page"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Plus className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+                    Pages
+                  </button>
+                  <div className="flex gap-1">
+                    <Button
+                      onClick={() => createFolder()}
+                      disabled={loading}
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      title="New Folder"
+                    >
+                      {loading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <FolderPlus className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => createPage()}
+                      disabled={loading}
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      title="New Page"
+                    >
+                      {loading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Plus className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -285,7 +287,7 @@ export function DashboardSidebar({
   return (
     <>
         <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex ${
+          className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex flex-col ${
             desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
           }`}
         >
