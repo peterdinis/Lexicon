@@ -5,11 +5,11 @@ import { actionClient } from "@/lib/safe-action";
 import { z } from "zod";
 import Fuse from "fuse.js";
 import { db } from "@/drizzle/db";
-import { 
-  pages, 
-  blocks, 
-  todos, 
-  calendarEvents, 
+import {
+  pages,
+  blocks,
+  todos,
+  calendarEvents,
   diagrams,
   folders,
 } from "@/drizzle/schema";
@@ -53,51 +53,51 @@ const fuseOptions = {
     threshold: 0.3,
     includeScore: true,
     minMatchCharLength: 2,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   },
   blocks: {
     keys: ["searchableContent"],
     threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 3,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   },
   todos: {
     keys: ["title", "description"],
     threshold: 0.3,
     includeScore: true,
     minMatchCharLength: 2,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   },
   events: {
     keys: ["title", "description"],
     threshold: 0.3,
     includeScore: true,
     minMatchCharLength: 2,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   },
   diagrams: {
     keys: ["title", "description"],
     threshold: 0.3,
     includeScore: true,
     minMatchCharLength: 2,
-    useExtendedSearch: true
+    useExtendedSearch: true,
   },
   folders: {
     keys: ["title"],
     threshold: 0.3,
     includeScore: true,
     minMatchCharLength: 2,
-    useExtendedSearch: true
-  }
+    useExtendedSearch: true,
+  },
 };
 
 // Funkcia pre načítanie a cache dát
 async function loadSearchData(userId: string) {
   const now = Date.now();
-  
+
   // Vrátiť cache ak je ešte platný
-  if (cachedSearchData && (now - lastCacheUpdate) < CACHE_TTL) {
+  if (cachedSearchData && now - lastCacheUpdate < CACHE_TTL) {
     return cachedSearchData;
   }
 
@@ -108,41 +108,57 @@ async function loadSearchData(userId: string) {
     todosData,
     eventsData,
     diagramsData,
-    foldersData
+    foldersData,
   ] = await Promise.all([
     // Pages
-    db.select().from(pages)
+    db
+      .select()
+      .from(pages)
       .where(and(eq(pages.user_id, userId), eq(pages.in_trash, 0)))
       .limit(100),
-    
+
     // Blocks
-    db.select().from(blocks)
+    db
+      .select()
+      .from(blocks)
       .where(eq(blocks.in_trash, 0))
       .limit(200)
-      .then(blocks => blocks.map(block => ({
-        ...block,
-        searchableContent: extractSearchableContent(block.content)
-      }))),
-    
+      .then((blocks) =>
+        blocks.map((block) => ({
+          ...block,
+          searchableContent: extractSearchableContent(block.content),
+        })),
+      ),
+
     // Todos
-    db.select().from(todos)
+    db
+      .select()
+      .from(todos)
       .where(eq(todos.user_id, userId))
       .limit(100),
-    
+
     // Events
-    db.select().from(calendarEvents)
-      .where(and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, 0)))
+    db
+      .select()
+      .from(calendarEvents)
+      .where(
+        and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, 0)),
+      )
       .limit(100),
-    
+
     // Diagrams
-    db.select().from(diagrams)
+    db
+      .select()
+      .from(diagrams)
       .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, 0)))
       .limit(100),
-    
+
     // Folders
-    db.select().from(folders)
+    db
+      .select()
+      .from(folders)
       .where(and(eq(folders.user_id, userId), eq(folders.in_trash, 0)))
-      .limit(100)
+      .limit(100),
   ]);
 
   cachedSearchData = {
@@ -151,11 +167,11 @@ async function loadSearchData(userId: string) {
     todos: todosData,
     events: eventsData,
     diagrams: diagramsData,
-    folders: foldersData
+    folders: foldersData,
   };
-  
+
   lastCacheUpdate = now;
-  
+
   return cachedSearchData;
 }
 
@@ -163,13 +179,13 @@ async function loadSearchData(userId: string) {
 function extractSearchableContent(content: string): string {
   try {
     const parsed = JSON.parse(content);
-    if (typeof parsed === 'string') return parsed;
+    if (typeof parsed === "string") return parsed;
     if (parsed.text) return parsed.text;
     if (parsed.content) return parsed.content;
     if (Array.isArray(parsed)) {
-      return parsed.map(item => item.text || item.content || '').join(' ');
+      return parsed.map((item) => item.text || item.content || "").join(" ");
     }
-    return '';
+    return "";
   } catch {
     return content;
   }
@@ -183,30 +199,30 @@ function getUrlForType(type: string, item: any): string {
     todo: `/todos#todo-${item.id}`,
     event: `/calendar#event-${item.id}`,
     diagram: `/diagrams/${item.id}`,
-    folder: `/folder/${item.id}`
+    folder: `/folder/${item.id}`,
   };
   return urls[type as keyof typeof urls];
 }
 
 function getMetadataForType(type: string, item: any): Record<string, any> {
   const metadata: Record<string, any> = {
-    created_at: item.created_at
+    created_at: item.created_at,
   };
 
   switch (type) {
-    case 'pages':
+    case "pages":
       metadata.is_folder = item.is_folder;
       break;
-    case 'blocks':
+    case "blocks":
       metadata.type = item.type;
       metadata.position = item.position;
       break;
-    case 'todos':
+    case "todos":
       metadata.completed = item.completed;
       metadata.priority = item.priority;
       metadata.due_date = item.due_date;
       break;
-    case 'events':
+    case "events":
       metadata.start_time = item.start_time;
       metadata.end_time = item.end_time;
       metadata.all_day = item.all_day;
@@ -226,7 +242,7 @@ function createPageResult(item: any, score?: number): SearchResult {
     icon: item.icon,
     url: getUrlForType("page", item),
     score,
-    metadata: getMetadataForType("page", item)
+    metadata: getMetadataForType("page", item),
   };
 }
 
@@ -238,7 +254,7 @@ function createBlockResult(item: any, score?: number): SearchResult {
     content: item.searchableContent,
     url: getUrlForType("block", item),
     score,
-    metadata: getMetadataForType("block", item)
+    metadata: getMetadataForType("block", item),
   };
 }
 
@@ -250,7 +266,7 @@ function createTodoResult(item: any, score?: number): SearchResult {
     description: item.description,
     url: getUrlForType("todo", item),
     score,
-    metadata: getMetadataForType("todo", item)
+    metadata: getMetadataForType("todo", item),
   };
 }
 
@@ -262,7 +278,7 @@ function createEventResult(item: any, score?: number): SearchResult {
     description: item.description,
     url: getUrlForType("event", item),
     score,
-    metadata: getMetadataForType("event", item)
+    metadata: getMetadataForType("event", item),
   };
 }
 
@@ -274,7 +290,7 @@ function createDiagramResult(item: any, score?: number): SearchResult {
     description: item.description,
     url: getUrlForType("diagram", item),
     score,
-    metadata: getMetadataForType("diagram", item)
+    metadata: getMetadataForType("diagram", item),
   };
 }
 
@@ -285,29 +301,32 @@ function createFolderResult(item: any, score?: number): SearchResult {
     title: item.title || "Untitled folder",
     url: getUrlForType("folder", item),
     score,
-    metadata: getMetadataForType("folder", item)
+    metadata: getMetadataForType("folder", item),
   };
 }
 
 // Mapovanie typov na funkcie pre vytvorenie výsledkov
-const resultCreators: Record<string, (item: any, score?: number) => SearchResult> = {
+const resultCreators: Record<
+  string,
+  (item: any, score?: number) => SearchResult
+> = {
   pages: createPageResult,
   blocks: createBlockResult,
   todos: createTodoResult,
   events: createEventResult,
   diagrams: createDiagramResult,
-  folders: createFolderResult
+  folders: createFolderResult,
 };
 
 // Optimalizovaná search funkcia pre jednotlivé typy
 function searchInCollection(
-  data: any[], 
-  query: string, 
-  type: string, 
-  limit: number
+  data: any[],
+  query: string,
+  type: string,
+  limit: number,
 ): SearchResult[] {
   const cacheKey = `${type}-${query}-${limit}`;
-  
+
   // Skontrolovať cache
   if (fuseInstances.has(cacheKey)) {
     return fuseInstances.get(cacheKey);
@@ -323,10 +342,10 @@ function searchInCollection(
         type: "page" as const,
         title: "Unknown item",
         url: "/",
-        score: result.score
+        score: result.score,
       };
     }
-    
+
     return creator(result.item, result.score);
   });
 
@@ -347,8 +366,8 @@ export const searchAction = actionClient
           data: {
             results: [],
             total: 0,
-            query
-          }
+            query,
+          },
         };
       }
 
@@ -357,12 +376,12 @@ export const searchAction = actionClient
 
       // Načítať všetky dáta naraz
       const searchData = await loadSearchData(userId);
-      
+
       const results: SearchResult[] = [];
       const searchPromises: Promise<void>[] = [];
 
       // Paralelné vyhľadávanie vo všetkých typoch
-      types.forEach(type => {
+      types.forEach((type) => {
         if (searchData[type as keyof typeof searchData]?.length > 0) {
           searchPromises.push(
             Promise.resolve().then(() => {
@@ -370,10 +389,10 @@ export const searchAction = actionClient
                 searchData[type as keyof typeof searchData],
                 query,
                 type,
-                Math.ceil(limit / types.length) // Rozdeliť limit medzi typy
+                Math.ceil(limit / types.length), // Rozdeliť limit medzi typy
               );
               results.push(...typeResults);
-            })
+            }),
           );
         }
       });
@@ -391,10 +410,9 @@ export const searchAction = actionClient
         data: {
           results: sortedResults,
           total: sortedResults.length,
-          query
-        }
+          query,
+        },
       };
-
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
@@ -411,8 +429,8 @@ export const quickSearchAction = actionClient
           data: {
             results: [],
             total: 0,
-            query
-          }
+            query,
+          },
         };
       }
 
@@ -424,13 +442,13 @@ export const quickSearchAction = actionClient
       const quickTypes = ["pages", "todos"] as const;
       const results: SearchResult[] = [];
 
-      quickTypes.forEach(type => {
+      quickTypes.forEach((type) => {
         if (searchData[type]?.length > 0) {
           const typeResults = searchInCollection(
             searchData[type],
             query,
             type,
-            3 // Menej výsledkov pre quick search
+            3, // Menej výsledkov pre quick search
           );
           results.push(...typeResults);
         }
@@ -445,10 +463,9 @@ export const quickSearchAction = actionClient
         data: {
           results: sortedResults,
           total: sortedResults.length,
-          query
-        }
+          query,
+        },
       };
-
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }

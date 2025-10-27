@@ -2,7 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { LogOut, User, Search, FileText, CheckSquare, Calendar, Network, Folder, Square, File } from "lucide-react";
+import {
+  LogOut,
+  User,
+  Search,
+  FileText,
+  CheckSquare,
+  Calendar,
+  Network,
+  Folder,
+  Square,
+  File,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -36,33 +47,47 @@ const fetchUser = async () => {
 };
 
 // SearchResultItem komponent
-const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({ 
-  result, 
-  onSelect 
+const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
+  result,
+  onSelect,
 }) => {
   const router = useRouter();
-  
+
   const getIcon = (type: string) => {
     switch (type) {
-      case 'page': return <FileText className="h-4 w-4" />;
-      case 'todo': return <CheckSquare className="h-4 w-4" />;
-      case 'event': return <Calendar className="h-4 w-4" />;
-      case 'diagram': return <Network className="h-4 w-4" />;
-      case 'folder': return <Folder className="h-4 w-4" />;
-      case 'block': return <Square className="h-4 w-4" />;
-      default: return <File className="h-4 w-4" />;
+      case "page":
+        return <FileText className="h-4 w-4" />;
+      case "todo":
+        return <CheckSquare className="h-4 w-4" />;
+      case "event":
+        return <Calendar className="h-4 w-4" />;
+      case "diagram":
+        return <Network className="h-4 w-4" />;
+      case "folder":
+        return <Folder className="h-4 w-4" />;
+      case "block":
+        return <Square className="h-4 w-4" />;
+      default:
+        return <File className="h-4 w-4" />;
     }
   };
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'page': return 'Stránka';
-      case 'todo': return 'Úloha';
-      case 'event': return 'Udalosť';
-      case 'diagram': return 'Diagram';
-      case 'folder': return 'Priečinok';
-      case 'block': return 'Blok';
-      default: return type;
+      case "page":
+        return "Stránka";
+      case "todo":
+        return "Úloha";
+      case "event":
+        return "Udalosť";
+      case "diagram":
+        return "Diagram";
+      case "folder":
+        return "Priečinok";
+      case "block":
+        return "Blok";
+      default:
+        return type;
     }
   };
 
@@ -98,7 +123,8 @@ const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
         )}
         {result.metadata?.created_at && (
           <p className="text-xs text-muted-foreground mt-1">
-            Vytvorené: {new Date(result.metadata.created_at).toLocaleDateString('sk-SK')}
+            Vytvorené:{" "}
+            {new Date(result.metadata.created_at).toLocaleDateString("sk-SK")}
           </p>
         )}
       </div>
@@ -110,9 +136,9 @@ const DashboardTopBar: FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
+
   const { search, results, loading, error } = useSearch();
-  
+
   const {
     data: user,
     error: userError,
@@ -126,7 +152,11 @@ const DashboardTopBar: FC = () => {
   useEffect(() => {
     if (searchQuery.trim().length >= 2 && isSearchOpen) {
       const timeoutId = setTimeout(() => {
-        search(searchQuery, ["pages", "todos", "events", "diagrams", "folders"], 10);
+        search(
+          searchQuery,
+          ["pages", "todos", "events", "diagrams", "folders"],
+          10,
+        );
       }, 300);
 
       return () => clearTimeout(timeoutId);
@@ -154,7 +184,12 @@ const DashboardTopBar: FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim().length >= 2) {
-      search(searchQuery, ["pages", "todos", "events", "diagrams", "folders"], 10, true);
+      search(
+        searchQuery,
+        ["pages", "todos", "events", "diagrams", "folders"],
+        10,
+        true,
+      );
     }
   };
 
@@ -201,18 +236,22 @@ const DashboardTopBar: FC = () => {
                       autoFocus
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    size="sm" 
-                    className="px-3" 
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="px-3"
                     disabled={loading || searchQuery.trim().length < 2}
                   >
-                    {loading ? <Spinner className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+                    {loading ? (
+                      <Spinner className="h-4 w-4" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
                     <span className="sr-only">Hľadať</span>
                   </Button>
                 </div>
               </form>
-              
+
               {/* Výsledky vyhľadávania */}
               <div className="mt-4 max-h-96 overflow-y-auto">
                 {loading && (
@@ -221,48 +260,56 @@ const DashboardTopBar: FC = () => {
                     <span className="ml-2 text-sm">Vyhľadávam...</span>
                   </div>
                 )}
-                
+
                 {error && (
                   <div className="text-center py-4 text-destructive">
                     <p>Chyba pri vyhľadávaní</p>
                     <p className="text-sm text-muted-foreground">{error}</p>
                   </div>
                 )}
-                
+
                 {!loading && results.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground mb-2">
                       Nájdených {results.length} výsledkov
                     </p>
                     {results.map((result) => (
-                      <SearchResultItem 
-                        key={`${result.type}-${result.id}`} 
-                        result={result} 
+                      <SearchResultItem
+                        key={`${result.type}-${result.id}`}
+                        result={result}
                         onSelect={handleResultSelect}
                       />
                     ))}
                   </div>
                 )}
-                
-                {!loading && searchQuery.length > 0 && results.length === 0 && searchQuery.length >= 2 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenašli sa žiadne výsledky pre "{searchQuery}"</p>
-                    <p className="text-sm mt-1">Skúste iný výraz alebo hľadajte v iných kategóriách</p>
-                  </div>
-                )}
-                
+
+                {!loading &&
+                  searchQuery.length > 0 &&
+                  results.length === 0 &&
+                  searchQuery.length >= 2 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenašli sa žiadne výsledky pre "{searchQuery}"</p>
+                      <p className="text-sm mt-1">
+                        Skúste iný výraz alebo hľadajte v iných kategóriách
+                      </p>
+                    </div>
+                  )}
+
                 {searchQuery.length === 1 && (
                   <div className="text-center py-4 text-muted-foreground">
                     Zadajte aspoň 2 znaky pre vyhľadávanie
                   </div>
                 )}
-                
+
                 {!loading && searchQuery.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Zadajte hľadaný výraz</p>
-                    <p className="text-sm mt-1">Vyhľadávať môžete v stránkach, úlohách, udalostiach, diagramoch a priečinkoch</p>
+                    <p className="text-sm mt-1">
+                      Vyhľadávať môžete v stránkach, úlohách, udalostiach,
+                      diagramoch a priečinkoch
+                    </p>
                   </div>
                 )}
               </div>

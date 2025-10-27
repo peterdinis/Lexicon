@@ -41,7 +41,10 @@ export default function DashboardClient({
   const foldersStart = (foldersPage - 1) * itemsPerPage;
 
   const pagesToShow = pages.slice(pagesStart, pagesStart + itemsPerPage);
-  const foldersToShow = folders.slice(foldersStart, foldersStart + itemsPerPage);
+  const foldersToShow = folders.slice(
+    foldersStart,
+    foldersStart + itemsPerPage,
+  );
 
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
@@ -88,12 +91,16 @@ export default function DashboardClient({
             <Pagination className="mt-4">
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
+                  <PaginationPrevious
                     onClick={() => setFoldersPage(Math.max(1, foldersPage - 1))}
-                    className={foldersPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={
+                      foldersPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
-                
+
                 {Array.from({ length: totalFoldersPages }, (_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
@@ -105,11 +112,19 @@ export default function DashboardClient({
                     </PaginationLink>
                   </PaginationItem>
                 ))}
-                
+
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setFoldersPage(Math.min(totalFoldersPages, foldersPage + 1))}
-                    className={foldersPage === totalFoldersPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  <PaginationNext
+                    onClick={() =>
+                      setFoldersPage(
+                        Math.min(totalFoldersPages, foldersPage + 1),
+                      )
+                    }
+                    className={
+                      foldersPage === totalFoldersPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -146,12 +161,16 @@ export default function DashboardClient({
             <Pagination className="mt-4">
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
+                  <PaginationPrevious
                     onClick={() => setPagesPage(Math.max(1, pagesPage - 1))}
-                    className={pagesPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={
+                      pagesPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
-                
+
                 {Array.from({ length: totalPagesPages }, (_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
@@ -163,11 +182,17 @@ export default function DashboardClient({
                     </PaginationLink>
                   </PaginationItem>
                 ))}
-                
+
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setPagesPage(Math.min(totalPagesPages, pagesPage + 1))}
-                    className={pagesPage === totalPagesPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  <PaginationNext
+                    onClick={() =>
+                      setPagesPage(Math.min(totalPagesPages, pagesPage + 1))
+                    }
+                    className={
+                      pagesPage === totalPagesPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
