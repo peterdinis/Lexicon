@@ -14,12 +14,10 @@ export const createFolderAction = actionClient
   .action(async ({ parsedInput: { parent_id = null, title } }) => {
     try {
       const result = await createFolderHandler(parent_id, title);
-      
-      // Revalidácia ciest kde sa zobrazujú foldery
       revalidatePath("/dashboard");
       revalidatePath("/page/[id]", "page");
       revalidatePath("/");
-      
+
       return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));

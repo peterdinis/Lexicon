@@ -81,32 +81,39 @@ const loadLanguage = async (lang: string) => {
 const lowlight = createLowlight(common);
 
 // Pre-register common languages in background
-const PRELOAD_LANGUAGES = ['javascript', 'typescript', 'python', 'php', 'css', 'json'];
+const PRELOAD_LANGUAGES = [
+  "javascript",
+  "typescript",
+  "python",
+  "php",
+  "css",
+  "json",
+];
 
 // Language options
 const LANGUAGE_OPTIONS = [
-  { value: 'text', label: 'Plain Text' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'php', label: 'PHP' },
-  { value: 'java', label: 'Java' },
-  { value: 'cpp', label: 'C++' },
-  { value: 'csharp', label: 'C#' },
-  { value: 'ruby', label: 'Ruby' },
-  { value: 'go', label: 'Go' },
-  { value: 'rust', label: 'Rust' },
-  { value: 'swift', label: 'Swift' },
-  { value: 'kotlin', label: 'Kotlin' },
-  { value: 'sql', label: 'SQL' },
-  { value: 'json', label: 'JSON' },
-  { value: 'xml', label: 'XML' },
-  { value: 'html', label: 'HTML' },
-  { value: 'css', label: 'CSS' },
-  { value: 'scss', label: 'SCSS' },
-  { value: 'bash', label: 'Bash' },
-  { value: 'yaml', label: 'YAML' },
-  { value: 'markdown', label: 'Markdown' },
+  { value: "text", label: "Plain Text" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "php", label: "PHP" },
+  { value: "java", label: "Java" },
+  { value: "cpp", label: "C++" },
+  { value: "csharp", label: "C#" },
+  { value: "ruby", label: "Ruby" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "swift", label: "Swift" },
+  { value: "kotlin", label: "Kotlin" },
+  { value: "sql", label: "SQL" },
+  { value: "json", label: "JSON" },
+  { value: "xml", label: "XML" },
+  { value: "html", label: "HTML" },
+  { value: "css", label: "CSS" },
+  { value: "scss", label: "SCSS" },
+  { value: "bash", label: "Bash" },
+  { value: "yaml", label: "YAML" },
+  { value: "markdown", label: "Markdown" },
 ];
 
 interface TiptapEditorProps {
@@ -126,7 +133,9 @@ export function TiptapEditor({
   const [imageUrl, setImageUrl] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("text");
   const [isInCodeBlock, setIsInCodeBlock] = useState(false);
-  const [loadedLanguages, setLoadedLanguages] = useState<Set<string>>(new Set(PRELOAD_LANGUAGES));
+  const [loadedLanguages, setLoadedLanguages] = useState<Set<string>>(
+    new Set(PRELOAD_LANGUAGES),
+  );
 
   const [isPending, startTransition] = useTransition();
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -139,12 +148,12 @@ export function TiptapEditor({
           const langModule = await loadLanguage(lang);
           if (langModule) {
             lowlight.register(lang, langModule);
-            setLoadedLanguages(prev => new Set([...prev, lang]));
+            setLoadedLanguages((prev) => new Set([...prev, lang]));
           }
         }
       }
     };
-    
+
     const timer = setTimeout(loadLanguagesInBackground, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -160,22 +169,22 @@ export function TiptapEditor({
         codeBlock: false,
         bulletList: {
           HTMLAttributes: {
-            class: 'list-disc list-outside ml-6',
+            class: "list-disc list-outside ml-6",
           },
         },
         orderedList: {
           HTMLAttributes: {
-            class: 'list-decimal list-outside ml-6',
+            class: "list-decimal list-outside ml-6",
           },
         },
         listItem: {
           HTMLAttributes: {
-            class: 'leading-7',
+            class: "leading-7",
           },
         },
         blockquote: {
           HTMLAttributes: {
-            class: 'border-l-4 border-gray-300 pl-4 my-4 italic text-gray-600',
+            class: "border-l-4 border-gray-300 pl-4 my-4 italic text-gray-600",
           },
         },
       }),
@@ -184,68 +193,68 @@ export function TiptapEditor({
       }),
       TaskList.configure({
         HTMLAttributes: {
-          class: 'list-none ml-6',
+          class: "list-none ml-6",
         },
       }),
-      TaskItem.configure({ 
+      TaskItem.configure({
         nested: true,
         HTMLAttributes: {
-          class: 'flex items-start my-1',
+          class: "flex items-start my-1",
         },
       }),
-      CodeBlockLowlight.configure({ 
+      CodeBlockLowlight.configure({
         lowlight,
         HTMLAttributes: {
-          class: 'bg-gray-100 rounded-lg p-4 my-4 font-mono text-sm',
+          class: "bg-gray-100 rounded-lg p-4 my-4 font-mono text-sm",
         },
       }),
-      Table.configure({ 
+      Table.configure({
         resizable: true,
         HTMLAttributes: {
-          class: 'border-collapse border border-gray-300 my-4',
+          class: "border-collapse border border-gray-300 my-4",
         },
       }),
       TableRow.configure({
         HTMLAttributes: {
-          class: 'border border-gray-300',
+          class: "border border-gray-300",
         },
       }),
       TableHeader.configure({
         HTMLAttributes: {
-          class: 'border border-gray-300 bg-gray-100 px-4 py-2 font-bold',
+          class: "border border-gray-300 bg-gray-100 px-4 py-2 font-bold",
         },
       }),
       TableCell.configure({
         HTMLAttributes: {
-          class: 'border border-gray-300 px-4 py-2',
+          class: "border border-gray-300 px-4 py-2",
         },
       }),
-      Image.configure({ 
-        inline: true, 
+      Image.configure({
+        inline: true,
         allowBase64: true,
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full h-auto my-4',
+          class: "rounded-lg max-w-full h-auto my-4",
         },
       }),
-      Link.configure({ 
+      Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-600 underline hover:text-blue-800',
+          class: "text-blue-600 underline hover:text-blue-800",
         },
       }),
-      Highlight.configure({ 
+      Highlight.configure({
         multicolor: true,
         HTMLAttributes: {
-          class: 'bg-yellow-200 px-1 rounded',
+          class: "bg-yellow-200 px-1 rounded",
         },
       }),
-      TextAlign.configure({ 
+      TextAlign.configure({
         types: ["heading", "paragraph", "image"],
-        alignments: ['left', 'center', 'right', 'justify'],
+        alignments: ["left", "center", "right", "justify"],
       }),
       Underline.configure({
         HTMLAttributes: {
-          class: 'underline',
+          class: "underline",
         },
       }),
       Subscript,
@@ -254,26 +263,26 @@ export function TiptapEditor({
     content: initialContent,
     onUpdate: ({ editor }) => {
       handleContentChange();
-      
-      const isCodeBlockActive = editor.isActive('codeBlock');
+
+      const isCodeBlockActive = editor.isActive("codeBlock");
       setIsInCodeBlock(isCodeBlockActive);
-      
+
       if (isCodeBlockActive) {
         const { node } = editor.state.selection.$from;
         if (node?.attrs) {
-          const language = node.attrs.language || 'text';
+          const language = node.attrs.language || "text";
           setSelectedLanguage(language);
         }
       }
     },
     onSelectionUpdate: ({ editor }) => {
-      const isCodeBlockActive = editor.isActive('codeBlock');
+      const isCodeBlockActive = editor.isActive("codeBlock");
       setIsInCodeBlock(isCodeBlockActive);
-      
+
       if (isCodeBlockActive) {
         const { node } = editor.state.selection.$from;
         if (node?.attrs) {
-          const language = node.attrs.language || 'text';
+          const language = node.attrs.language || "text";
           setSelectedLanguage(language);
         }
       }
@@ -283,16 +292,17 @@ export function TiptapEditor({
     enablePasteRules: true,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[300px] p-4',
+        class:
+          "prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[300px] p-4",
       },
       handleKeyDown: (view, event) => {
         // Custom handling pre lists
-        if (event.key === 'Enter' && !event.shiftKey) {
+        if (event.key === "Enter" && !event.shiftKey) {
           const { state, dispatch } = view;
           const { selection } = state;
           const { $from, empty } = selection;
 
-          if (!empty || $from.parent.type.name !== 'listItem') {
+          if (!empty || $from.parent.type.name !== "listItem") {
             return false;
           }
 
@@ -304,18 +314,18 @@ export function TiptapEditor({
           }
         }
 
-        if (event.key === 'Backspace') {
+        if (event.key === "Backspace") {
           const { state, dispatch } = view;
           const { selection } = state;
           const { $from, empty } = selection;
 
-          if (!empty || $from.parent.type.name !== 'listItem') {
+          if (!empty || $from.parent.type.name !== "listItem") {
             return false;
           }
 
           if ($from.parent.textContent.length === 0) {
             if (editor) {
-              editor.chain().focus().liftListItem('listItem').run();
+              editor.chain().focus().liftListItem("listItem").run();
               return true;
             }
           }
@@ -351,34 +361,46 @@ export function TiptapEditor({
     }
   }, [editor, pageId, onUpdate]);
 
-  const handleLanguageChange = useCallback(async (language: string) => {
-    setSelectedLanguage(language);
-    
-    if (!loadedLanguages.has(language) && language !== 'text') {
-      const langModule = await loadLanguage(language);
-      if (langModule) {
-        lowlight.register(language, langModule);
-        setLoadedLanguages(prev => new Set([...prev, language]));
-      }
-    }
-    
-    if (editor?.isActive('codeBlock')) {
-      editor.chain().focus().updateAttributes('codeBlock', { language }).run();
-    } else {
-      editor?.chain().focus().setCodeBlock({ language }).run();
-    }
-  }, [editor, loadedLanguages]);
+  const handleLanguageChange = useCallback(
+    async (language: string) => {
+      setSelectedLanguage(language);
 
-  const addCodeBlockWithLanguage = useCallback((language: string) => {
-    if (editor) {
-      editor.chain().focus().setCodeBlock({ language }).run();
-    }
-  }, [editor]);
+      if (!loadedLanguages.has(language) && language !== "text") {
+        const langModule = await loadLanguage(language);
+        if (langModule) {
+          lowlight.register(language, langModule);
+          setLoadedLanguages((prev) => new Set([...prev, language]));
+        }
+      }
+
+      if (editor?.isActive("codeBlock")) {
+        editor
+          .chain()
+          .focus()
+          .updateAttributes("codeBlock", { language })
+          .run();
+      } else {
+        editor?.chain().focus().setCodeBlock({ language }).run();
+      }
+    },
+    [editor, loadedLanguages],
+  );
+
+  const addCodeBlockWithLanguage = useCallback(
+    (language: string) => {
+      if (editor) {
+        editor.chain().focus().setCodeBlock({ language }).run();
+      }
+    },
+    [editor],
+  );
 
   const addLink = useCallback(() => {
     if (linkUrl && editor) {
       // Check if the link has protocol, if not add https://
-      const formattedUrl = linkUrl.startsWith('http') ? linkUrl : `https://${linkUrl}`;
+      const formattedUrl = linkUrl.startsWith("http")
+        ? linkUrl
+        : `https://${linkUrl}`;
       editor.chain().focus().setLink({ href: formattedUrl }).run();
       setLinkUrl("");
       setLinkDialogOpen(false);
@@ -402,7 +424,11 @@ export function TiptapEditor({
   // Table functions
   const addTable = useCallback(() => {
     if (editor) {
-      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+      editor
+        .chain()
+        .focus()
+        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+        .run();
     }
   }, [editor]);
 
@@ -437,14 +463,17 @@ export function TiptapEditor({
   }, [editor]);
 
   // Zjednodušená funkcia pre toolbar tlačidlá
-  const handleToolbarAction = useCallback((action: () => void) => {
-    return () => {
-      action();
-      setTimeout(() => {
-        editor?.commands.focus();
-      }, 10);
-    };
-  }, [editor]);
+  const handleToolbarAction = useCallback(
+    (action: () => void) => {
+      return () => {
+        action();
+        setTimeout(() => {
+          editor?.commands.focus();
+        }, 10);
+      };
+    },
+    [editor],
+  );
 
   if (!editor) {
     return (
@@ -460,7 +489,7 @@ export function TiptapEditor({
   return (
     <div className="flex flex-col min-h-[500px] border rounded-lg">
       {/* Toolbar */}
-      <div 
+      <div
         className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-backdrop-filter:bg-background/60"
         onMouseDown={(e) => {
           e.preventDefault();
@@ -470,7 +499,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleBold().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleBold().run(),
+          )}
           className={editor.isActive("bold") ? "bg-accent" : ""}
           type="button"
         >
@@ -479,7 +510,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleItalic().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleItalic().run(),
+          )}
           className={editor.isActive("italic") ? "bg-accent" : ""}
           type="button"
         >
@@ -488,7 +521,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleUnderline().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleUnderline().run(),
+          )}
           className={editor.isActive("underline") ? "bg-accent" : ""}
           type="button"
         >
@@ -497,7 +532,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleStrike().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleStrike().run(),
+          )}
           className={editor.isActive("strike") ? "bg-accent" : ""}
           type="button"
         >
@@ -506,7 +543,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleCode().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleCode().run(),
+          )}
           className={editor.isActive("code") ? "bg-accent" : ""}
           type="button"
         >
@@ -515,7 +554,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleHighlight().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleHighlight().run(),
+          )}
           className={editor.isActive("highlight") ? "bg-accent" : ""}
           type="button"
         >
@@ -525,7 +566,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleSubscript().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleSubscript().run(),
+          )}
           className={editor.isActive("subscript") ? "bg-accent" : ""}
           type="button"
         >
@@ -534,7 +577,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleSuperscript().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleSuperscript().run(),
+          )}
           className={editor.isActive("superscript") ? "bg-accent" : ""}
           type="button"
         >
@@ -545,8 +590,12 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}
-          className={editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run(),
+          )}
+          className={
+            editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""
+          }
           type="button"
         >
           <Heading1 className="h-4 w-4" />
@@ -554,8 +603,12 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 2 }).run())}
-          className={editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run(),
+          )}
+          className={
+            editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""
+          }
           type="button"
         >
           <Heading2 className="h-4 w-4" />
@@ -563,8 +616,12 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 3 }).run())}
-          className={editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run(),
+          )}
+          className={
+            editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""
+          }
           type="button"
         >
           <Heading3 className="h-4 w-4" />
@@ -574,7 +631,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleBulletList().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleBulletList().run(),
+          )}
           className={editor.isActive("bulletList") ? "bg-accent" : ""}
           type="button"
         >
@@ -583,7 +642,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleOrderedList().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleOrderedList().run(),
+          )}
           className={editor.isActive("orderedList") ? "bg-accent" : ""}
           type="button"
         >
@@ -592,7 +653,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleTaskList().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleTaskList().run(),
+          )}
           className={editor.isActive("taskList") ? "bg-accent" : ""}
           type="button"
         >
@@ -603,7 +666,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("left").run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().setTextAlign("left").run(),
+          )}
           className={editor.isActive({ textAlign: "left" }) ? "bg-accent" : ""}
           type="button"
         >
@@ -612,8 +677,12 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("center").run())}
-          className={editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().setTextAlign("center").run(),
+          )}
+          className={
+            editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""
+          }
           type="button"
         >
           <AlignCenter className="h-4 w-4" />
@@ -621,7 +690,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("right").run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().setTextAlign("right").run(),
+          )}
           className={editor.isActive({ textAlign: "right" }) ? "bg-accent" : ""}
           type="button"
         >
@@ -630,8 +701,12 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("justify").run())}
-          className={editor.isActive({ textAlign: "justify" }) ? "bg-accent" : ""}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().setTextAlign("justify").run(),
+          )}
+          className={
+            editor.isActive({ textAlign: "justify" }) ? "bg-accent" : ""
+          }
           type="button"
         >
           <AlignJustify className="h-4 w-4" />
@@ -641,26 +716,32 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().toggleBlockquote().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().toggleBlockquote().run(),
+          )}
           className={editor.isActive("blockquote") ? "bg-accent" : ""}
           type="button"
         >
           <Quote className="h-4 w-4" />
         </Button>
-        
+
         {/* Code Block with Language Selector */}
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleToolbarAction(() => addCodeBlockWithLanguage(selectedLanguage))}
+            onClick={handleToolbarAction(() =>
+              addCodeBlockWithLanguage(selectedLanguage),
+            )}
             className={editor.isActive("codeBlock") ? "bg-accent" : ""}
             type="button"
           >
             <Code className="h-4 w-4" />
           </Button>
           <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-            <SelectTrigger className={`w-[130px] h-8 text-xs ${isInCodeBlock ? 'bg-blue-50 border-blue-200' : ''}`}>
+            <SelectTrigger
+              className={`w-[130px] h-8 text-xs ${isInCodeBlock ? "bg-blue-50 border-blue-200" : ""}`}
+            >
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
@@ -679,7 +760,7 @@ export function TiptapEditor({
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
-        
+
         {/* Table Controls */}
         <Button
           variant="ghost"
@@ -689,8 +770,8 @@ export function TiptapEditor({
         >
           <TableIcon className="h-4 w-4" />
         </Button>
-        
-        {editor.isActive('table') && (
+
+        {editor.isActive("table") && (
           <>
             <Button
               variant="ghost"
@@ -736,7 +817,7 @@ export function TiptapEditor({
         )}
 
         <Separator orientation="vertical" className="mx-1 h-6" />
-        
+
         {/* Link, Image */}
         <Button
           variant="ghost"
@@ -769,7 +850,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().undo().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().undo().run(),
+          )}
           disabled={!editor.can().undo()}
           type="button"
         >
@@ -778,13 +861,15 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToolbarAction(() => editor.chain().focus().redo().run())}
+          onClick={handleToolbarAction(() =>
+            editor.chain().focus().redo().run(),
+          )}
           disabled={!editor.can().redo()}
           type="button"
         >
           <Redo className="h-4 w-4" />
         </Button>
-        
+
         {/* Manual Save Button */}
         <Separator orientation="vertical" className="mx-1 h-6" />
         <Button
@@ -792,7 +877,9 @@ export function TiptapEditor({
           size="sm"
           onClick={handleManualSave}
           disabled={isPending || !hasUnsavedChanges}
-          className={hasUnsavedChanges ? "bg-primary text-primary-foreground" : ""}
+          className={
+            hasUnsavedChanges ? "bg-primary text-primary-foreground" : ""
+          }
           type="button"
         >
           <Save className="h-4 w-4 mr-1" />
@@ -802,10 +889,7 @@ export function TiptapEditor({
 
       {/* Editor */}
       <div className="flex-1 overflow-auto">
-        <EditorContent 
-          editor={editor} 
-          className="h-full min-h-[400px]"
-        />
+        <EditorContent editor={editor} className="h-full min-h-[400px]" />
       </div>
 
       {/* Save indicator */}
@@ -821,9 +905,7 @@ export function TiptapEditor({
             ✓ Last saved at {lastSaved.toLocaleTimeString()}
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground px-4">
-            Ready to edit
-          </p>
+          <p className="text-sm text-muted-foreground px-4">Ready to edit</p>
         )}
       </div>
 

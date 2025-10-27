@@ -3,7 +3,6 @@ import { pages } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
 import { eq, asc } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 // ----------------------
 // Get Single Page
@@ -143,7 +142,7 @@ export async function deletePageHandler(pageId: string) {
 // ----------------------
 export async function movePageHandler(
   id: string,
-  parent_id: string | null = null
+  parent_id: string | null = null,
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -156,9 +155,9 @@ export async function movePageHandler(
 
   const [updatedPage] = await db
     .update(pages)
-    .set({ 
+    .set({
       parent_id: parent_id,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .where(eq(pages.id, id))
     .returning();

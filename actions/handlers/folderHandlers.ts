@@ -1,11 +1,8 @@
 import { db } from "@/drizzle/db";
 import { folders } from "@/drizzle/schema";
+import { generateId } from "@/lib/generate-id";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { eq, asc } from "drizzle-orm";
-
-export function generateId() {
-  return crypto.randomUUID().replace(/-/g, "");
-}
 
 export async function createFolderHandler(
   parentId: string | null,

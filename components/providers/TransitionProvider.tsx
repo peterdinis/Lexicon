@@ -17,12 +17,12 @@ const TransitionProvider: FC<TransitionProviderProps> = ({ children }) => {
     const handleComplete = () => setIsLoading(false);
 
     // Pridáme event listenery pre router events
-    window.addEventListener('beforeunload', handleStart);
-    
+    window.addEventListener("beforeunload", handleStart);
+
     const timer = setTimeout(handleComplete, 500); // Fallback timeout
 
     return () => {
-      window.removeEventListener('beforeunload', handleStart);
+      window.removeEventListener("beforeunload", handleStart);
       clearTimeout(timer);
     };
   }, [pathname]);

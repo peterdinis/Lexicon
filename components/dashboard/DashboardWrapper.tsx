@@ -15,11 +15,10 @@ export default async function DashboardPage() {
   try {
     const pagesResult = await getAllPagesHandler();
     const foldersResult = await getFoldersAction();
-    
+
     // Extrahujeme data z výsledkov
-    pages = pagesResult|| [];
-    folders = foldersResult.data || []
-    
+    pages = pagesResult || [];
+    folders = foldersResult.data || [];
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
@@ -79,20 +78,28 @@ export default async function DashboardPage() {
                     Recent Pages
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {pages.slice(0, 6).map((page: { id: Key | null | undefined; title: any; description: any; }) => (
-                      <Link
-                        key={page.id}
-                        href={`/page/${page.id}`}
-                        className="p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors block"
-                      >
-                        <h3 className="font-medium text-neutral-900 dark:text-white mb-2">
-                          {page.title || "Untitled"}
-                        </h3>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
-                          {page.description || "No description available"}
-                        </p>
-                      </Link>
-                    ))}
+                    {pages
+                      .slice(0, 6)
+                      .map(
+                        (page: {
+                          id: Key | null | undefined;
+                          title: any;
+                          description: any;
+                        }) => (
+                          <Link
+                            key={page.id}
+                            href={`/page/${page.id}`}
+                            className="p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors block"
+                          >
+                            <h3 className="font-medium text-neutral-900 dark:text-white mb-2">
+                              {page.title || "Untitled"}
+                            </h3>
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
+                              {page.description || "No description available"}
+                            </p>
+                          </Link>
+                        ),
+                      )}
                   </div>
                 </div>
               )}
@@ -101,7 +108,8 @@ export default async function DashboardPage() {
               {pages.length === 0 && folders.length === 0 && (
                 <div className="mt-16 text-center">
                   <p className="text-neutral-600 dark:text-neutral-400">
-                    No pages or folders yet. Create your first one to get started!
+                    No pages or folders yet. Create your first one to get
+                    started!
                   </p>
                 </div>
               )}

@@ -2,7 +2,11 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { getAllNonTrashedItemsHandler, movePageToTrashHandler, restoreFromTrashHandler } from "./handlers/trashHandlers";
+import {
+  getAllNonTrashedItemsHandler,
+  movePageToTrashHandler,
+  restoreFromTrashHandler,
+} from "./handlers/trashHandlers";
 import z from "zod";
 
 export const getAllNonTrashedItemsAction = actionClient.action(async () => {
@@ -19,7 +23,7 @@ export const moveToTrashAction = actionClient
     z.object({
       id: z.string(),
       table: z.string(),
-    })
+    }),
   )
   .action(async ({ parsedInput }) => {
     const { id, table } = parsedInput;
@@ -42,8 +46,11 @@ export async function restoreFromTrashAction(formData: FormData) {
   try {
     await restoreFromTrashHandler(table, id);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Restore error:", error);
-    return { success: false, error: error.message };
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+
+    return { success: false, error: errorMessage };
   }
 }
