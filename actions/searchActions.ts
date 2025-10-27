@@ -50,45 +50,51 @@ export type SearchResult = {
 const fuseOptions = {
   pages: {
     keys: ["title", "description"],
-    threshold: 0.3,
+    threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
   blocks: {
     keys: ["searchableContent"],
-    threshold: 0.4,
+    threshold: 0.5,
     includeScore: true,
-    minMatchCharLength: 3,
+    minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
   todos: {
     keys: ["title", "description"],
-    threshold: 0.3,
+    threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
   events: {
     keys: ["title", "description"],
-    threshold: 0.3,
+    threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
   diagrams: {
     keys: ["title", "description"],
-    threshold: 0.3,
+    threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
   folders: {
     keys: ["title"],
-    threshold: 0.3,
+    threshold: 0.4,
     includeScore: true,
     minMatchCharLength: 2,
     useExtendedSearch: true,
+    ignoreLocation: true,
   },
 };
 
@@ -101,82 +107,106 @@ async function loadSearchData(userId: string) {
     return cachedSearchData;
   }
 
-  // Paralelné načítanie všetkých dát
-  const [
-    pagesData,
-    blocksData,
-    todosData,
-    eventsData,
-    diagramsData,
-    foldersData,
-  ] = await Promise.all([
-    // Pages
-    db
-      .select()
-      .from(pages)
-      .where(and(eq(pages.user_id, userId), eq(pages.in_trash, 0)))
-      .limit(100),
+  try {
+    // Paralelné načítanie všetkých dát
+    const [
+      pagesData,
+      blocksData,
+      todosData,
+      eventsData,
+      diagramsData,
+      foldersData,
+    ] = await Promise.all([
+      // Pages - OPRAVA: používame 0 namiesto false pre in_trash
+      db
+        .select()
+        .from(pages)
+        .where(and(eq(pages.user_id, userId), eq(pages.in_trash, 0)))
+        .limit(1000),
 
-    // Blocks
-    db
-      .select()
-      .from(blocks)
-      .where(eq(blocks.in_trash, 0))
-      .limit(200)
-      .then((blocks) =>
-        blocks.map((block) => ({
-          ...block,
-          searchableContent: extractSearchableContent(block.content),
-        })),
-      ),
+      // Blocks - OPRAVA: používame 0 namiesto false pre in_trash
+      db
+        .select()
+        .from(blocks)
+        .where(and(eq(blocks.in_trash, 0)))
+        .limit(2000)
+        .then((blocks) =>
+          blocks.map((block) => ({
+            ...block,
+            searchableContent: extractSearchableContent(block.content),
+          }))
+        ),
 
-    // Todos
-    db
-      .select()
-      .from(todos)
-      .where(eq(todos.user_id, userId))
-      .limit(100),
+      // Todos - nemá in_trash, takže len user_id
+      db
+        .select()
+        .from(todos)
+        .where(eq(todos.user_id, userId))
+        .limit(1000),
 
-    // Events
-    db
-      .select()
-      .from(calendarEvents)
-      .where(
-        and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, 0)),
-      )
-      .limit(100),
+      // Events - OPRAVA: používame 0 namiesto false pre in_trash
+      db
+        .select()
+        .from(calendarEvents)
+        .where(
+          and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, 0))
+        )
+        .limit(1000),
 
-    // Diagrams
-    db
-      .select()
-      .from(diagrams)
-      .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, 0)))
-      .limit(100),
+      // Diagrams - OPRAVA: používame 0 namiesto false pre in_trash
+      db
+        .select()
+        .from(diagrams)
+        .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, 0)))
+        .limit(1000),
 
-    // Folders
-    db
-      .select()
-      .from(folders)
-      .where(and(eq(folders.user_id, userId), eq(folders.in_trash, 0)))
-      .limit(100),
-  ]);
+      // Folders - OPRAVA: používame 0 namiesto false pre in_trash
+      db
+        .select()
+        .from(folders)
+        .where(and(eq(folders.user_id, userId), eq(folders.in_trash, 0)))
+        .limit(1000),
+    ]);
 
-  cachedSearchData = {
-    pages: pagesData,
-    blocks: blocksData,
-    todos: todosData,
-    events: eventsData,
-    diagrams: diagramsData,
-    folders: foldersData,
-  };
+    console.log(`📊 Data loaded:`, {
+      pages: pagesData.length,
+      blocks: blocksData.length,
+      todos: todosData.length,
+      events: eventsData.length,
+      diagrams: diagramsData.length,
+      folders: foldersData.length,
+    });
 
-  lastCacheUpdate = now;
+    // Debug: vypíš prvých pár záznamov z každého typu
+    if (pagesData.length > 0) {
+      console.log('📄 Sample pages:', pagesData.slice(0, 2).map(p => ({ id: p.id, title: p.title, in_trash: p.in_trash })));
+    }
+    if (todosData.length > 0) {
+      console.log('✅ Sample todos:', todosData.slice(0, 2).map(t => ({ id: t.id, title: t.title })));
+    }
 
-  return cachedSearchData;
+    cachedSearchData = {
+      pages: pagesData,
+      blocks: blocksData,
+      todos: todosData,
+      events: eventsData,
+      diagrams: diagramsData,
+      folders: foldersData,
+    };
+
+    lastCacheUpdate = now;
+
+    return cachedSearchData;
+  } catch (error) {
+    console.error("❌ Error loading search data:", error);
+    throw error;
+  }
 }
 
 // Pomocná funkcia pre extrakciu textu z blokov
 function extractSearchableContent(content: string): string {
+  if (!content) return "";
+  
   try {
     const parsed = JSON.parse(content);
     if (typeof parsed === "string") return parsed;
@@ -185,7 +215,7 @@ function extractSearchableContent(content: string): string {
     if (Array.isArray(parsed)) {
       return parsed.map((item) => item.text || item.content || "").join(" ");
     }
-    return "";
+    return JSON.stringify(parsed);
   } catch {
     return content;
   }
@@ -201,7 +231,7 @@ function getUrlForType(type: string, item: any): string {
     diagram: `/diagrams/${item.id}`,
     folder: `/folder/${item.id}`,
   };
-  return urls[type as keyof typeof urls];
+  return urls[type as keyof typeof urls] || "/";
 }
 
 function getMetadataForType(type: string, item: any): Record<string, any> {
@@ -210,19 +240,19 @@ function getMetadataForType(type: string, item: any): Record<string, any> {
   };
 
   switch (type) {
-    case "pages":
+    case "page":
       metadata.is_folder = item.is_folder;
       break;
-    case "blocks":
+    case "block":
       metadata.type = item.type;
       metadata.position = item.position;
       break;
-    case "todos":
+    case "todo":
       metadata.completed = item.completed;
       metadata.priority = item.priority;
       metadata.due_date = item.due_date;
       break;
-    case "events":
+    case "event":
       metadata.start_time = item.start_time;
       metadata.end_time = item.end_time;
       metadata.all_day = item.all_day;
@@ -237,7 +267,7 @@ function createPageResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "page",
-    title: item.title || "Untitled",
+    title: item.title || "Untitled Page",
     description: item.description,
     icon: item.icon,
     url: getUrlForType("page", item),
@@ -250,8 +280,8 @@ function createBlockResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "block",
-    title: "Content block",
-    content: item.searchableContent,
+    title: "Content Block",
+    content: item.searchableContent?.substring(0, 200),
     url: getUrlForType("block", item),
     score,
     metadata: getMetadataForType("block", item),
@@ -262,7 +292,7 @@ function createTodoResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "todo",
-    title: item.title || "Untitled todo",
+    title: item.title || "Untitled Todo",
     description: item.description,
     url: getUrlForType("todo", item),
     score,
@@ -274,7 +304,7 @@ function createEventResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "event",
-    title: item.title || "Untitled event",
+    title: item.title || "Untitled Event",
     description: item.description,
     url: getUrlForType("event", item),
     score,
@@ -286,7 +316,7 @@ function createDiagramResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "diagram",
-    title: item.title || "Untitled diagram",
+    title: item.title || "Untitled Diagram",
     description: item.description,
     url: getUrlForType("diagram", item),
     score,
@@ -298,7 +328,7 @@ function createFolderResult(item: any, score?: number): SearchResult {
   return {
     id: item.id,
     type: "folder",
-    title: item.title || "Untitled folder",
+    title: item.title || "Untitled Folder",
     url: getUrlForType("folder", item),
     score,
     metadata: getMetadataForType("folder", item),
@@ -325,6 +355,11 @@ function searchInCollection(
   type: string,
   limit: number,
 ): SearchResult[] {
+  if (!data || data.length === 0) {
+    console.log(`📭 No data available for type: ${type}`);
+    return [];
+  }
+
   const cacheKey = `${type}-${query}-${limit}`;
 
   // Skontrolovať cache
@@ -332,33 +367,43 @@ function searchInCollection(
     return fuseInstances.get(cacheKey);
   }
 
-  const fuse = new Fuse(data, fuseOptions[type as keyof typeof fuseOptions]);
-  const results = fuse.search(query, { limit }).map((result): SearchResult => {
-    const creator = resultCreators[type];
-    if (!creator) {
-      // Fallback pre neznáme typy
-      return {
-        id: result.item.id,
-        type: "page" as const,
-        title: "Unknown item",
-        url: "/",
-        score: result.score,
-      };
-    }
+  try {
+    const fuse = new Fuse(data, fuseOptions[type as keyof typeof fuseOptions]);
+    const searchResults = fuse.search(query, { limit });
+    
+    const results = searchResults.map((result): SearchResult => {
+      const creator = resultCreators[type];
+      if (!creator) {
+        return {
+          id: result.item.id,
+          type: "page",
+          title: "Unknown Item",
+          url: "/",
+          score: result.score,
+        };
+      }
 
-    return creator(result.item, result.score);
-  });
+      return creator(result.item, result.score);
+    });
 
-  // Cache výsledky
-  fuseInstances.set(cacheKey, results);
-  return results;
+    console.log(`🔍 Search in ${type}: found ${results.length} results for "${query}" from ${data.length} items`);
+
+    // Cache výsledky
+    fuseInstances.set(cacheKey, results);
+    return results;
+  } catch (error) {
+    console.error(`❌ Error searching in ${type}:`, error);
+    return [];
+  }
 }
 
 // Optimalizovaná search action
 export const searchAction = actionClient
-  .inputSchema(searchSchema)
+  .schema(searchSchema)
   .action(async ({ parsedInput: { query, limit, types } }) => {
     try {
+      console.log('🔍 Search action called:', { query, limit, types });
+
       // Skontrolovať dĺžku query
       if (query.trim().length < 2) {
         return {
@@ -373,6 +418,7 @@ export const searchAction = actionClient
 
       const user = await fetchUser();
       const userId = user.id;
+      console.log('👤 User ID:', userId);
 
       // Načítať všetky dáta naraz
       const searchData = await loadSearchData(userId);
@@ -382,18 +428,21 @@ export const searchAction = actionClient
 
       // Paralelné vyhľadávanie vo všetkých typoch
       types.forEach((type) => {
-        if (searchData[type as keyof typeof searchData]?.length > 0) {
+        const data = searchData[type as keyof typeof searchData];
+        if (data && data.length > 0) {
           searchPromises.push(
             Promise.resolve().then(() => {
               const typeResults = searchInCollection(
-                searchData[type as keyof typeof searchData],
+                data,
                 query,
                 type,
-                Math.ceil(limit / types.length), // Rozdeliť limit medzi typy
+                Math.ceil(limit / types.length),
               );
               results.push(...typeResults);
             }),
           );
+        } else {
+          console.log(`⚠️ No data for type: ${type}`);
         }
       });
 
@@ -402,8 +451,20 @@ export const searchAction = actionClient
 
       // Zoradiť a limitovať výsledky
       const sortedResults = results
+        .filter(result => result && result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, limit);
+
+      console.log(`✅ Search completed: ${sortedResults.length} results for "${query}"`);
+
+      // Debug: vypíš prvých pár výsledkov
+      if (sortedResults.length > 0) {
+        console.log('📋 Sample results:', sortedResults.slice(0, 3).map(r => ({ 
+          type: r.type, 
+          title: r.title, 
+          score: r.score 
+        })));
+      }
 
       return {
         success: true,
@@ -413,16 +474,29 @@ export const searchAction = actionClient
           query,
         },
       };
-    } catch (err) {
-      throw new Error(getErrorMessage(err));
+    } catch (error) {
+      console.error('❌ Search action error:', error);
+      return {
+        success: false,
+        error: getErrorMessage(error),
+        data: {
+          results: [],
+          total: 0,
+          query,
+        },
+      };
     }
   });
 
-// Ešte rýchlejšia quick search action
+// Rýchle vyhľadávanie
 export const quickSearchAction = actionClient
-  .inputSchema(z.object({ query: z.string().min(1) }))
+  .schema(z.object({ 
+    query: z.string().min(1, "Query must be at least 1 character long") 
+  }))
   .action(async ({ parsedInput: { query } }) => {
     try {
+      console.log('⚡ Quick search:', query);
+
       if (query.length < 2) {
         return {
           success: true,
@@ -434,27 +508,23 @@ export const quickSearchAction = actionClient
         };
       }
 
-      // Použiť cache ak je dostupný
       const user = await fetchUser();
       const searchData = await loadSearchData(user.id);
 
       // Vyhľadávať len v najdôležitejších typoch
-      const quickTypes = ["pages", "todos"] as const;
+      const quickTypes = ["pages", "todos", "events"] as const;
       const results: SearchResult[] = [];
 
       quickTypes.forEach((type) => {
-        if (searchData[type]?.length > 0) {
-          const typeResults = searchInCollection(
-            searchData[type],
-            query,
-            type,
-            3, // Menej výsledkov pre quick search
-          );
+        const data = searchData[type];
+        if (data && data.length > 0) {
+          const typeResults = searchInCollection(data, query, type, 3);
           results.push(...typeResults);
         }
       });
 
       const sortedResults = results
+        .filter(result => result && result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, 5);
 
@@ -466,8 +536,17 @@ export const quickSearchAction = actionClient
           query,
         },
       };
-    } catch (err) {
-      throw new Error(getErrorMessage(err));
+    } catch (error) {
+      console.error('❌ Quick search error:', error);
+      return {
+        success: false,
+        error: getErrorMessage(error),
+        data: {
+          results: [],
+          total: 0,
+          query,
+        },
+      };
     }
   });
 
@@ -476,4 +555,5 @@ export async function invalidateSearchCache() {
   cachedSearchData = null;
   fuseInstances.clear();
   lastCacheUpdate = 0;
+  console.log('🔄 Search cache invalidated');
 }

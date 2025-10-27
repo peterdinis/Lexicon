@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import { Spinner } from "../ui/spinner";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback } from "react";
 import { SearchResult } from "@/actions/searchActions";
 import { useSearch } from "@/hooks/use-search";
 
@@ -92,6 +92,7 @@ const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
   };
 
   const handleClick = () => {
+    console.log('🔗 Navigating to:', result.url);
     router.push(result.url as any);
     onSelect();
   };
@@ -148,10 +149,15 @@ const DashboardTopBar: FC = () => {
     dedupingInterval: 60000,
   });
 
-  // Debounced search
+  // Debounced search s lepšou logikou
   useEffect(() => {
-    if (searchQuery.trim().length >= 2 && isSearchOpen) {
+    if (!isSearchOpen) return;
+
+    console.log('🔍 Search effect triggered:', { searchQuery, isSearchOpen });
+
+    if (searchQuery.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
+        console.log('🎯 Executing search with query:', searchQuery);
         search(
           searchQuery,
           ["pages", "todos", "events", "diagrams", "folders"],
@@ -159,30 +165,36 @@ const DashboardTopBar: FC = () => {
         );
       }, 300);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        console.log('🧹 Cleaning up previous search timeout');
+        clearTimeout(timeoutId);
+      };
+    } else if (searchQuery.trim().length === 0) {
+      // Clear results when search query is empty
+      console.log('🗑️ Clearing results due to empty query');
+      search("", ["pages"], 0, true);
     }
   }, [searchQuery, isSearchOpen, search]);
 
   // Reset search when dialog opens/closes
   useEffect(() => {
     if (!isSearchOpen) {
+      console.log('🚪 Dialog closed, resetting search');
       setSearchQuery("");
+    } else {
+      console.log('🚪 Dialog opened');
     }
   }, [isSearchOpen]);
 
-  if (userError) {
-    router.push("/auth/login");
-    return null;
-  }
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    mutate(null, false);
+    mutate(undefined, false);
     router.push("/auth/login");
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📤 Search form submitted:', searchQuery);
     if (searchQuery.trim().length >= 2) {
       search(
         searchQuery,
@@ -191,16 +203,25 @@ const DashboardTopBar: FC = () => {
         true,
       );
     }
-  };
+  }, [searchQuery, search]);
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('⌨️ Input changed:', value);
     setSearchQuery(value);
-  };
+  }, []);
 
-  const handleResultSelect = () => {
+  const handleResultSelect = useCallback(() => {
+    console.log('🎯 Result selected, closing dialog');
     setIsSearchOpen(false);
     setSearchQuery("");
-  };
+  }, []);
+
+  if (userError) {
+    console.error('❌ User error:', userError);
+    router.push("/auth/login");
+    return null;
+  }
 
   if (!user) {
     return (
@@ -209,6 +230,12 @@ const DashboardTopBar: FC = () => {
       </div>
     );
   }
+
+  console.log('🎨 Rendering DashboardTopBar:', {
+    searchQuery,
+    resultsCount: results.length,
+    loading,
+  });
 
   return (
     <header className="border-b bg-background">
@@ -232,7 +259,7 @@ const DashboardTopBar: FC = () => {
                     <Input
                       placeholder="Hľadať stránky, úlohy, udalosti, diagramy..."
                       value={searchQuery}
-                      onChange={(e) => handleInputChange(e.target.value)}
+                      onChange={handleInputChange}
                       autoFocus
                     />
                   </div>
@@ -328,7 +355,7 @@ const DashboardTopBar: FC = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Odhlásiť sa
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
