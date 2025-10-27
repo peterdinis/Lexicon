@@ -106,7 +106,6 @@ export interface Notification {
   updated_at: string;
 }
 
-
 export interface Folder {
   id: string;
   user_id: string;

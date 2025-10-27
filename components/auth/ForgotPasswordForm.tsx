@@ -49,7 +49,7 @@ const ForgotPasswordForm: FC = () => {
     resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: { email: "" },
   });
-  
+
   const handleEmailBlur = async () => {
     const email = getValues("email");
     if (!email || !/\S+@\S+\.\S+/.test(email)) return;

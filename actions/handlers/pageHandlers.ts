@@ -142,7 +142,7 @@ export async function deletePageHandler(pageId: string) {
 // ----------------------
 export async function movePageHandler(
   id: string,
-  parent_id: string | null = null
+  parent_id: string | null = null,
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -155,9 +155,9 @@ export async function movePageHandler(
 
   const [updatedPage] = await db
     .update(pages)
-    .set({ 
+    .set({
       parent_id: parent_id,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .where(eq(pages.id, id))
     .returning();

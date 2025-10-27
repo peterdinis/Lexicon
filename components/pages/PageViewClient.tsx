@@ -27,8 +27,8 @@ export default function PageViewClient({
       startTransition(async () => {
         try {
           await updatePageAction({ id, title: newTitle });
-          setSidebarPages(prev => 
-            prev.map(p => p.id === id ? { ...p, title: newTitle } : p)
+          setSidebarPages((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p)),
           );
           setCurrentPage((prev: any) => ({ ...prev, title: newTitle }));
         } catch (err) {
@@ -62,26 +62,32 @@ export default function PageViewClient({
     saveDescription(description);
   };
 
-  const handleIconChange = useCallback(async (icon: string) => {
-    try {
-      await updatePageAction({ id, icon });
-      setCurrentPage((prev: any) => ({ ...prev, icon }));
-      setSidebarPages(prev => 
-        prev.map(p => p.id === id ? { ...p, icon } : p)
-      );
-    } catch (err) {
-      console.error("❌ Failed to update icon:", err);
-    }
-  }, [id]);
+  const handleIconChange = useCallback(
+    async (icon: string) => {
+      try {
+        await updatePageAction({ id, icon });
+        setCurrentPage((prev: any) => ({ ...prev, icon }));
+        setSidebarPages((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, icon } : p)),
+        );
+      } catch (err) {
+        console.error("❌ Failed to update icon:", err);
+      }
+    },
+    [id],
+  );
 
-  const handleCoverChange = useCallback(async (coverImage: string | null) => {
-    try {
-      await updatePageAction({ id, coverImage });
-      setCurrentPage((prev: any) => ({ ...prev, cover_image: coverImage }));
-    } catch (err) {
-      console.error("❌ Failed to update cover image:", err);
-    }
-  }, [id]);
+  const handleCoverChange = useCallback(
+    async (coverImage: string | null) => {
+      try {
+        await updatePageAction({ id, coverImage });
+        setCurrentPage((prev: any) => ({ ...prev, cover_image: coverImage }));
+      } catch (err) {
+        console.error("❌ Failed to update cover image:", err);
+      }
+    },
+    [id],
+  );
 
   return (
     <div className="flex h-screen flex-col">

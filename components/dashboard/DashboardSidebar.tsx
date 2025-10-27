@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo, ReactNode, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  memo,
+  ReactNode,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -49,7 +56,11 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
-import { createPageAction, getAllPagesAction, movePageAction } from "@/actions/pagesActions";
+import {
+  createPageAction,
+  getAllPagesAction,
+  movePageAction,
+} from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 import { debounce } from "@/lib/debounce";
 import { moveToTrashAction } from "@/actions/trashActions";
@@ -64,7 +75,7 @@ export function DashboardSidebar({
   currentPageId,
 }: DashboardSidebarProps) {
   const [pages, setPages] = useState<Page[]>(
-    initialPages.filter(p => p.in_trash === 0)
+    initialPages.filter((p) => p.in_trash === 0),
   );
   const [loading, setLoading] = useState(false);
   const [loadingPages, setLoadingPages] = useState(false);
@@ -72,7 +83,9 @@ export function DashboardSidebar({
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, setOverId] = useState<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -84,13 +97,15 @@ export function DashboardSidebar({
   const loadAllData = useCallback(async () => {
     setLoadingPages(true);
     try {
-      const pagesResult = await getAllPagesAction() as any;
+      const pagesResult = (await getAllPagesAction()) as any;
       if (pagesResult?.data) {
         const allPages = pagesResult.data.filter((p: Page) => p.in_trash === 0);
         setPages(allPages);
       }
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Failed to load pages");
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to load pages",
+      );
     } finally {
       setLoadingPages(false);
     }
@@ -98,7 +113,7 @@ export function DashboardSidebar({
 
   useEffect(() => {
     if (initialPages && initialPages.length > 0) {
-      setPages(initialPages.filter(p => p.in_trash === 0));
+      setPages(initialPages.filter((p) => p.in_trash === 0));
     } else {
       loadAllData();
     }
@@ -142,7 +157,7 @@ export function DashboardSidebar({
       });
 
       if (!result?.data) throw new Error("No data returned from server");
-      
+
       // Ak je parentId definované, presuň stránku do foldera
       if (parentId) {
         await movePageAction({
@@ -150,14 +165,13 @@ export function DashboardSidebar({
           parent_id: parentId,
         });
       }
-      
+
       // Načítame aktualizované dáta
       await loadAllData();
-      
+
       // Navigujeme na novú stránku
       router.push(`/page/${result.data.id}`);
       setMobileOpen(false);
-      
     } catch (error) {
       console.error("Error creating page:", error);
       alert(
@@ -181,27 +195,26 @@ export function DashboardSidebar({
       alert("Please enter a folder name");
       return;
     }
-    
+
     setLoading(true);
     try {
       const result = await createFolderAction({
         title: newFolderName,
         parent_id: folderParentId,
       });
-      
+
       if (!result?.data) throw new Error("No data returned from server");
 
       setFolderModalOpen(false);
       setNewFolderName("");
-      
+
       // Načítame aktualizované dáta
       await loadAllData();
-      
+
       // Rozbalíme nový folder
       if (result.data.id) {
-        setExpandedFolders(prev => new Set([...prev, result.data!.id]));
+        setExpandedFolders((prev) => new Set([...prev, result.data!.id]));
       }
-      
     } catch (err) {
       console.error("Error creating folder:", err);
       alert(err instanceof Error ? err.message : "Failed to create folder");
@@ -212,7 +225,7 @@ export function DashboardSidebar({
 
   const movePageToTrash = async (id: string) => {
     if (!confirm("Are you sure you want to move this to trash?")) return;
-    
+
     const prevPages = [...pages];
     setPages((prev) => prev.filter((p) => p.id !== id));
 
@@ -352,7 +365,9 @@ export function DashboardSidebar({
         if (page.is_folder === 1) {
           return <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />;
         } else {
-          return <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />;
+          return (
+            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+          );
         }
       };
 
@@ -395,7 +410,8 @@ export function DashboardSidebar({
               >
                 {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {page.icon && `${page.icon} `}{page.title}
+                  {page.icon && `${page.icon} `}
+                  {page.title}
                 </span>
               </button>
             </>
@@ -411,7 +427,8 @@ export function DashboardSidebar({
               >
                 {getIcon()}
                 <span className="flex-1 truncate text-left">
-                  {page.icon && `${page.icon} `}{page.title}
+                  {page.icon && `${page.icon} `}
+                  {page.title}
                 </span>
               </button>
             </>
@@ -426,11 +443,17 @@ export function DashboardSidebar({
             <DropdownMenuContent align="end">
               {page.is_folder === 1 && (
                 <>
-                  <DropdownMenuItem onClick={() => createPage(page.id)} disabled={loading}>
+                  <DropdownMenuItem
+                    onClick={() => createPage(page.id)}
+                    disabled={loading}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     New Page
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => createFolder(page.id)} disabled={loading}>
+                  <DropdownMenuItem
+                    onClick={() => createFolder(page.id)}
+                    disabled={loading}
+                  >
                     <FolderPlus className="mr-2 h-4 w-4" />
                     New Folder
                   </DropdownMenuItem>
@@ -681,7 +704,8 @@ export function DashboardSidebar({
                 <FileText className="h-4 w-4 text-muted-foreground" />
               )}
               <span className="truncate">
-                {activePage.icon && `${activePage.icon} `}{activePage.title}
+                {activePage.icon && `${activePage.icon} `}
+                {activePage.title}
               </span>
             </div>
           ) : null}
@@ -718,7 +742,7 @@ export function DashboardSidebar({
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading) {
+                  if (e.key === "Enter" && !loading) {
                     handleFolderSubmit();
                   }
                 }}
@@ -735,8 +759,8 @@ export function DashboardSidebar({
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleFolderSubmit} 
+              <Button
+                onClick={handleFolderSubmit}
                 disabled={loading || !newFolderName.trim()}
               >
                 {loading ? (

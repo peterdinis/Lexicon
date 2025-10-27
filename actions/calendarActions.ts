@@ -12,7 +12,6 @@ import {
 } from "./handlers/calendarHandlers";
 import { z } from "zod";
 
-
 const CreateCalendarEventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),

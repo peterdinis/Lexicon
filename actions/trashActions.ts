@@ -2,7 +2,11 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { getAllNonTrashedItemsHandler, movePageToTrashHandler, restoreFromTrashHandler } from "./handlers/trashHandlers";
+import {
+  getAllNonTrashedItemsHandler,
+  movePageToTrashHandler,
+  restoreFromTrashHandler,
+} from "./handlers/trashHandlers";
 import z from "zod";
 
 export const getAllNonTrashedItemsAction = actionClient.action(async () => {
@@ -19,7 +23,7 @@ export const moveToTrashAction = actionClient
     z.object({
       id: z.string(),
       table: z.string(),
-    })
+    }),
   )
   .action(async ({ parsedInput }) => {
     const { id, table } = parsedInput;

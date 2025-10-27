@@ -2,7 +2,11 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { createPageSchema, movePageSchema, pageIdSchema } from "./schemas/pagesSchemas";
+import {
+  createPageSchema,
+  movePageSchema,
+  pageIdSchema,
+} from "./schemas/pagesSchemas";
 import {
   createPageHandler,
   deletePageHandler,
@@ -96,7 +100,7 @@ export const movePageAction = actionClient
     try {
       const result = await movePageHandler(id, parent_id);
       revalidatePath("/");
-      revalidatePath(`/folder/${parent_id}`)
+      revalidatePath(`/folder/${parent_id}`);
       return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));

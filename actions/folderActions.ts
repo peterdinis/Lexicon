@@ -17,7 +17,7 @@ export const createFolderAction = actionClient
       revalidatePath("/dashboard");
       revalidatePath("/page/[id]", "page");
       revalidatePath("/");
-      
+
       return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));

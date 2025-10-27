@@ -59,7 +59,7 @@ export async function updateCalendarEventHandler(
   },
 ) {
   const userId = await getUserId();
-  
+
   const updateData: any = {
     updated_at: new Date().toISOString(),
   };
