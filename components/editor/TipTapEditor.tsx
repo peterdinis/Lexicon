@@ -160,17 +160,22 @@ export function TiptapEditor({
         codeBlock: false,
         bulletList: {
           HTMLAttributes: {
-            class: 'list-disc list-outside ml-4',
+            class: 'list-disc list-outside ml-6',
           },
         },
         orderedList: {
           HTMLAttributes: {
-            class: 'list-decimal list-outside ml-4',
+            class: 'list-decimal list-outside ml-6',
           },
         },
         listItem: {
           HTMLAttributes: {
             class: 'leading-7',
+          },
+        },
+        blockquote: {
+          HTMLAttributes: {
+            class: 'border-l-4 border-gray-300 pl-4 my-4 italic text-gray-600',
           },
         },
       }),
@@ -179,7 +184,7 @@ export function TiptapEditor({
       }),
       TaskList.configure({
         HTMLAttributes: {
-          class: 'list-none ml-4',
+          class: 'list-none ml-6',
         },
       }),
       TaskItem.configure({ 
@@ -191,24 +196,63 @@ export function TiptapEditor({
       CodeBlockLowlight.configure({ 
         lowlight,
         HTMLAttributes: {
-          class: 'code-block',
+          class: 'bg-gray-100 rounded-lg p-4 my-4 font-mono text-sm',
         },
       }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      Image.configure({ inline: true, allowBase64: true }),
-      Link.configure({ openOnClick: false }),
-      Highlight.configure({ multicolor: true }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Underline,
+      Table.configure({ 
+        resizable: true,
+        HTMLAttributes: {
+          class: 'border-collapse border border-gray-300 my-4',
+        },
+      }),
+      TableRow.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300',
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 bg-gray-100 px-4 py-2 font-bold',
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'border border-gray-300 px-4 py-2',
+        },
+      }),
+      Image.configure({ 
+        inline: true, 
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto my-4',
+        },
+      }),
+      Link.configure({ 
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline hover:text-blue-800',
+        },
+      }),
+      Highlight.configure({ 
+        multicolor: true,
+        HTMLAttributes: {
+          class: 'bg-yellow-200 px-1 rounded',
+        },
+      }),
+      TextAlign.configure({ 
+        types: ["heading", "paragraph", "image"],
+        alignments: ['left', 'center', 'right', 'justify'],
+      }),
+      Underline.configure({
+        HTMLAttributes: {
+          class: 'underline',
+        },
+      }),
       Subscript,
       Superscript,
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
-      // Len označíme že sú neuložené zmeny
       handleContentChange();
       
       const isCodeBlockActive = editor.isActive('codeBlock');
@@ -242,7 +286,7 @@ export function TiptapEditor({
         class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none min-h-[300px] p-4',
       },
       handleKeyDown: (view, event) => {
-        // Pridáme vlastnú logiku pre Enter a Backspace v zoznamoch
+        // Custom handling pre lists
         if (event.key === 'Enter' && !event.shiftKey) {
           const { state, dispatch } = view;
           const { selection } = state;
@@ -252,18 +296,14 @@ export function TiptapEditor({
             return false;
           }
 
-          // Ak sme na konci položky zoznamu a stlačíme Enter, vytvoríme novú položku
           if ($from.parentOffset === $from.parent.nodeSize - 2) {
-            // Vložíme novú položku zoznamu
             const tr = state.tr;
-            const nodeType = $from.parent.type;
             tr.split(selection.from, 1);
             dispatch(tr);
             return true;
           }
         }
 
-        // Backspace na prázdnej položke zoznamu
         if (event.key === 'Backspace') {
           const { state, dispatch } = view;
           const { selection } = state;
@@ -273,9 +313,7 @@ export function TiptapEditor({
             return false;
           }
 
-          // Ak je položka zoznamu prázdna
           if ($from.parent.textContent.length === 0) {
-            // Zrušíme formátovanie zoznamu
             if (editor) {
               editor.chain().focus().liftListItem('listItem').run();
               return true;
@@ -302,9 +340,7 @@ export function TiptapEditor({
       const currentContent = editor.getHTML();
       startTransition(async () => {
         try {
-          // Volanie onUpdate callback až pri manuálnom save
           onUpdate?.(currentContent);
-          
           await updatePageAction({ id: pageId, description: currentContent });
           setLastSaved(new Date());
           setHasUnsavedChanges(false);
@@ -341,7 +377,9 @@ export function TiptapEditor({
 
   const addLink = useCallback(() => {
     if (linkUrl && editor) {
-      editor.chain().focus().setLink({ href: linkUrl }).run();
+      // Check if the link has protocol, if not add https://
+      const formattedUrl = linkUrl.startsWith('http') ? linkUrl : `https://${linkUrl}`;
+      editor.chain().focus().setLink({ href: formattedUrl }).run();
       setLinkUrl("");
       setLinkDialogOpen(false);
     }
@@ -361,15 +399,50 @@ export function TiptapEditor({
     }
   }, [editor]);
 
-  // Funkcia pre toolbar tlačidlá, ktorá zabráni strate focusu
-  const createToolbarButtonHandler = useCallback((command: () => void) => {
-    return (e: React.MouseEvent) => {
-      e.preventDefault();
-      command();
-      // Vrátime focus editoru
+  // Table functions
+  const addTable = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    }
+  }, [editor]);
+
+  const deleteTable = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().deleteTable().run();
+    }
+  }, [editor]);
+
+  const addColumn = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().addColumnAfter().run();
+    }
+  }, [editor]);
+
+  const deleteColumn = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().deleteColumn().run();
+    }
+  }, [editor]);
+
+  const addRow = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().addRowAfter().run();
+    }
+  }, [editor]);
+
+  const deleteRow = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().deleteRow().run();
+    }
+  }, [editor]);
+
+  // Zjednodušená funkcia pre toolbar tlačidlá
+  const handleToolbarAction = useCallback((action: () => void) => {
+    return () => {
+      action();
       setTimeout(() => {
         editor?.commands.focus();
-      }, 0);
+      }, 10);
     };
   }, [editor]);
 
@@ -385,55 +458,66 @@ export function TiptapEditor({
   }
 
   return (
-    <div className="flex flex-col min-h-[500px]">
+    <div className="flex flex-col min-h-[500px] border rounded-lg">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <div 
+        className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur supports-backdrop-filter:bg-background/60"
+        onMouseDown={(e) => {
+          e.preventDefault();
+        }}
+      >
         {/* Text formatting */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleBold().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleBold().run())}
           className={editor.isActive("bold") ? "bg-accent" : ""}
+          type="button"
         >
           <Bold className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleItalic().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleItalic().run())}
           className={editor.isActive("italic") ? "bg-accent" : ""}
+          type="button"
         >
           <Italic className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleUnderline().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleUnderline().run())}
           className={editor.isActive("underline") ? "bg-accent" : ""}
+          type="button"
         >
           <UnderlineIcon className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleStrike().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleStrike().run())}
           className={editor.isActive("strike") ? "bg-accent" : ""}
+          type="button"
         >
           <Strikethrough className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleCode().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleCode().run())}
           className={editor.isActive("code") ? "bg-accent" : ""}
+          type="button"
         >
           <Code className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleHighlight().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleHighlight().run())}
           className={editor.isActive("highlight") ? "bg-accent" : ""}
+          type="button"
         >
           <Highlighter className="h-4 w-4" />
         </Button>
@@ -441,16 +525,18 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleSubscript().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleSubscript().run())}
           className={editor.isActive("subscript") ? "bg-accent" : ""}
+          type="button"
         >
           <SubscriptIcon className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleSuperscript().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleSuperscript().run())}
           className={editor.isActive("superscript") ? "bg-accent" : ""}
+          type="button"
         >
           <SuperscriptIcon className="h-4 w-4" />
         </Button>
@@ -459,24 +545,27 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}
           className={editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""}
+          type="button"
         >
           <Heading1 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleHeading({ level: 2 }).run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 2 }).run())}
           className={editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""}
+          type="button"
         >
           <Heading2 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleHeading({ level: 3 }).run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleHeading({ level: 3 }).run())}
           className={editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""}
+          type="button"
         >
           <Heading3 className="h-4 w-4" />
         </Button>
@@ -485,24 +574,27 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleBulletList().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleBulletList().run())}
           className={editor.isActive("bulletList") ? "bg-accent" : ""}
+          type="button"
         >
           <List className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleOrderedList().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleOrderedList().run())}
           className={editor.isActive("orderedList") ? "bg-accent" : ""}
+          type="button"
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleTaskList().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleTaskList().run())}
           className={editor.isActive("taskList") ? "bg-accent" : ""}
+          type="button"
         >
           <CheckSquare className="h-4 w-4" />
         </Button>
@@ -511,32 +603,36 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().setTextAlign("left").run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("left").run())}
           className={editor.isActive({ textAlign: "left" }) ? "bg-accent" : ""}
+          type="button"
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().setTextAlign("center").run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("center").run())}
           className={editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""}
+          type="button"
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().setTextAlign("right").run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("right").run())}
           className={editor.isActive({ textAlign: "right" }) ? "bg-accent" : ""}
+          type="button"
         >
           <AlignRight className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().setTextAlign("justify").run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().setTextAlign("justify").run())}
           className={editor.isActive({ textAlign: "justify" }) ? "bg-accent" : ""}
+          type="button"
         >
           <AlignJustify className="h-4 w-4" />
         </Button>
@@ -545,8 +641,9 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().toggleBlockquote().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().toggleBlockquote().run())}
           className={editor.isActive("blockquote") ? "bg-accent" : ""}
+          type="button"
         >
           <Quote className="h-4 w-4" />
         </Button>
@@ -556,8 +653,9 @@ export function TiptapEditor({
           <Button
             variant="ghost"
             size="sm"
-            onClick={createToolbarButtonHandler(() => addCodeBlockWithLanguage(selectedLanguage))}
+            onClick={handleToolbarAction(() => addCodeBlockWithLanguage(selectedLanguage))}
             className={editor.isActive("codeBlock") ? "bg-accent" : ""}
+            type="button"
           >
             <Code className="h-4 w-4" />
           </Button>
@@ -581,24 +679,70 @@ export function TiptapEditor({
         </div>
 
         <Separator orientation="vertical" className="mx-1 h-6" />
-        {/* Table, Link, Image */}
+        
+        {/* Table Controls */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() =>
-            editor
-              .chain()
-              .focus()
-              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-              .run()
-          )}
+          onClick={handleToolbarAction(addTable)}
+          type="button"
         >
           <TableIcon className="h-4 w-4" />
         </Button>
+        
+        {editor.isActive('table') && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToolbarAction(deleteTable)}
+              type="button"
+            >
+              Delete Table
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToolbarAction(addColumn)}
+              type="button"
+            >
+              Add Column
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToolbarAction(deleteColumn)}
+              type="button"
+            >
+              Delete Column
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToolbarAction(addRow)}
+              type="button"
+            >
+              Add Row
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToolbarAction(deleteRow)}
+              type="button"
+            >
+              Delete Row
+            </Button>
+          </>
+        )}
+
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        
+        {/* Link, Image */}
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => setLinkDialogOpen(true))}
+          onClick={handleToolbarAction(() => setLinkDialogOpen(true))}
+          type="button"
         >
           <Link2 className="h-4 w-4" />
         </Button>
@@ -606,7 +750,8 @@ export function TiptapEditor({
           <Button
             variant="ghost"
             size="sm"
-            onClick={createToolbarButtonHandler(removeLink)}
+            onClick={handleToolbarAction(removeLink)}
+            type="button"
           >
             Remove Link
           </Button>
@@ -614,7 +759,8 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => setImageDialogOpen(true))}
+          onClick={handleToolbarAction(() => setImageDialogOpen(true))}
+          type="button"
         >
           <ImageIcon className="h-4 w-4" />
         </Button>
@@ -623,16 +769,18 @@ export function TiptapEditor({
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().undo().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().undo().run())}
           disabled={!editor.can().undo()}
+          type="button"
         >
           <Undo className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          onClick={createToolbarButtonHandler(() => editor.chain().focus().redo().run())}
+          onClick={handleToolbarAction(() => editor.chain().focus().redo().run())}
           disabled={!editor.can().redo()}
+          type="button"
         >
           <Redo className="h-4 w-4" />
         </Button>
@@ -642,9 +790,10 @@ export function TiptapEditor({
         <Button
           variant={hasUnsavedChanges ? "default" : "ghost"}
           size="sm"
-          onClick={createToolbarButtonHandler(handleManualSave)}
+          onClick={handleManualSave}
           disabled={isPending || !hasUnsavedChanges}
           className={hasUnsavedChanges ? "bg-primary text-primary-foreground" : ""}
+          type="button"
         >
           <Save className="h-4 w-4 mr-1" />
           {isPending ? "Saving..." : hasUnsavedChanges ? "Save *" : "Saved"}
@@ -652,10 +801,10 @@ export function TiptapEditor({
       </div>
 
       {/* Editor */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         <EditorContent 
           editor={editor} 
-          className="h-full"
+          className="h-full min-h-[400px]"
         />
       </div>
 
