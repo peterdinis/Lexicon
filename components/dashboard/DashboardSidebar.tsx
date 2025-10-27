@@ -2,15 +2,11 @@
 
 import {
   useState,
-  useMemo,
   useCallback,
-  memo,
-  ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
-  FileText,
   Trash2,
   Menu,
   X,
@@ -21,39 +17,13 @@ import {
   PanelLeft,
   CheckSquare,
   Calendar,
-  Folder,
   FolderPlus,
-  MoreHorizontal,
-  GripVertical,
   ChartNoAxesColumnIncreasing,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-  type DragOverEvent,
-  useDraggable,
-  useDroppable,
-  DraggableAttributes,
-  DraggableSyntheticListeners,
-} from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { Page } from "@/types/applicationTypes";
 import {
   createPageAction,
@@ -61,8 +31,6 @@ import {
   movePageAction,
 } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
-import { debounce } from "@/lib/debounce";
-import { moveToTrashAction } from "@/actions/trashActions";
 
 interface DashboardSidebarProps {
   initialPages: any[];
@@ -71,22 +39,19 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({
   initialPages,
-  currentPageId,
 }: DashboardSidebarProps) {
   const [pages, setPages] = useState<Page[]>(
     initialPages.filter((p) => p.in_trash === 0),
   );
   const [loading, setLoading] = useState(false);
-  const [loadingPages, setLoadingPages] = useState(false);
+  const [, setLoadingPages] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+  const [, setExpandedFolders] = useState<Set<string>>(
     new Set(),
   );
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [, setOverId] = useState<string | null>(null);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [folderParentId, setFolderParentId] = useState<string | null>(null);
@@ -110,11 +75,6 @@ export function DashboardSidebar({
     }
   }, []);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor),
-  );
-
   const buildHierarchy = useCallback((pages: Page[]): any[] => {
     const pageMap = new Map<string, any>();
     const rootPages: any[] = [];
@@ -133,11 +93,6 @@ export function DashboardSidebar({
     return rootPages;
   }, []);
 
-  const hierarchicalPages = useMemo(
-    () => buildHierarchy(pages),
-    [pages, buildHierarchy],
-  );
-
   const createPage = async (parentId?: string | null) => {
     setLoading(true);
 
@@ -155,10 +110,8 @@ export function DashboardSidebar({
         });
       }
 
-      // Načítame aktualizované dáta
       await loadAllData();
 
-      // Navigujeme na novú stránku
       router.push(`/page/${result.data.id}`);
       setMobileOpen(false);
     } catch (error) {
@@ -197,10 +150,8 @@ export function DashboardSidebar({
       setFolderModalOpen(false);
       setNewFolderName("");
 
-      // Načítame aktualizované dáta
       await loadAllData();
 
-      // Rozbalíme nový folder
       if (result.data.id) {
         setExpandedFolders((prev) => new Set([...prev, result.data!.id]));
       }
@@ -212,275 +163,7 @@ export function DashboardSidebar({
     }
   };
 
-  const movePageToTrash = async (id: string) => {
-    if (!confirm("Are you sure you want to move this to trash?")) return;
-
-    const prevPages = [...pages];
-    setPages((prev) => prev.filter((p) => p.id !== id));
-
-    try {
-      const result = await moveToTrashAction({ id, table: "pages" });
-      if (!result.data) throw new Error("Failed to move page to trash");
-      await loadAllData();
-    } catch (error) {
-      console.error(error);
-      setPages(prevPages);
-      alert(error instanceof Error ? error.message : "Unknown error");
-    }
-  };
-
-  const movePage = async (pageId: string, targetFolderId: string) => {
-    const prevPages = [...pages];
-    setPages((prev) =>
-      prev.map((p) =>
-        p.id === pageId ? { ...p, parent_id: targetFolderId || null } : p,
-      ),
-    );
-    try {
-      const result = await movePageAction({
-        id: pageId,
-        parent_id: targetFolderId || null,
-      });
-
-      if (!result?.data) throw new Error("Failed to move page");
-
-      await loadAllData();
-    } catch (error) {
-      console.error(error);
-      setPages(prevPages);
-      alert(error instanceof Error ? error.message : "Failed to move page");
-    }
-  };
-
-  const movePageDebounced = useMemo(() => debounce(movePage, 300), []);
-
-  const handleDragStart = (event: DragStartEvent) =>
-    setActiveId(event.active.id as string);
-  const handleDragOver = (event: DragOverEvent) =>
-    setOverId((event.over?.id as string) || null);
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    setOverId(null);
-    if (!over || active.id === over.id) return;
-
-    const draggedPageId = active.id as string;
-    const targetId = over.id as string;
-
-    const draggedPage = pages.find((p) => p.id === draggedPageId);
-    if (draggedPage?.is_folder === 1 && targetId === draggedPageId) return;
-
-    if (targetId === "root") {
-      movePageDebounced(draggedPageId, "");
-    } else {
-      const targetPage = pages.find((p) => p.id === targetId);
-      if (targetPage?.is_folder === 1) {
-        movePageDebounced(draggedPageId, targetId);
-        setExpandedFolders((prev) => new Set([...prev, targetId]));
-      }
-    }
-  };
-
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(folderId)) newSet.delete(folderId);
-      else newSet.add(folderId);
-      return newSet;
-    });
-  };
-
-  const isDescendant = (parentId: string, childId: string): boolean => {
-    const page = pages.find((p) => p.id === childId);
-    if (!page || !page.parent_id) return false;
-    if (page.parent_id === parentId) return true;
-    return isDescendant(parentId, page.parent_id);
-  };
-
-  const DraggablePageItem = memo(({ page }: { page: any }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } =
-      useDraggable({ id: page.id, data: { page } });
-    const style = {
-      transform: CSS.Translate.toString(transform),
-      opacity: isDragging ? 0.5 : 1,
-    };
-    return (
-      <div ref={setNodeRef} style={style}>
-        <PageTreeItem page={page} dragHandleProps={{ attributes, listeners }} />
-      </div>
-    );
-  });
-
-  const DroppableFolder = ({
-    page,
-    children,
-  }: {
-    page: any;
-    children: ReactNode;
-  }) => {
-    const { setNodeRef, isOver } = useDroppable({
-      id: page.id,
-      data: { page },
-    });
-    const isValidDrop =
-      activeId && activeId !== page.id && !isDescendant(page.id, activeId);
-    return (
-      <div
-        ref={setNodeRef}
-        className={`rounded-lg transition-colors ${
-          isOver && isValidDrop ? "bg-primary/10 ring-2 ring-primary/50" : ""
-        }`}
-      >
-        {children}
-      </div>
-    );
-  };
-
-  const PageTreeItem = memo(
-    ({
-      page,
-      dragHandleProps,
-    }: {
-      page: any;
-      dragHandleProps?: {
-        attributes: DraggableAttributes;
-        listeners: DraggableSyntheticListeners;
-      };
-    }) => {
-      const isExpanded = expandedFolders.has(page.id);
-      const hasChildren = page.children && page.children.length > 0;
-
-      const getIcon = () => {
-        if (page.is_folder === 1) {
-          return <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />;
-        } else {
-          return (
-            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-          );
-        }
-      };
-
-      const content = (
-        <div
-          className={`group flex items-center gap-1 rounded-lg transition-colors hover:bg-accent ${
-            currentPageId === page.id ? "bg-accent" : ""
-          }`}
-        >
-          <button
-            {...dragHandleProps}
-            className="cursor-grab p-1 opacity-0 transition-opacity hover:bg-accent-foreground/10 rounded group-hover:opacity-100 active:cursor-grabbing"
-          >
-            <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-
-          {page.is_folder === 1 ? (
-            <>
-              <button
-                onClick={() => toggleFolder(page.id)}
-                className="p-1 hover:bg-accent-foreground/10 rounded"
-                disabled={!hasChildren}
-              >
-                {hasChildren ? (
-                  isExpanded ? (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  )
-                ) : (
-                  <div className="w-3.5 h-3.5" />
-                )}
-              </button>
-              <button
-                className="flex flex-1 items-center gap-2 py-1.5 text-sm"
-                onClick={() => {
-                  router.push(`/page/${page.id}`);
-                  setMobileOpen(false);
-                }}
-              >
-                {getIcon()}
-                <span className="flex-1 truncate text-left">
-                  {page.icon && `${page.icon} `}
-                  {page.title}
-                </span>
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="w-5" />
-              <button
-                className="flex flex-1 items-center gap-2 py-1.5 text-sm"
-                onClick={() => {
-                  router.push(`/page/${page.id}`);
-                  setMobileOpen(false);
-                }}
-              >
-                {getIcon()}
-                <span className="flex-1 truncate text-left">
-                  {page.icon && `${page.icon} `}
-                  {page.title}
-                </span>
-              </button>
-            </>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="opacity-0 p-1 transition-opacity hover:bg-accent-foreground/10 rounded group-hover:opacity-100">
-                <MoreHorizontal className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {page.is_folder === 1 && (
-                <>
-                  <DropdownMenuItem
-                    onClick={() => createPage(page.id)}
-                    disabled={loading}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Page
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => createFolder(page.id)}
-                    disabled={loading}
-                  >
-                    <FolderPlus className="mr-2 h-4 w-4" />
-                    New Folder
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuItem onClick={() => movePageToTrash(page.id)}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Move to Trash
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-
-      return (
-        <div>
-          {page.is_folder === 1 ? (
-            <DroppableFolder page={page}>{content}</DroppableFolder>
-          ) : (
-            content
-          )}
-          {page.is_folder === 1 && isExpanded && hasChildren && (
-            <div className="ml-6">
-              {page.children!.map((child: any) => (
-                <DraggablePageItem key={child.id} page={child} />
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    },
-  );
-
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
-    const { setNodeRef: setRootRef, isOver: isOverRoot } = useDroppable({
-      id: "root",
-    });
-
     return (
       <div className="flex h-full flex-col">
         {!isMobile && (
@@ -610,30 +293,6 @@ export function DashboardSidebar({
                   </Button>
                 </div>
               </div>
-              {pagesExpanded && (
-                <div
-                  ref={setRootRef}
-                  className={`mt-1 space-y-0.5 rounded-lg p-1 transition-colors ${
-                    isOverRoot && activeId
-                      ? "bg-primary/10 ring-2 ring-primary/50"
-                      : ""
-                  }`}
-                >
-                  {loadingPages ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : hierarchicalPages.length === 0 ? (
-                    <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-                      No pages yet. Create your first page!
-                    </div>
-                  ) : (
-                    hierarchicalPages.map((page) => (
-                      <DraggablePageItem key={page.id} page={page} />
-                    ))
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </ScrollArea>
@@ -641,17 +300,8 @@ export function DashboardSidebar({
     );
   };
 
-  const activePage = activeId ? pages.find((p) => p.id === activeId) : null;
-
   return (
     <>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
         <aside
           className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex ${
             desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
@@ -683,23 +333,6 @@ export function DashboardSidebar({
             </Button>
           </div>
         )}
-
-        <DragOverlay>
-          {activePage ? (
-            <div className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 shadow-lg ring-2 ring-primary">
-              {activePage.is_folder === 1 ? (
-                <Folder className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span className="truncate">
-                {activePage.icon && `${activePage.icon} `}
-                {activePage.title}
-              </span>
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="p-0 w-64">
