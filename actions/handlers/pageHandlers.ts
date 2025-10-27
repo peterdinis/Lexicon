@@ -3,7 +3,6 @@ import { pages } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
 import { eq, asc } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 // ----------------------
 // Get Single Page
