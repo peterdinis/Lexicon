@@ -1,4 +1,4 @@
-export function extractData<T>(result: any): T[] {
+export function extractData<T>(result: unknown): T[] {
   if (Array.isArray(result)) {
     return result;
   }
