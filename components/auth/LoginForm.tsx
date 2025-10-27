@@ -61,11 +61,7 @@ const LoginForm: FC = () => {
       toast.success("Successfully signed in!");
       setRedirecting(true);
 
-      // malé oneskorenie, aby používateľ videl loader
-      setTimeout(() => {
-        router.push("/dashboard");
-        router.refresh();
-      }, 800);
+      window.location.replace("/dashboard");
     } catch (err) {
       const message = getErrorMessage(err);
       setServerError(message || "Failed to login");
