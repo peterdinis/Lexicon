@@ -46,8 +46,11 @@ export async function restoreFromTrashAction(formData: FormData) {
   try {
     await restoreFromTrashHandler(table, id);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Restore error:", error);
-    return { success: false, error: error.message };
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+
+    return { success: false, error: errorMessage };
   }
 }

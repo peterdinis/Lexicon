@@ -63,10 +63,17 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       tags,
       notes,
     } = data;
-
-    // Vytvoríme update data objekt
-    const updateData: any = {
+    
+    const updateData = {
       updated_at: new Date().toISOString(),
+      title: undefined as string | undefined,
+      description: undefined as string | undefined,
+      priority: undefined as "low" | "medium" | "high" | undefined,
+      due_date: undefined as string | undefined,
+      completed: undefined as number | undefined,
+      status: undefined as "not_started" | "in_progress" | "done" | undefined,
+      tags: undefined as string | null | undefined,
+      notes: undefined as string | undefined,
     };
 
     if (title !== undefined) updateData.title = title;

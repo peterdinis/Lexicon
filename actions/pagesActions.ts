@@ -25,12 +25,12 @@ export const createPageAction = actionClient
   .action(async ({ parsedInput: { title = "Untitled", description = "" } }) => {
     try {
       const result = await createPageHandler(title, description);
-
       return result;
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
   });
+
 // GET SINGLE
 export const getPageAction = actionClient
   .inputSchema(pageIdSchema)
@@ -51,7 +51,12 @@ export async function updatePageAction(data: {
   coverImage?: string | null;
 }) {
   try {
-    const updates: any = {};
+    const updates: Partial<{
+      title: string;
+      icon: string;
+      description: string;
+      coverImage: string | null;
+    }> = {};
 
     if (data.title !== undefined) updates.title = data.title;
     if (data.icon !== undefined) updates.icon = data.icon;
@@ -94,6 +99,7 @@ export const deletePageAction = actionClient
     }
   });
 
+// MOVE
 export const movePageAction = actionClient
   .inputSchema(movePageSchema)
   .action(async ({ parsedInput: { id, parent_id } }) => {
