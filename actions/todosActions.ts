@@ -63,7 +63,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       tags,
       notes,
     } = data;
-    
+
     const updateData = {
       updated_at: new Date().toISOString(),
       title: undefined as string | undefined,
