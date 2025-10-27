@@ -6,7 +6,6 @@ import {
   useCallback,
   memo,
   ReactNode,
-  useEffect,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -111,14 +110,6 @@ export function DashboardSidebar({
     }
   }, []);
 
-  useEffect(() => {
-    if (initialPages && initialPages.length > 0) {
-      setPages(initialPages.filter((p) => p.in_trash === 0));
-    } else {
-      loadAllData();
-    }
-  }, []); // Prázdne závislosti - spustí sa iba raz
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
@@ -157,8 +148,6 @@ export function DashboardSidebar({
       });
 
       if (!result?.data) throw new Error("No data returned from server");
-
-      // Ak je parentId definované, presuň stránku do foldera
       if (parentId) {
         await movePageAction({
           id: result.data.id,
