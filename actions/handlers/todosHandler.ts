@@ -46,7 +46,7 @@ export async function getAllTodosHandler(userId: string) {
 // UPDATE
 export async function updateTodoHandler(
   id: string,
-  updates: Record<string, any>,
+  updates: Record<string, unknown>,
 ) {
   await db.update(todos).set(updates).where(eq(todos.id, id));
   const [updated] = await db.select().from(todos).where(eq(todos.id, id));

@@ -50,7 +50,6 @@ const ForgotPasswordForm: FC = () => {
     defaultValues: { email: "" },
   });
 
-  // Kontrola emailu pri opustení inputu
   const handleEmailBlur = async () => {
     const email = getValues("email");
     if (!email || !/\S+@\S+\.\S+/.test(email)) return;

@@ -67,13 +67,38 @@ export async function getAllNonTrashedItemsHandler() {
     userDiagrams,
     userNotifications,
   ] = await Promise.all([
-    db.select().from(pages).where(and(eq(pages.user_id, user.id), eq(pages.in_trash, 0))),
+    db
+      .select()
+      .from(pages)
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, 0))),
     db.select().from(blocks).where(eq(blocks.in_trash, 0)),
-    db.select().from(folders).where(and(eq(folders.user_id, user.id), eq(folders.in_trash, 0))),
-    db.select().from(todos).where(and(eq(todos.user_id, user.id), eq(todos.in_trash, 0))),
-    db.select().from(calendarEvents).where(and(eq(calendarEvents.user_id, user.id), eq(calendarEvents.in_trash, 0))),
-    db.select().from(diagrams).where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, 0))),
-    db.select().from(notifications).where(and(eq(notifications.user_id, user.id), eq(notifications.in_trash, 0))),
+    db
+      .select()
+      .from(folders)
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, 0))),
+    db
+      .select()
+      .from(todos)
+      .where(and(eq(todos.user_id, user.id), eq(todos.in_trash, 0))),
+    db
+      .select()
+      .from(calendarEvents)
+      .where(
+        and(
+          eq(calendarEvents.user_id, user.id),
+          eq(calendarEvents.in_trash, 0),
+        ),
+      ),
+    db
+      .select()
+      .from(diagrams)
+      .where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, 0))),
+    db
+      .select()
+      .from(notifications)
+      .where(
+        and(eq(notifications.user_id, user.id), eq(notifications.in_trash, 0)),
+      ),
   ]);
 
   return {
@@ -99,13 +124,38 @@ export async function getAllTrashedItemsHandler() {
     userDiagrams,
     userNotifications,
   ] = await Promise.all([
-    db.select().from(pages).where(and(eq(pages.user_id, user.id), eq(pages.in_trash, 1))),
+    db
+      .select()
+      .from(pages)
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, 1))),
     db.select().from(blocks).where(eq(blocks.in_trash, 1)),
-    db.select().from(folders).where(and(eq(folders.user_id, user.id), eq(folders.in_trash, 1))),
-    db.select().from(todos).where(and(eq(todos.user_id, user.id), eq(todos.in_trash, 1))),
-    db.select().from(calendarEvents).where(and(eq(calendarEvents.user_id, user.id), eq(calendarEvents.in_trash, 1))),
-    db.select().from(diagrams).where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, 1))),
-    db.select().from(notifications).where(and(eq(notifications.user_id, user.id), eq(notifications.in_trash, 1))),
+    db
+      .select()
+      .from(folders)
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, 1))),
+    db
+      .select()
+      .from(todos)
+      .where(and(eq(todos.user_id, user.id), eq(todos.in_trash, 1))),
+    db
+      .select()
+      .from(calendarEvents)
+      .where(
+        and(
+          eq(calendarEvents.user_id, user.id),
+          eq(calendarEvents.in_trash, 1),
+        ),
+      ),
+    db
+      .select()
+      .from(diagrams)
+      .where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, 1))),
+    db
+      .select()
+      .from(notifications)
+      .where(
+        and(eq(notifications.user_id, user.id), eq(notifications.in_trash, 1)),
+      ),
   ]);
 
   return {
@@ -135,10 +185,7 @@ export async function restoreFromTrashHandler(tableName: string, id: string) {
   const table = tablesMap[tableName];
   if (!table) throw new Error(`Unknown table: ${tableName}`);
 
-  await db
-    .update(table)
-    .set({ in_trash: 0 })
-    .where(eq(table.id, id));
+  await db.update(table).set({ in_trash: 0 }).where(eq(table.id, id));
 
   return { success: true, restoredId: id };
 }

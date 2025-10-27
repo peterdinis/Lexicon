@@ -2,14 +2,9 @@
 
 import { db } from "@/drizzle/db";
 import { calendarEvents } from "@/drizzle/schema";
-import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-import {
-  CreateCalendarEventSchema,
-  UpdateCalendarEventSchema,
-} from "../schemas/calendarSchemas";
-import z from "zod";
 
 async function getUserId() {
   const supabase = await getSupabaseServerClient();
@@ -65,12 +60,10 @@ export async function updateCalendarEventHandler(
 ) {
   const userId = await getUserId();
 
-  // Konvertujeme null na undefined pre databázu
   const updateData: any = {
     updated_at: new Date().toISOString(),
   };
 
-  // Pridáme polia s konverziou null na undefined
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined)
     updateData.description = data.description ?? undefined;

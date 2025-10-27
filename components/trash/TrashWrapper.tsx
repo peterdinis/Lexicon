@@ -21,7 +21,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
     async function fetchTrash() {
       try {
         const items = await getAllNonTrashedItemsAction();
-        setPages((items.data && Array.isArray(items.data.pages)) ? items.data.pages : []);
+        setPages(
+          items.data && Array.isArray(items.data.pages) ? items.data.pages : [],
+        );
       } catch (err) {
         console.error("Error loading trash:", err);
       }
@@ -47,7 +49,8 @@ export function TrashWrapper({}: TrashWrapperProps) {
   };
 
   const permanentlyDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to permanently delete this page?")) return;
+    if (!confirm("Are you sure you want to permanently delete this page?"))
+      return;
 
     try {
       const response = await fetch("/api/trash", {
@@ -63,7 +66,7 @@ export function TrashWrapper({}: TrashWrapperProps) {
       console.error("Error deleting page:", error);
     }
   };
-  
+
   return (
     <div className="space-y-4">
       {pages.length === 0 ? (
@@ -84,16 +87,27 @@ export function TrashWrapper({}: TrashWrapperProps) {
                 {page.deleted_at && (
                   <p className="text-xs text-muted-foreground">
                     Deleted{" "}
-                    {format(new Date(page.deleted_at), "MMM d, yyyy 'at' h:mm a")}
+                    {format(
+                      new Date(page.deleted_at),
+                      "MMM d, yyyy 'at' h:mm a",
+                    )}
                   </p>
                 )}
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => restorePage(page.id)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => restorePage(page.id)}
+                >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Restore
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => permanentlyDelete(page.id)}>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => permanentlyDelete(page.id)}
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Forever
                 </Button>
