@@ -12,7 +12,7 @@ import {
 } from "./handlers/calendarHandlers";
 import { z } from "zod";
 
-// Definujte schémy priamo tu
+
 const CreateCalendarEventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),
@@ -31,9 +31,8 @@ const UpdateCalendarEventSchema = z.object({
   color: z.string().optional().nullable(),
 });
 
-// CREATE
 export const createCalendarEventAction = actionClient
-  .schema(CreateCalendarEventSchema)
+  .inputSchema(CreateCalendarEventSchema)
   .action(async ({ parsedInput }) => {
     try {
       return await createCalendarEventHandler(parsedInput);
@@ -44,7 +43,7 @@ export const createCalendarEventAction = actionClient
 
 // GET SINGLE
 export const getCalendarEventAction = actionClient
-  .schema(
+  .inputSchema(
     z.object({
       id: z.string().min(1, "ID is required"),
     }),
@@ -59,7 +58,7 @@ export const getCalendarEventAction = actionClient
 
 // UPDATE
 export const updateCalendarEventAction = actionClient
-  .schema(
+  .inputSchema(
     UpdateCalendarEventSchema.extend({
       id: z.string().min(1, "ID is required"),
     }),
@@ -74,7 +73,7 @@ export const updateCalendarEventAction = actionClient
 
 // DELETE
 export const deleteCalendarEventAction = actionClient
-  .schema(
+  .inputSchema(
     z.object({
       id: z.string().min(1, "ID is required"),
     }),
@@ -98,7 +97,7 @@ export const getAllCalendarEventsAction = actionClient.action(async () => {
 
 // GET BY DATE RANGE
 export const getCalendarEventsByDateRangeAction = actionClient
-  .schema(
+  .inputSchema(
     z.object({
       startDate: z.string().min(1, "Start date is required"),
       endDate: z.string().min(1, "End date is required"),

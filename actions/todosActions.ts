@@ -69,7 +69,6 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       updated_at: new Date().toISOString(),
     };
 
-    // Pridáme iba polia ktoré sú definované
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (priority !== undefined) updateData.priority = priority;
@@ -80,15 +79,11 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       updateData.tags = tags ? JSON.stringify(tags) : null;
     if (notes !== undefined) updateData.notes = notes;
 
-    console.log("Updating todo with data:", updateData);
-
     const result = await db
       .update(todos)
       .set(updateData)
       .where(eq(todos.id, id))
       .returning();
-
-    console.log("Update result:", result);
 
     revalidatePath("/todos");
     return { success: true, data: result[0] };

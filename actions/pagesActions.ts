@@ -60,8 +60,6 @@ export async function updatePageAction(data: {
 
     await db.update(pages).set(updates).where(eq(pages.id, data.id));
 
-    console.log("Updating page with data:", updates);
-
     revalidatePath(`/page/${data.id}`);
 
     return { success: true };
@@ -93,12 +91,12 @@ export const deletePageAction = actionClient
   });
 
 export const movePageAction = actionClient
-  .inputSchema(movePageSchema) // Použi novú schému
+  .inputSchema(movePageSchema)
   .action(async ({ parsedInput: { id, parent_id } }) => {
     try {
       const result = await movePageHandler(id, parent_id);
-      revalidatePath("/"); // Revalidate hlavnú stránku kde sú zoznam stránok
-      revalidatePath(`/folder/${parent_id}`); // Revalidate cieľový priečinok
+      revalidatePath("/");
+      revalidatePath(`/folder/${parent_id}`)
       return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));

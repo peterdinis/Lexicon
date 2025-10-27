@@ -81,7 +81,6 @@ export function DashboardSidebar({
 
   const router = useRouter();
 
-  // Načítanie všetkých dát zo servera
   const loadAllData = useCallback(async () => {
     setLoadingPages(true);
     try {
@@ -89,18 +88,15 @@ export function DashboardSidebar({
       if (pagesResult?.data) {
         const allPages = pagesResult.data.filter((p: Page) => p.in_trash === 0);
         setPages(allPages);
-        console.log("Loaded pages:", allPages);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      throw new Error(error instanceof Error ? error.message : "Failed to load pages");
     } finally {
       setLoadingPages(false);
     }
   }, []);
 
-  // Načítaj dáta iba pri prvom renderi - ODSTRÁNENÉ druhý useEffect
   useEffect(() => {
-    // Ak máme initialPages, použijeme ich, inak načítame zo servera
     if (initialPages && initialPages.length > 0) {
       setPages(initialPages.filter(p => p.in_trash === 0));
     } else {
@@ -146,8 +142,6 @@ export function DashboardSidebar({
       });
 
       if (!result?.data) throw new Error("No data returned from server");
-      
-      console.log("Page created:", result.data);
       
       // Ak je parentId definované, presuň stránku do foldera
       if (parentId) {
@@ -196,9 +190,7 @@ export function DashboardSidebar({
       });
       
       if (!result?.data) throw new Error("No data returned from server");
-      
-      console.log("Folder created:", result.data);
-      
+
       setFolderModalOpen(false);
       setNewFolderName("");
       
