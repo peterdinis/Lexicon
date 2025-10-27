@@ -184,33 +184,36 @@ const DashboardTopBar: FC = () => {
     router.push("/auth/login");
   };
 
-  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('📤 Search form submitted:', searchQuery);
-    if (searchQuery.trim().length >= 2) {
-      search(
-        searchQuery,
-        ["pages", "todos", "events", "diagrams", "folders"],
-        10,
-        true,
-      );
-    }
-  }, [searchQuery, search]);
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (searchQuery.trim().length >= 2) {
+        search(
+          searchQuery,
+          ["pages", "todos", "events", "diagrams", "folders"],
+          10,
+          true,
+        );
+      }
+    },
+    [searchQuery, search],
+  );
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log('⌨️ Input changed:', value);
-    setSearchQuery(value);
-  }, []);
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+    },
+    [],
+  );
 
   const handleResultSelect = useCallback(() => {
-    console.log('🎯 Result selected, closing dialog');
     setIsSearchOpen(false);
     setSearchQuery("");
   }, []);
 
   if (userError) {
-    console.error('❌ User error:', userError);
+    console.error("❌ User error:", userError);
     router.push("/auth/login");
     return null;
   }
@@ -222,12 +225,6 @@ const DashboardTopBar: FC = () => {
       </div>
     );
   }
-
-  console.log('🎨 Rendering DashboardTopBar:', {
-    searchQuery,
-    resultsCount: results.length,
-    loading,
-  });
 
   return (
     <header className="border-b bg-background">

@@ -134,7 +134,7 @@ async function loadSearchData(userId: string): Promise<SearchData> {
         .where(and(eq(pages.user_id, userId), eq(pages.in_trash, 1)))
         .orderBy(desc(pages.updated_at))
         .limit(1000)
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading pages:", error);
           return [];
         }),
@@ -148,9 +148,9 @@ async function loadSearchData(userId: string): Promise<SearchData> {
           blocks.map((block) => ({
             ...block,
             searchableContent: extractSearchableContent(block.content),
-          }))
+          })),
         )
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading blocks:", error);
           return [];
         }),
@@ -162,7 +162,7 @@ async function loadSearchData(userId: string): Promise<SearchData> {
         .where(eq(todos.user_id, userId))
         .orderBy(desc(todos.updated_at))
         .limit(1000)
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading todos:", error);
           return [];
         }),
@@ -171,10 +171,15 @@ async function loadSearchData(userId: string): Promise<SearchData> {
       db
         .select()
         .from(calendarEvents)
-        .where(and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, 1)))
+        .where(
+          and(
+            eq(calendarEvents.user_id, userId),
+            eq(calendarEvents.in_trash, 1),
+          ),
+        )
         .orderBy(desc(calendarEvents.updated_at))
         .limit(1000)
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading events:", error);
           return [];
         }),
@@ -186,7 +191,7 @@ async function loadSearchData(userId: string): Promise<SearchData> {
         .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, 1)))
         .orderBy(desc(diagrams.updated_at))
         .limit(1000)
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading diagrams:", error);
           return [];
         }),
@@ -198,7 +203,7 @@ async function loadSearchData(userId: string): Promise<SearchData> {
         .where(and(eq(folders.user_id, userId), eq(folders.in_trash, 1)))
         .orderBy(desc(folders.updated_at))
         .limit(1000)
-        .catch(error => {
+        .catch((error) => {
           console.error("Error loading folders:", error);
           return [];
         }),
@@ -232,10 +237,10 @@ async function loadSearchData(userId: string): Promise<SearchData> {
 // Improved content extraction
 function extractSearchableContent(content: any): string {
   if (!content) return "";
-  
+
   try {
     // If it's already a string, try to parse as JSON
-    if (typeof content === 'string') {
+    if (typeof content === "string") {
       try {
         const parsed = JSON.parse(content);
         return extractContentFromObject(parsed);
@@ -244,12 +249,12 @@ function extractSearchableContent(content: any): string {
         return content;
       }
     }
-    
+
     // If it's an object, extract content
-    if (typeof content === 'object') {
+    if (typeof content === "object") {
       return extractContentFromObject(content);
     }
-    
+
     return String(content);
   } catch {
     return String(content);
@@ -258,21 +263,27 @@ function extractSearchableContent(content: any): string {
 
 function extractContentFromObject(obj: any): string {
   if (!obj) return "";
-  
-  if (typeof obj === 'string') return obj;
+
+  if (typeof obj === "string") return obj;
   if (obj.text) return obj.text;
   if (obj.content) return obj.content;
   if (obj.title) return obj.title;
   if (obj.description) return obj.description;
-  
+
   if (Array.isArray(obj)) {
-    return obj.map(item => extractContentFromObject(item)).filter(Boolean).join(' ');
+    return obj
+      .map((item) => extractContentFromObject(item))
+      .filter(Boolean)
+      .join(" ");
   }
-  
-  if (typeof obj === 'object') {
-    return Object.values(obj).map(value => extractContentFromObject(value)).filter(Boolean).join(' ');
+
+  if (typeof obj === "object") {
+    return Object.values(obj)
+      .map((value) => extractContentFromObject(value))
+      .filter(Boolean)
+      .join(" ");
   }
-  
+
   return String(obj);
 }
 
@@ -413,7 +424,7 @@ function searchInCollection(
   try {
     const fuse = new Fuse(data, fuseOptions[type as keyof typeof fuseOptions]);
     const searchResults = fuse.search(query, { limit });
-    
+
     const results = searchResults.map((result): SearchResult => {
       const creator = resultCreators[type as keyof typeof resultCreators];
       if (!creator) {
@@ -444,14 +455,26 @@ function simpleSearch(
   limit: number,
 ): SearchResult[] {
   const lowerQuery = query.toLowerCase();
-  const filtered = data.filter(item => {
-    if (item.title && item.title.toLowerCase().includes(lowerQuery)) return true;
-    if (item.description && item.description.toLowerCase().includes(lowerQuery)) return true;
-    if (type === 'blocks' && item.searchableContent && item.searchableContent.toLowerCase().includes(lowerQuery)) return true;
-    return false;
-  }).slice(0, limit);
+  const filtered = data
+    .filter((item) => {
+      if (item.title && item.title.toLowerCase().includes(lowerQuery))
+        return true;
+      if (
+        item.description &&
+        item.description.toLowerCase().includes(lowerQuery)
+      )
+        return true;
+      if (
+        type === "blocks" &&
+        item.searchableContent &&
+        item.searchableContent.toLowerCase().includes(lowerQuery)
+      )
+        return true;
+      return false;
+    })
+    .slice(0, limit);
 
-  return filtered.map(item => {
+  return filtered.map((item) => {
     const creator = resultCreators[type as keyof typeof resultCreators];
     return creator ? creator(item) : createPageResult(item);
   });
@@ -485,29 +508,33 @@ export const searchAction = actionClient
       for (const type of types) {
         const data = searchData[type as keyof SearchData];
         if (data && data.length > 0) {
-
           const typeResults = searchInCollection(
             data,
             query,
             type,
             Math.ceil(limit / types.length),
           );
-          
+
           // Fallback to simple search if no results
           if (typeResults.length === 0) {
-            const simpleResults = simpleSearch(data, query, type, Math.ceil(limit / types.length));
+            const simpleResults = simpleSearch(
+              data,
+              query,
+              type,
+              Math.ceil(limit / types.length),
+            );
             results.push(...simpleResults);
           } else {
             results.push(...typeResults);
           }
         } else {
-          throw new Error("Something went wrong")
+          throw new Error("Something went wrong");
         }
       }
 
       // Zoradiť a limitovať výsledky
       const sortedResults = results
-        .filter(result => result && result.score !== undefined)
+        .filter((result) => result && result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, limit);
       return {
@@ -519,7 +546,7 @@ export const searchAction = actionClient
         },
       };
     } catch (error) {
-      console.error('❌ Search action error:', error);
+      console.error("❌ Search action error:", error);
       return {
         success: false,
         error: getErrorMessage(error),
@@ -534,12 +561,13 @@ export const searchAction = actionClient
 
 // Rýchle vyhľadávanie
 export const quickSearchAction = actionClient
-  .schema(z.object({ 
-    query: z.string().min(1, "Query must be at least 1 character long") 
-  }))
+  .schema(
+    z.object({
+      query: z.string().min(1, "Query must be at least 1 character long"),
+    }),
+  )
   .action(async ({ parsedInput: { query } }) => {
     try {
-
       if (query.length < 1) {
         return {
           success: true,
@@ -567,7 +595,7 @@ export const quickSearchAction = actionClient
       });
 
       const sortedResults = results
-        .filter(result => result && result.score !== undefined)
+        .filter((result) => result && result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, 5);
 
@@ -580,7 +608,7 @@ export const quickSearchAction = actionClient
         },
       };
     } catch (error) {
-      console.error('❌ Quick search error:', error);
+      console.error("❌ Quick search error:", error);
       return {
         success: false,
         error: getErrorMessage(error),
