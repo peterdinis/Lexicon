@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import { Spinner } from "../ui/spinner";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback } from "react";
 import { SearchResult } from "@/actions/searchActions";
 import { useSearch } from "@/hooks/use-search";
 
@@ -148,9 +148,11 @@ const DashboardTopBar: FC = () => {
     dedupingInterval: 60000,
   });
 
-  // Debounced search
+  // Debounced search s lepšou logikou
   useEffect(() => {
-    if (searchQuery.trim().length >= 2 && isSearchOpen) {
+    if (!isSearchOpen) return;
+
+    if (searchQuery.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
         search(
           searchQuery,
@@ -159,7 +161,11 @@ const DashboardTopBar: FC = () => {
         );
       }, 300);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    } else if (searchQuery.trim().length === 0) {
+      search("", ["pages"], 0, true);
     }
   }, [searchQuery, isSearchOpen, search]);
 
@@ -167,40 +173,50 @@ const DashboardTopBar: FC = () => {
   useEffect(() => {
     if (!isSearchOpen) {
       setSearchQuery("");
+    } else {
+      throw new Error("Something went wrong");
     }
   }, [isSearchOpen]);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    mutate(undefined, false);
+    router.push("/auth/login");
+  };
+
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (searchQuery.trim().length >= 2) {
+        search(
+          searchQuery,
+          ["pages", "todos", "events", "diagrams", "folders"],
+          10,
+          true,
+        );
+      }
+    },
+    [searchQuery, search],
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+    },
+    [],
+  );
+
+  const handleResultSelect = useCallback(() => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+  }, []);
+
   if (userError) {
+    console.error("❌ User error:", userError);
     router.push("/auth/login");
     return null;
   }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    mutate(null, false);
-    router.push("/auth/login");
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim().length >= 2) {
-      search(
-        searchQuery,
-        ["pages", "todos", "events", "diagrams", "folders"],
-        10,
-        true,
-      );
-    }
-  };
-
-  const handleInputChange = (value: string) => {
-    setSearchQuery(value);
-  };
-
-  const handleResultSelect = () => {
-    setIsSearchOpen(false);
-    setSearchQuery("");
-  };
 
   if (!user) {
     return (
@@ -232,7 +248,7 @@ const DashboardTopBar: FC = () => {
                     <Input
                       placeholder="Hľadať stránky, úlohy, udalosti, diagramy..."
                       value={searchQuery}
-                      onChange={(e) => handleInputChange(e.target.value)}
+                      onChange={handleInputChange}
                       autoFocus
                     />
                   </div>
@@ -328,7 +344,7 @@ const DashboardTopBar: FC = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Odhlásiť sa
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
