@@ -13,7 +13,7 @@ import {
   getAllPagesHandler,
   getPageHandler,
   movePageHandler,
-} from "./handlers/pageHandlers";
+} from "./handlers/pagesHandlers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/drizzle/db";
 import { eq } from "drizzle-orm";
