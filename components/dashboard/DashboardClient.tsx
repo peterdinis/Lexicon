@@ -121,9 +121,7 @@ const pageColumns: ColumnDef<Page>[] = [
     accessorKey: "title",
     header: "Title",
     cell: ({ row }) => (
-      <div className="font-medium">
-        {row.getValue("title") || "Untitled"}
-      </div>
+      <div className="font-medium">{row.getValue("title") || "Untitled"}</div>
     ),
   },
   {
@@ -140,10 +138,9 @@ const pageColumns: ColumnDef<Page>[] = [
     header: "Created",
     cell: ({ row }) => (
       <div className="text-sm">
-        {row.getValue("created_at") 
+        {row.getValue("created_at")
           ? new Date(row.getValue("created_at")).toLocaleDateString()
-          : "Unknown"
-        }
+          : "Unknown"}
       </div>
     ),
   },
@@ -161,38 +158,42 @@ const pageColumns: ColumnDef<Page>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/page/${page.id}`}>
-                Open
-              </Link>
+              <Link href={`/page/${page.id}`}>Open</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => (window as any).openEditDialog?.(
-                "page",
-                page.id,
-                page.title || "Untitled",
-                page.description
-              )}
+              onClick={() =>
+                (window as any).openEditDialog?.(
+                  "page",
+                  page.id,
+                  page.title || "Untitled",
+                  page.description,
+                )
+              }
             >
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => (window as any).openMoveDialog?.(
-                page.id,
-                page.title || "Untitled",
-                page.parent_id
-              )}
+              onClick={() =>
+                (window as any).openMoveDialog?.(
+                  page.id,
+                  page.title || "Untitled",
+                  page.parent_id,
+                )
+              }
             >
               <Move className="h-4 w-4 mr-2" />
               Move
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => (window as any).openDeleteDialog?.(
-                "page",
-                page.id,
-                page.title || "Untitled"
-              )}
+              onClick={() =>
+                (window as any).openDeleteDialog?.(
+                  "page",
+                  page.id,
+                  page.title || "Untitled",
+                )
+              }
               className="text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2" />
@@ -222,10 +223,9 @@ const folderColumns: ColumnDef<FolderType>[] = [
     header: "Created",
     cell: ({ row }) => (
       <div className="text-sm">
-        {row.getValue("created_at") 
+        {row.getValue("created_at")
           ? new Date(row.getValue("created_at")).toLocaleDateString()
-          : "Unknown"
-        }
+          : "Unknown"}
       </div>
     ),
   },
@@ -251,22 +251,26 @@ const folderColumns: ColumnDef<FolderType>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => (window as any).openEditDialog?.(
-                  "folder",
-                  folder.id,
-                  folder.title || "Unnamed Folder"
-                )}
+                onClick={() =>
+                  (window as any).openEditDialog?.(
+                    "folder",
+                    folder.id,
+                    folder.title || "Unnamed Folder",
+                  )
+                }
               >
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => (window as any).openDeleteDialog?.(
-                  "folder",
-                  folder.id,
-                  folder.title || "Unnamed Folder"
-                )}
+                onClick={() =>
+                  (window as any).openDeleteDialog?.(
+                    "folder",
+                    folder.id,
+                    folder.title || "Unnamed Folder",
+                  )
+                }
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -378,30 +382,33 @@ export default function DashboardClient({
   const foldersStart = (foldersPage - 1) * itemsPerPage;
 
   const pagesToShow = pages.slice(pagesStart, pagesStart + itemsPerPage);
-  const foldersToShow = folders.slice(foldersStart, foldersStart + itemsPerPage);
+  const foldersToShow = folders.slice(
+    foldersStart,
+    foldersStart + itemsPerPage,
+  );
 
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
 
   const loadFolderDetail = async (folderId: string) => {
-  setFolderDetailDialog(prev => ({ ...prev, loading: true }));
-  try {
-    const result = await getFolderDetailAction({ id: folderId });
-    
-    if (result.data) {
-      setFolderDetailDialog(prev => ({
-        ...prev,
-        data: result.data as unknown as FolderDetail, // explicitný typ
-        loading: false
-      }));
-    } else {
-      setFolderDetailDialog(prev => ({ ...prev, loading: false }));
+    setFolderDetailDialog((prev) => ({ ...prev, loading: true }));
+    try {
+      const result = await getFolderDetailAction({ id: folderId });
+
+      if (result.data) {
+        setFolderDetailDialog((prev) => ({
+          ...prev,
+          data: result.data as unknown as FolderDetail, // explicitný typ
+          loading: false,
+        }));
+      } else {
+        setFolderDetailDialog((prev) => ({ ...prev, loading: false }));
+      }
+    } catch (error) {
+      console.error("Error loading folder detail:", error);
+      setFolderDetailDialog((prev) => ({ ...prev, loading: false }));
     }
-  } catch (error) {
-    console.error("Error loading folder detail:", error);
-    setFolderDetailDialog(prev => ({ ...prev, loading: false }));
-  }
-};
+  };
 
   // Otvorenie dialogu pre detail priečinka
   const openFolderDetailDialog = async (folderId: string) => {
@@ -409,7 +416,7 @@ export default function DashboardClient({
       open: true,
       folderId,
       data: null,
-      loading: true
+      loading: true,
     });
     await loadFolderDetail(folderId);
   };
@@ -483,7 +490,11 @@ export default function DashboardClient({
     }
   };
 
-  const openDeleteDialog = (type: "page" | "folder", id: string, title: string) => {
+  const openDeleteDialog = (
+    type: "page" | "folder",
+    id: string,
+    title: string,
+  ) => {
     setDeleteDialog({ open: true, type, id, title });
   };
 
@@ -541,7 +552,7 @@ export default function DashboardClient({
                 key={folder.id}
                 className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
               >
-                <div 
+                <div
                   onClick={() => openFolderDetailDialog(folder.id)}
                   className="block cursor-pointer"
                 >
@@ -782,7 +793,9 @@ export default function DashboardClient({
       {/* Folder Detail Dialog */}
       <Dialog
         open={folderDetailDialog.open}
-        onOpenChange={(open) => setFolderDetailDialog(prev => ({ ...prev, open }))}
+        onOpenChange={(open) =>
+          setFolderDetailDialog((prev) => ({ ...prev, open }))
+        }
       >
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -804,7 +817,9 @@ export default function DashboardClient({
               {/* Pages Table */}
               {folderDetailDialog.data.pages.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Pages ({folderDetailDialog.data.pages.length})</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Pages ({folderDetailDialog.data.pages.length})
+                  </h3>
                   <div className="border rounded-lg">
                     <Table>
                       <TableHeader>
@@ -816,7 +831,7 @@ export default function DashboardClient({
                                   ? null
                                   : flexRender(
                                       header.column.columnDef.header,
-                                      header.getContext()
+                                      header.getContext(),
                                     )}
                               </TableHead>
                             ))}
@@ -834,7 +849,7 @@ export default function DashboardClient({
                                 <TableCell key={cell.id}>
                                   {flexRender(
                                     cell.column.columnDef.cell,
-                                    cell.getContext()
+                                    cell.getContext(),
                                   )}
                                 </TableCell>
                               ))}
@@ -859,7 +874,9 @@ export default function DashboardClient({
               {/* Subfolders Table */}
               {folderDetailDialog.data.subfolders.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Subfolders ({folderDetailDialog.data.subfolders.length})</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Subfolders ({folderDetailDialog.data.subfolders.length})
+                  </h3>
                   <div className="border rounded-lg">
                     <Table>
                       <TableHeader>
@@ -871,7 +888,7 @@ export default function DashboardClient({
                                   ? null
                                   : flexRender(
                                       header.column.columnDef.header,
-                                      header.getContext()
+                                      header.getContext(),
                                     )}
                               </TableHead>
                             ))}
@@ -889,7 +906,7 @@ export default function DashboardClient({
                                 <TableCell key={cell.id}>
                                   {flexRender(
                                     cell.column.columnDef.cell,
-                                    cell.getContext()
+                                    cell.getContext(),
                                   )}
                                 </TableCell>
                               ))}
@@ -911,12 +928,12 @@ export default function DashboardClient({
                 </div>
               )}
 
-              {folderDetailDialog.data.pages.length === 0 && 
-               folderDetailDialog.data.subfolders.length === 0 && (
-                <div className="text-center py-8 text-neutral-500">
-                  This folder is empty
-                </div>
-              )}
+              {folderDetailDialog.data.pages.length === 0 &&
+                folderDetailDialog.data.subfolders.length === 0 && (
+                  <div className="text-center py-8 text-neutral-500">
+                    This folder is empty
+                  </div>
+                )}
             </div>
           ) : (
             <div className="text-center py-8 text-neutral-500">
@@ -927,7 +944,9 @@ export default function DashboardClient({
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setFolderDetailDialog(prev => ({ ...prev, open: false }))}
+              onClick={() =>
+                setFolderDetailDialog((prev) => ({ ...prev, open: false }))
+              }
             >
               Close
             </Button>
