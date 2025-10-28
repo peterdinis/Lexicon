@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   File,
   Folder,
@@ -61,19 +61,52 @@ import {
 import {
   updateFolderAction,
   deleteFolderAction,
+  getFolderDetailAction,
 } from "@/actions/folderActions";
+
+// Importy pre tabuľku
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Page {
   id: string;
   title?: string;
   description?: string;
   parent_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface FolderType {
   id: string;
   title?: string;
   parent_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface FolderDetail {
+  folder: FolderType;
+  pages: Page[];
+  subfolders: FolderType[];
 }
 
 interface DashboardClientProps {
@@ -81,6 +114,171 @@ interface DashboardClientProps {
   folders: FolderType[];
   itemsPerPage?: number;
 }
+
+// Definícia stĺpcov pre tabuľku stránok
+const pageColumns: ColumnDef<Page>[] = [
+  {
+    accessorKey: "title",
+    header: "Title",
+    cell: ({ row }) => (
+      <div className="font-medium">
+        {row.getValue("title") || "Untitled"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => (
+      <div className="text-sm text-neutral-500">
+        {row.getValue("description") || "No description"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Created",
+    cell: ({ row }) => (
+      <div className="text-sm">
+        {row.getValue("created_at") 
+          ? new Date(row.getValue("created_at")).toLocaleDateString()
+          : "Unknown"
+        }
+      </div>
+    ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const page = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/page/${page.id}`}>
+                Open
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => (window as any).openEditDialog?.(
+                "page",
+                page.id,
+                page.title || "Untitled",
+                page.description
+              )}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => (window as any).openMoveDialog?.(
+                page.id,
+                page.title || "Untitled",
+                page.parent_id
+              )}
+            >
+              <Move className="h-4 w-4 mr-2" />
+              Move
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => (window as any).openDeleteDialog?.(
+                "page",
+                page.id,
+                page.title || "Untitled"
+              )}
+              className="text-red-600"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
+
+// Definícia stĺpcov pre tabuľku priečinkov
+const folderColumns: ColumnDef<FolderType>[] = [
+  {
+    accessorKey: "title",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="font-medium flex items-center">
+        <Folder className="w-4 h-4 mr-2 text-neutral-500" />
+        {row.getValue("title") || "Unnamed Folder"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Created",
+    cell: ({ row }) => (
+      <div className="text-sm">
+        {row.getValue("created_at") 
+          ? new Date(row.getValue("created_at")).toLocaleDateString()
+          : "Unknown"
+        }
+      </div>
+    ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const folder = row.original;
+
+      return (
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => (window as any).openFolderDetailDialog?.(folder.id)}
+          >
+            View Contents
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => (window as any).openEditDialog?.(
+                  "folder",
+                  folder.id,
+                  folder.title || "Unnamed Folder"
+                )}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => (window as any).openDeleteDialog?.(
+                  "folder",
+                  folder.id,
+                  folder.title || "Unnamed Folder"
+                )}
+                className="text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
+  },
+];
 
 export default function DashboardClient({
   pages,
@@ -113,28 +311,112 @@ export default function DashboardClient({
     currentFolderId?: string | null;
   } | null>(null);
 
+  const [folderDetailDialog, setFolderDetailDialog] = useState<{
+    open: boolean;
+    folderId: string | null;
+    data: FolderDetail | null;
+    loading: boolean;
+  }>({
+    open: false,
+    folderId: null,
+    data: null,
+    loading: false,
+  });
+
+  // State pre tabuľky
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+
   // State pre formuláre
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Vytvorenie tabuliek pre detail priečinka
+  const pagesTable = useReactTable({
+    data: folderDetailDialog.data?.pages || [],
+    columns: pageColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
+  const foldersTable = useReactTable({
+    data: folderDetailDialog.data?.subfolders || [],
+    columns: folderColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
   const pagesStart = (pagesPage - 1) * itemsPerPage;
   const foldersStart = (foldersPage - 1) * itemsPerPage;
 
   const pagesToShow = pages.slice(pagesStart, pagesStart + itemsPerPage);
-  const foldersToShow = folders.slice(
-    foldersStart,
-    foldersStart + itemsPerPage,
-  );
+  const foldersToShow = folders.slice(foldersStart, foldersStart + itemsPerPage);
 
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
 
-  // Funkcie pre prácu so stránkami
+  const loadFolderDetail = async (folderId: string) => {
+  setFolderDetailDialog(prev => ({ ...prev, loading: true }));
+  try {
+    const result = await getFolderDetailAction({ id: folderId });
+    
+    if (result.data) {
+      setFolderDetailDialog(prev => ({
+        ...prev,
+        data: result.data as unknown as FolderDetail, // explicitný typ
+        loading: false
+      }));
+    } else {
+      setFolderDetailDialog(prev => ({ ...prev, loading: false }));
+    }
+  } catch (error) {
+    console.error("Error loading folder detail:", error);
+    setFolderDetailDialog(prev => ({ ...prev, loading: false }));
+  }
+};
+
+  // Otvorenie dialogu pre detail priečinka
+  const openFolderDetailDialog = async (folderId: string) => {
+    setFolderDetailDialog({
+      open: true,
+      folderId,
+      data: null,
+      loading: true
+    });
+    await loadFolderDetail(folderId);
+  };
+
+  // Funkcie pre prácu so stránkami a priečinkami
   const handleDelete = async () => {
     if (!deleteDialog) return;
-
     setLoading(true);
     try {
       if (deleteDialog.type === "page") {
@@ -144,8 +426,6 @@ export default function DashboardClient({
         const result = await deleteFolderAction({ id: deleteDialog.id });
         if (!result.data) throw new Error("Something went wrong");
       }
-
-      // Refresh stránky pre získanie aktuálnych dát
       window.location.reload();
     } catch (error) {
       console.error("Error deleting:", error);
@@ -158,7 +438,6 @@ export default function DashboardClient({
 
   const handleEdit = async () => {
     if (!editDialog) return;
-
     setLoading(true);
     try {
       if (editDialog.type === "page") {
@@ -175,7 +454,6 @@ export default function DashboardClient({
         });
         if (!result.data) throw new Error("Something went wrong");
       }
-
       window.location.reload();
     } catch (error) {
       console.error("Error updating:", error);
@@ -188,16 +466,13 @@ export default function DashboardClient({
 
   const handleMove = async () => {
     if (!moveDialog) return;
-
     setLoading(true);
     try {
       const result = await movePageAction({
         id: moveDialog.pageId,
         parent_id: selectedFolderId,
       });
-
       if (!result.data) throw new Error("Failed to move page");
-
       window.location.reload();
     } catch (error) {
       console.error("Error moving page:", error);
@@ -208,12 +483,7 @@ export default function DashboardClient({
     }
   };
 
-  // Otvorenie dialógov
-  const openDeleteDialog = (
-    type: "page" | "folder",
-    id: string,
-    title: string,
-  ) => {
+  const openDeleteDialog = (type: "page" | "folder", id: string, title: string) => {
     setDeleteDialog({ open: true, type, id, title });
   };
 
@@ -236,6 +506,14 @@ export default function DashboardClient({
     setMoveDialog({ open: true, pageId, pageTitle, currentFolderId });
     setSelectedFolderId(currentFolderId || null);
   };
+
+  // Vystavenie funkcií pre globálny prístup
+  useEffect(() => {
+    (window as any).openEditDialog = openEditDialog;
+    (window as any).openDeleteDialog = openDeleteDialog;
+    (window as any).openMoveDialog = openMoveDialog;
+    (window as any).openFolderDetailDialog = openFolderDetailDialog;
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -263,16 +541,18 @@ export default function DashboardClient({
                 key={folder.id}
                 className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
               >
-                <Link href={`/folder/${folder.id}`} className="block">
+                <div 
+                  onClick={() => openFolderDetailDialog(folder.id)}
+                  className="block cursor-pointer"
+                >
                   <div className="flex items-center mb-2">
                     <Folder className="w-5 h-5 mr-2 text-neutral-500" />
                     <h3 className="font-medium text-neutral-900 dark:text-white">
                       {folder.title || "Unnamed Folder"}
                     </h3>
                   </div>
-                </Link>
+                </div>
 
-                {/* Dropdown menu pre akcie */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -284,6 +564,11 @@ export default function DashboardClient({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => openFolderDetailDialog(folder.id)}
+                    >
+                      View Contents
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() =>
                         openEditDialog(
@@ -384,7 +669,6 @@ export default function DashboardClient({
                   </p>
                 </Link>
 
-                {/* Dropdown menu pre akcie */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -494,6 +778,162 @@ export default function DashboardClient({
           </p>
         </div>
       )}
+
+      {/* Folder Detail Dialog */}
+      <Dialog
+        open={folderDetailDialog.open}
+        onOpenChange={(open) => setFolderDetailDialog(prev => ({ ...prev, open }))}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Folder className="w-5 h-5 mr-2" />
+              {folderDetailDialog.data?.folder.title || "Folder Contents"}
+            </DialogTitle>
+            <DialogDescription>
+              View and manage files and subfolders in this folder
+            </DialogDescription>
+          </DialogHeader>
+
+          {folderDetailDialog.loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900"></div>
+            </div>
+          ) : folderDetailDialog.data ? (
+            <div className="space-y-6">
+              {/* Pages Table */}
+              {folderDetailDialog.data.pages.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Pages ({folderDetailDialog.data.pages.length})</h3>
+                  <div className="border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        {pagesTable.getHeaderGroups().map((headerGroup) => (
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableHeader>
+                      <TableBody>
+                        {pagesTable.getRowModel().rows?.length ? (
+                          pagesTable.getRowModel().rows.map((row) => (
+                            <TableRow
+                              key={row.id}
+                              data-state={row.getIsSelected() && "selected"}
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={pageColumns.length}
+                              className="h-24 text-center"
+                            >
+                              No results.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              {/* Subfolders Table */}
+              {folderDetailDialog.data.subfolders.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Subfolders ({folderDetailDialog.data.subfolders.length})</h3>
+                  <div className="border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        {foldersTable.getHeaderGroups().map((headerGroup) => (
+                          <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableHeader>
+                      <TableBody>
+                        {foldersTable.getRowModel().rows?.length ? (
+                          foldersTable.getRowModel().rows.map((row) => (
+                            <TableRow
+                              key={row.id}
+                              data-state={row.getIsSelected() && "selected"}
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id}>
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={folderColumns.length}
+                              className="h-24 text-center"
+                            >
+                              No results.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+              {folderDetailDialog.data.pages.length === 0 && 
+               folderDetailDialog.data.subfolders.length === 0 && (
+                <div className="text-center py-8 text-neutral-500">
+                  This folder is empty
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-neutral-500">
+              Failed to load folder contents
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setFolderDetailDialog(prev => ({ ...prev, open: false }))}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

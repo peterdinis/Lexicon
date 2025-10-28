@@ -4,6 +4,7 @@ import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
 import {
   createFolderHandler,
+  getFolderDetailHandler,
   getFoldersHandler,
 } from "./handlers/folderHandlers";
 import {
@@ -16,6 +17,7 @@ import {
   deleteFolderHandler,
   updateFolderHandler,
 } from "./handlers/todosHandler";
+import z from "zod";
 
 export const createFolderAction = actionClient
   .inputSchema(createFolderSchema)
@@ -62,6 +64,17 @@ export const deleteFolderAction = actionClient
       const result = await deleteFolderHandler(id);
       revalidatePath("/dashboard");
       revalidatePath("/");
+      return { success: true, data: result };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+export const getFolderDetailAction = actionClient
+  .inputSchema(z.object({ id: z.string() }))
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      const result = await getFolderDetailHandler(id);
       return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));

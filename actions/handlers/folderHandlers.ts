@@ -1,8 +1,8 @@
 import { db } from "@/drizzle/db";
-import { folders } from "@/drizzle/schema";
+import { folders, pages } from "@/drizzle/schema";
 import { generateId } from "@/lib/generate-id";
 import { getSupabaseServerClient } from "@/supabase/server";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 
 export async function createFolderHandler(
   parentId: string | null,
@@ -57,4 +57,58 @@ export async function getFoldersHandler() {
     .orderBy(asc(folders.created_at));
 
   return data;
+}
+
+export async function getFolderDetailHandler(folderId: string) {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  // Získanie detailu priečinka
+  const [folder] = await db
+    .select()
+    .from(folders)
+    .where(
+      and(
+        eq(folders.id, folderId),
+        eq(folders.user_id, user.id)
+      )
+    );
+
+  if (!folder) throw new Error("Folder not found");
+
+  // Získanie stránok v priečinku
+  const pagesInFolder = await db
+    .select()
+    .from(pages)
+    .where(
+      and(
+        eq(pages.parent_id, folderId),
+        eq(pages.user_id, user.id)
+      )
+    )
+    .orderBy(asc(pages.created_at));
+
+  // Získanie podpriečinkov
+  const subfolders = await db
+    .select()
+    .from(folders)
+    .where(
+      and(
+        eq(folders.user_id, user.id)
+      )
+    )
+    .orderBy(asc(folders.created_at));
+
+  return {
+    folder,
+    pages: pagesInFolder,
+    subfolders
+  };
 }

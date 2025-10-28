@@ -7,7 +7,7 @@ export interface Page {
   title: string;
   content?: string;
   description?: string;
-  icon?: string;
+  icon?: any;
   cover_image?: string;
   parent_id?: string | null;
   is_folder?: number;
