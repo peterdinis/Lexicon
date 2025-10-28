@@ -29,7 +29,9 @@ export interface TrashItems {
 /**
  * Get all trashed items (pages and folders)
  */
-export async function getAllTrashedItemsHandler(): Promise<{ data: TrashItems }> {
+export async function getAllTrashedItemsHandler(): Promise<{
+  data: TrashItems;
+}> {
   try {
     // Get trashed pages (where in_trash = 0 means NOT in trash, 1 means IN trash)
     const trashedPages = await db
@@ -60,7 +62,9 @@ export async function getAllTrashedItemsHandler(): Promise<{ data: TrashItems }>
 /**
  * Get all non-trashed items (for dashboard)
  */
-export async function getAllNonTrashedItemsHandler(): Promise<{ data: TrashItems }> {
+export async function getAllNonTrashedItemsHandler(): Promise<{
+  data: TrashItems;
+}> {
   try {
     // Get non-trashed pages (where in_trash = 1 means NOT in trash)
     const nonTrashedPages = await db
@@ -91,7 +95,10 @@ export async function getAllNonTrashedItemsHandler(): Promise<{ data: TrashItems
 /**
  * Move item to trash
  */
-export async function moveToTrashHandler(table: "pages" | "folders", id: string): Promise<void> {
+export async function moveToTrashHandler(
+  table: "pages" | "folders",
+  id: string,
+): Promise<void> {
   try {
     const currentTime = new Date().toISOString();
 
@@ -110,18 +117,18 @@ export async function moveToTrashHandler(table: "pages" | "folders", id: string)
       // Move to trash by setting in_trash = 0
       await db
         .update(pages)
-        .set({ 
+        .set({
           in_trash: 0, // 0 = in trash
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(pages.id, id));
 
       // Also move all blocks of this page to trash
       await db
         .update(blocks)
-        .set({ 
+        .set({
           in_trash: 0,
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(blocks.page_id, id));
 
@@ -141,9 +148,9 @@ export async function moveToTrashHandler(table: "pages" | "folders", id: string)
       // Move to trash by setting in_trash = 0
       await db
         .update(folders)
-        .set({ 
+        .set({
           in_trash: 0, // 0 = in trash
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(folders.id, id));
 
@@ -158,7 +165,10 @@ export async function moveToTrashHandler(table: "pages" | "folders", id: string)
 /**
  * Restore item from trash
  */
-export async function restoreFromTrashHandler(table: "pages" | "folders", id: string): Promise<void> {
+export async function restoreFromTrashHandler(
+  table: "pages" | "folders",
+  id: string,
+): Promise<void> {
   try {
     const currentTime = new Date().toISOString();
 
@@ -177,18 +187,18 @@ export async function restoreFromTrashHandler(table: "pages" | "folders", id: st
       // Restore by setting in_trash = 1
       await db
         .update(pages)
-        .set({ 
+        .set({
           in_trash: 1, // 1 = not in trash
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(pages.id, id));
 
       // Also restore all blocks of this page
       await db
         .update(blocks)
-        .set({ 
+        .set({
           in_trash: 1,
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(blocks.page_id, id));
 
@@ -208,9 +218,9 @@ export async function restoreFromTrashHandler(table: "pages" | "folders", id: st
       // Restore by setting in_trash = 1
       await db
         .update(folders)
-        .set({ 
+        .set({
           in_trash: 1, // 1 = not in trash
-          updated_at: currentTime
+          updated_at: currentTime,
         })
         .where(eq(folders.id, id));
 
@@ -225,7 +235,10 @@ export async function restoreFromTrashHandler(table: "pages" | "folders", id: st
 /**
  * Permanently delete item from trash
  */
-export async function permanentlyDeleteHandler(table: "pages" | "folders", id: string): Promise<void> {
+export async function permanentlyDeleteHandler(
+  table: "pages" | "folders",
+  id: string,
+): Promise<void> {
   try {
     if (table === "pages") {
       // Check if page exists in trash
@@ -240,14 +253,10 @@ export async function permanentlyDeleteHandler(table: "pages" | "folders", id: s
       }
 
       // First delete all blocks associated with this page
-      await db
-        .delete(blocks)
-        .where(eq(blocks.page_id, id));
+      await db.delete(blocks).where(eq(blocks.page_id, id));
 
       // Then delete the page
-      await db
-        .delete(pages)
-        .where(eq(pages.id, id));
+      await db.delete(pages).where(eq(pages.id, id));
 
       console.log(`Permanently deleted page ${id}`);
     } else {
@@ -273,9 +282,7 @@ export async function permanentlyDeleteHandler(table: "pages" | "folders", id: s
       }
 
       // Delete the folder
-      await db
-        .delete(folders)
-        .where(eq(folders.id, id));
+      await db.delete(folders).where(eq(folders.id, id));
 
       console.log(`Permanently deleted folder ${id}`);
     }
@@ -297,20 +304,14 @@ export async function emptyTrashHandler(): Promise<void> {
       .where(eq(pages.in_trash, 0));
 
     for (const page of trashedPages) {
-      await db
-        .delete(blocks)
-        .where(eq(blocks.page_id, page.id));
+      await db.delete(blocks).where(eq(blocks.page_id, page.id));
     }
 
     // Permanently delete all trashed pages
-    await db
-      .delete(pages)
-      .where(eq(pages.in_trash, 0));
+    await db.delete(pages).where(eq(pages.in_trash, 0));
 
     // Permanently delete all trashed folders
-    await db
-      .delete(folders)
-      .where(eq(folders.in_trash, 0));
+    await db.delete(folders).where(eq(folders.in_trash, 0));
 
     console.log("Emptied trash");
   } catch (error) {
@@ -322,8 +323,8 @@ export async function emptyTrashHandler(): Promise<void> {
 /**
  * Get trash statistics
  */
-export async function getTrashStatsHandler(): Promise<{ 
-  pagesCount: number; 
+export async function getTrashStatsHandler(): Promise<{
+  pagesCount: number;
   foldersCount: number;
   totalCount: number;
 }> {
@@ -375,22 +376,26 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
     const folderPages = await db
       .select()
       .from(pages)
-      .where(and(
-        eq(pages.parent_id, folderId),
-        eq(pages.in_trash, 1), // 1 = not in trash
-        eq(pages.is_folder, 0) // 0 = not a folder (actual page)
-      ))
+      .where(
+        and(
+          eq(pages.parent_id, folderId),
+          eq(pages.in_trash, 1), // 1 = not in trash
+          eq(pages.is_folder, 0), // 0 = not a folder (actual page)
+        ),
+      )
       .orderBy(desc(pages.updated_at));
 
     // Get subfolders in this folder (not in trash)
     const subfolders = await db
       .select()
       .from(folders)
-      .where(and(
-        // If your folders have parent_id structure, adjust here
-        // Currently folders don't have parent_id in your schema
-        eq(folders.in_trash, 1) // 1 = not in trash
-      ))
+      .where(
+        and(
+          // If your folders have parent_id structure, adjust here
+          // Currently folders don't have parent_id in your schema
+          eq(folders.in_trash, 1), // 1 = not in trash
+        ),
+      )
       .orderBy(desc(folders.updated_at));
 
     return {

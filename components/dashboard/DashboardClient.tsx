@@ -432,9 +432,9 @@ export default function DashboardClient({
         id: moveToTrashDialog.id,
         table: moveToTrashDialog.type === "page" ? "pages" : "folders",
       });
-      
+
       if (!result.data) throw new Error("Failed to move to trash");
-      
+
       window.location.reload();
     } catch (error) {
       console.error("Error moving to trash:", error);
@@ -965,8 +965,9 @@ export default function DashboardClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Move to Trash</AlertDialogTitle>
             <AlertDialogDescription>
-              This will move the {moveToTrashDialog?.type} "{moveToTrashDialog?.title}" to trash. 
-              You can restore it later from the trash.
+              This will move the {moveToTrashDialog?.type} "
+              {moveToTrashDialog?.title}" to trash. You can restore it later
+              from the trash.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

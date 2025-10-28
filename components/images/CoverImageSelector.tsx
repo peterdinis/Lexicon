@@ -51,13 +51,14 @@ export function CoverImageSelector({
   const [open, setOpen] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<ImageCategory>("nature");
+  const [selectedCategory, setSelectedCategory] =
+    useState<ImageCategory>("nature");
   const [isLoading, setIsLoading] = useState(false);
 
   // Filtrované obrázky podľa vyhľadávania
   const filteredImages = searchQuery
-    ? ALL_IMAGES.filter(url => 
-        url.toLowerCase().includes(searchQuery.toLowerCase())
+    ? ALL_IMAGES.filter((url) =>
+        url.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : IMAGE_CATEGORIES[selectedCategory];
 
@@ -73,7 +74,7 @@ export function CoverImageSelector({
     try {
       // Validácia URL
       new URL(customUrl.trim());
-      
+
       // Test načítania obrázka
       await new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -125,7 +126,7 @@ export function CoverImageSelector({
                 URL
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="gallery" className="p-0">
               {/* Vyhľadávanie */}
               <div className="p-4 border-b">
@@ -143,15 +144,17 @@ export function CoverImageSelector({
               {/* Kategórie (len ak nie je vyhľadávanie) */}
               {!searchQuery && (
                 <div className="p-4 border-b">
-                  <Tabs 
-                    value={selectedCategory} 
-                    onValueChange={(value) => setSelectedCategory(value as ImageCategory)}
+                  <Tabs
+                    value={selectedCategory}
+                    onValueChange={(value) =>
+                      setSelectedCategory(value as ImageCategory)
+                    }
                     className="w-full"
                   >
                     <TabsList className="w-full grid grid-cols-4">
                       {Object.keys(IMAGE_CATEGORIES).map((category) => (
-                        <TabsTrigger 
-                          key={category} 
+                        <TabsTrigger
+                          key={category}
                           value={category}
                           className="text-xs capitalize"
                         >
@@ -211,16 +214,16 @@ export function CoverImageSelector({
                         }
                       }}
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={handlePaste}
                       type="button"
                     >
                       Paste
                     </Button>
                   </div>
-                  <Button 
-                    onClick={handleCustomUrl} 
+                  <Button
+                    onClick={handleCustomUrl}
                     className="w-full"
                     disabled={isLoading || !customUrl.trim()}
                   >

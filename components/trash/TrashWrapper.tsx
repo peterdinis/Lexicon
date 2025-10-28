@@ -46,7 +46,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
           items.data && Array.isArray(items.data.pages) ? items.data.pages : [],
         );
         setFolders(
-          items.data && Array.isArray(items.data.folders) ? items.data.folders : [],
+          items.data && Array.isArray(items.data.folders)
+            ? items.data.folders
+            : [],
         );
       } catch (err) {
         console.error("Error loading trash:", err);
@@ -56,7 +58,7 @@ export function TrashWrapper({}: TrashWrapperProps) {
   }, []);
 
   const restoreItem = async (id: string, table: "pages" | "folders") => {
-    setLoading(prev => ({ ...prev, [`restore-${id}`]: true }));
+    setLoading((prev) => ({ ...prev, [`restore-${id}`]: true }));
     try {
       const formData = new FormData();
       formData.append("id", id);
@@ -76,15 +78,19 @@ export function TrashWrapper({}: TrashWrapperProps) {
       console.error("Error restoring item:", error);
       alert("Failed to restore item");
     } finally {
-      setLoading(prev => ({ ...prev, [`restore-${id}`]: false }));
+      setLoading((prev) => ({ ...prev, [`restore-${id}`]: false }));
     }
   };
 
   const permanentlyDelete = async (id: string, table: "pages" | "folders") => {
-    if (!confirm("Are you sure you want to permanently delete this item? This action cannot be undone."))
+    if (
+      !confirm(
+        "Are you sure you want to permanently delete this item? This action cannot be undone.",
+      )
+    )
       return;
 
-    setLoading(prev => ({ ...prev, [`delete-${id}`]: true }));
+    setLoading((prev) => ({ ...prev, [`delete-${id}`]: true }));
     try {
       const formData = new FormData();
       formData.append("id", id);
@@ -103,7 +109,7 @@ export function TrashWrapper({}: TrashWrapperProps) {
       console.error("Error deleting item:", error);
       alert("Failed to delete item");
     } finally {
-      setLoading(prev => ({ ...prev, [`delete-${id}`]: false }));
+      setLoading((prev) => ({ ...prev, [`delete-${id}`]: false }));
     }
   };
 
@@ -122,7 +128,8 @@ export function TrashWrapper({}: TrashWrapperProps) {
         </div>
         {!isEmpty && (
           <div className="text-sm text-neutral-500">
-            {pages.length + folders.length} item{(pages.length + folders.length) !== 1 ? 's' : ''} in trash
+            {pages.length + folders.length} item
+            {pages.length + folders.length !== 1 ? "s" : ""} in trash
           </div>
         )}
       </div>
@@ -140,7 +147,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
           {/* Pages Section */}
           {pages.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Pages ({pages.length})</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Pages ({pages.length})
+              </h3>
               <div className="space-y-3">
                 {pages.map((page) => (
                   <div
@@ -149,7 +158,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                   >
                     <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{page.title || "Untitled Page"}</h3>
+                      <h3 className="font-medium truncate">
+                        {page.title || "Untitled Page"}
+                      </h3>
                       {page.description && (
                         <p className="text-sm text-muted-foreground truncate mt-1">
                           {page.description}
@@ -173,7 +184,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                         disabled={loading[`restore-${page.id}`]}
                       >
                         <RotateCcw className="mr-2 h-4 w-4" />
-                        {loading[`restore-${page.id}`] ? "Restoring..." : "Restore"}
+                        {loading[`restore-${page.id}`]
+                          ? "Restoring..."
+                          : "Restore"}
                       </Button>
                       <Button
                         variant="destructive"
@@ -182,7 +195,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                         disabled={loading[`delete-${page.id}`]}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {loading[`delete-${page.id}`] ? "Deleting..." : "Delete Forever"}
+                        {loading[`delete-${page.id}`]
+                          ? "Deleting..."
+                          : "Delete Forever"}
                       </Button>
                     </div>
                   </div>
@@ -194,7 +209,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
           {/* Folders Section */}
           {folders.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Folders ({folders.length})</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Folders ({folders.length})
+              </h3>
               <div className="space-y-3">
                 {folders.map((folder) => (
                   <div
@@ -203,7 +220,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                   >
                     <Folder className="h-5 w-5 text-muted-foreground shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{folder.title || "Unnamed Folder"}</h3>
+                      <h3 className="font-medium truncate">
+                        {folder.title || "Unnamed Folder"}
+                      </h3>
                       {folder.deleted_at && (
                         <p className="text-xs text-muted-foreground mt-2">
                           Deleted{" "}
@@ -222,7 +241,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                         disabled={loading[`restore-${folder.id}`]}
                       >
                         <RotateCcw className="mr-2 h-4 w-4" />
-                        {loading[`restore-${folder.id}`] ? "Restoring..." : "Restore"}
+                        {loading[`restore-${folder.id}`]
+                          ? "Restoring..."
+                          : "Restore"}
                       </Button>
                       <Button
                         variant="destructive"
@@ -231,7 +252,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                         disabled={loading[`delete-${folder.id}`]}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {loading[`delete-${folder.id}`] ? "Deleting..." : "Delete Forever"}
+                        {loading[`delete-${folder.id}`]
+                          ? "Deleting..."
+                          : "Delete Forever"}
                       </Button>
                     </div>
                   </div>

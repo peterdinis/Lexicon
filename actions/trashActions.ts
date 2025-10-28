@@ -3,7 +3,15 @@
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
 import z from "zod";
-import { getAllTrashedItemsHandler, getAllNonTrashedItemsHandler, restoreFromTrashHandler, emptyTrashHandler, getTrashStatsHandler, moveToTrashHandler, permanentlyDeleteHandler } from "./handlers/trashHandlers";
+import {
+  getAllTrashedItemsHandler,
+  getAllNonTrashedItemsHandler,
+  restoreFromTrashHandler,
+  emptyTrashHandler,
+  getTrashStatsHandler,
+  moveToTrashHandler,
+  permanentlyDeleteHandler,
+} from "./handlers/trashHandlers";
 
 // Get all trashed items for trash page
 export const getAllTrashedItemsAction = actionClient.action(async () => {
