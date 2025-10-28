@@ -16,7 +16,6 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import { searchSchema } from "./schemas/searchSchemas";
 import { fetchUser } from "./authActions";
-import { error } from "console";
 
 // Types for search results
 export type SearchResult = {

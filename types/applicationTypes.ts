@@ -17,20 +17,6 @@ export interface Page {
   in_trash?: number;
 }
 
-export interface Block {
-  id: string;
-  page_id: string;
-  type: "text" | "heading" | "todo" | "code" | "divider";
-  content: {
-    text?: string;
-    checked?: boolean;
-    language?: string;
-  };
-  position: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Todo {
   id: string;
   user_id: string;
