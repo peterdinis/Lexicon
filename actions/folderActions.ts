@@ -6,8 +6,9 @@ import {
   createFolderHandler,
   getFoldersHandler,
 } from "./handlers/folderHandlers";
-import { createFolderSchema } from "./schemas/folderSchemas";
+import { createFolderSchema, deleteFolderSchema, updateFolderSchema } from "./schemas/folderSchemas";
 import { revalidatePath } from "next/cache";
+import { deleteFolderHandler, updateFolderHandler } from "./handlers/todosHandler";
 
 export const createFolderAction = actionClient
   .inputSchema(createFolderSchema)
@@ -31,3 +32,31 @@ export const getFoldersAction = actionClient.action(async () => {
     throw new Error(getErrorMessage(err));
   }
 });
+
+export const updateFolderAction = actionClient
+  .inputSchema(updateFolderSchema)
+  .action(async ({ parsedInput: { id, title } }) => {
+    try {
+      const result = await updateFolderHandler(id, title);
+      revalidatePath("/dashboard");
+      revalidatePath(`/folder/${id}`);
+      revalidatePath("/");
+      return { success: true, data: result };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+// DELETE FOLDER ACTION
+export const deleteFolderAction = actionClient
+  .inputSchema(deleteFolderSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      const result = await deleteFolderHandler(id);
+      revalidatePath("/dashboard");
+      revalidatePath("/");
+      return { success: true, data: result };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });

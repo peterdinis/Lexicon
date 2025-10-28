@@ -1,7 +1,8 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { todos } from "@/drizzle/schema";
+import { folders, todos } from "@/drizzle/schema";
+import { getSupabaseServerClient } from "@/supabase/server";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -57,4 +58,51 @@ export async function updateTodoHandler(
 export async function deleteTodoHandler(id: string) {
   await db.delete(todos).where(eq(todos.id, id));
   return { success: true };
+}
+
+export async function updateFolderHandler(id: string, title: string) {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const [updatedFolder] = await db
+    .update(folders)
+    .set({ 
+      title, 
+      updated_at: new Date().toISOString() 
+    })
+    .where(eq(folders.id, id))
+    .returning();
+
+  if (!updatedFolder) throw new Error("Folder not found");
+
+  return updatedFolder;
+}
+
+// DELETE FOLDER HANDLER
+export async function deleteFolderHandler(id: string) {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const [deletedFolder] = await db
+    .delete(folders)
+    .where(eq(folders.id, id))
+    .returning();
+
+  if (!deletedFolder) throw new Error("Folder not found");
+
+  return deletedFolder;
 }
