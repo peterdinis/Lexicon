@@ -105,5 +105,4 @@ export const diagrams = sqliteTable("diagrams", {
 export const indexes = sql`
   CREATE INDEX IF NOT EXISTS idx_pages_parent_id ON pages(parent_id);
   CREATE INDEX IF NOT EXISTS idx_pages_is_folder ON pages(is_folder);
-
 `;

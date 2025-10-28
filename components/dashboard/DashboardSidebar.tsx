@@ -24,6 +24,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Page } from "@/types/applicationTypes";
 import {
   createPageAction,
@@ -147,176 +153,264 @@ export function DashboardSidebar({
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => {
     return (
-      <div className="flex h-full flex-col">
-        {!isMobile && (
-          <div className="flex items-center justify-between border-b p-4 shrink-0">
-            <h2 className="font-semibold">Workspace</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDesktopCollapsed(!desktopCollapsed)}
-              className="h-8 w-8"
-            >
-              {desktopCollapsed ? (
-                <PanelLeft className="h-4 w-4" />
-              ) : (
-                <PanelLeftClose className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        )}
-
-        <ScrollArea className="flex-1">
-          <div className="p-2 h-full flex flex-col">
-            <div className="space-y-1 flex-1">
-              <div className="mb-2">
-                <button
-                  onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  {workspaceExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  Workspace
-                </button>
-                {workspaceExpanded && (
-                  <div className="ml-2 mt-1 space-y-1">
-                    <button
-                      onClick={() => {
-                        window.location.replace("/dashboard");
-                        if (isMobile) setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    >
-                      <Home className="h-4 w-4 text-muted-foreground" />
-                      Home
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push("/todos");
-                        if (isMobile) setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    >
-                      <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                      Todos
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push("/diagrams");
-                        if (isMobile) setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    >
-                      <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
-                      Diagrams
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push("/calendar");
-                        if (isMobile) setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    >
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      Calendar
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push("/trash");
-                        if (isMobile) setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      Trash
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center justify-between px-2 py-1.5">
-                  <button
-                    onClick={() => setPagesExpanded(!pagesExpanded)}
-                    className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
+      <TooltipProvider>
+        <div className="flex h-full flex-col">
+          {!isMobile && (
+            <div className="flex items-center justify-between border-b p-4 shrink-0">
+              <h2 className="font-semibold">Workspace</h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDesktopCollapsed(!desktopCollapsed)}
+                    className="h-8 w-8"
                   >
-                    Pages
-                  </button>
-                  <div className="flex gap-1">
-                    <Button
-                      onClick={() => createFolder()}
-                      disabled={loading}
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      title="New Folder"
-                    >
-                      {loading ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <FolderPlus className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => createPage()}
-                      disabled={loading}
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      title="New Page"
-                    >
-                      {loading ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Plus className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
+                    {desktopCollapsed ? (
+                      <PanelLeft className="h-4 w-4" />
+                    ) : (
+                      <PanelLeftClose className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
+          <ScrollArea className="flex-1">
+            <div className="p-2 h-full flex flex-col">
+              <div className="space-y-1 flex-1">
+                <div className="mb-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setWorkspaceExpanded(!workspaceExpanded)}
+                        className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        {workspaceExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        Workspace
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{workspaceExpanded ? "Collapse workspace" : "Expand workspace"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  {workspaceExpanded && (
+                    <div className="ml-2 mt-1 space-y-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              window.location.replace("/dashboard");
+                              if (isMobile) setMobileOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          >
+                            <Home className="h-4 w-4 text-muted-foreground" />
+                            Home
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Go to Home dashboard</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              router.push("/todos");
+                              if (isMobile) setMobileOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          >
+                            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                            Todos
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Manage your todos</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              router.push("/diagrams");
+                              if (isMobile) setMobileOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          >
+                            <ChartNoAxesColumnIncreasing className="h-4 w-4 text-muted-foreground" />
+                            Diagrams
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View and create diagrams</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              router.push("/calendar");
+                              if (isMobile) setMobileOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          >
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            Calendar
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View calendar</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              router.push("/trash");
+                              if (isMobile) setMobileOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent"
+                          >
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            Trash
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View deleted items</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setPagesExpanded(!pagesExpanded)}
+                          className="flex flex-1 items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-accent-foreground"
+                        >
+                          Pages
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{pagesExpanded ? "Collapse pages" : "Expand pages"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <div className="flex gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() => createFolder()}
+                            disabled={loading}
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                          >
+                            {loading ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <FolderPlus className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>New Folder</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() => createPage()}
+                            disabled={loading}
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                          >
+                            {loading ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Plus className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>New Page</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ScrollArea>
-      </div>
+          </ScrollArea>
+        </div>
+      </TooltipProvider>
     );
   };
 
   return (
     <>
-        <aside
-          className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex flex-col ${
-            desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
-          }`}
-        >
-          <SidebarContent />
-        </aside>
+      <aside
+        className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex flex-col ${
+          desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
+        }`}
+      >
+        <SidebarContent />
+      </aside>
 
-        <div className="md:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileOpen(true)}
-            className="h-9 w-9"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {desktopCollapsed && (
-          <div className="hidden md:flex items-center">
+      <div className="md:hidden">
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setDesktopCollapsed(false)}
-              className="h-9 w-9 absolute left-2 top-2 z-10"
+              onClick={() => setMobileOpen(true)}
+              className="h-9 w-9"
             >
               <Menu className="h-5 w-5" />
             </Button>
-          </div>
-        )}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Open menu</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+
+      {desktopCollapsed && (
+        <div className="hidden md:flex items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDesktopCollapsed(false)}
+                className="h-9 w-9 absolute left-2 top-2 z-10"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Expand sidebar</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="p-0 w-64">
@@ -328,14 +422,21 @@ export function DashboardSidebar({
         <SheetContent side="right" className="max-w-md">
           <div className="flex items-center justify-between border-b p-4">
             <h2 className="text-lg font-semibold">New Folder</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setFolderModalOpen(false)}
-              disabled={loading}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFolderModalOpen(false)}
+                  disabled={loading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Close</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="p-4 space-y-4">
             <div>
