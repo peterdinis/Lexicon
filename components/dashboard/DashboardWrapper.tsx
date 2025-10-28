@@ -2,9 +2,9 @@ import DashboardTopBar from "./DashboardTopBar";
 import { redirect } from "next/navigation";
 import { AnimatedPageWrapper } from "../shared/AnimatedPageWrapper";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import { getFoldersAction } from "@/actions/folderActions";
 import DashboardClient from "./DashboardClient";
+import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 
 export default async function DashboardPage() {
   let pages = [];
