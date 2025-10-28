@@ -7,7 +7,7 @@ export interface Page {
   title: string;
   content?: string;
   description?: string;
-  icon?: string;
+  icon?: any;
   cover_image?: string;
   parent_id?: string | null;
   is_folder?: number;
@@ -45,17 +45,6 @@ export type CalendarEvent = {
   created_at: string;
   updated_at: string;
 };
-export interface PageShare {
-  id: string;
-  page_id: string;
-  shared_by: string;
-  shared_with_email?: string;
-  permission: "view" | "comment" | "edit";
-  is_public: boolean;
-  public_token?: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export type CheckEmailResponse = { exists: boolean };
 
@@ -72,24 +61,6 @@ export interface Diagram {
     zoom: number;
   };
   deleted_at?: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Notification {
-  id: string;
-  user_id: string;
-  type:
-    | "page_shared"
-    | "todo_due"
-    | "calendar_event"
-    | "comment"
-    | "mention"
-    | "system";
-  title: string;
-  message?: string;
-  link?: string;
-  read: boolean;
   created_at: string;
   updated_at: string;
 }

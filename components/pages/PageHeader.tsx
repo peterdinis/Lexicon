@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { debounce } from "@/lib/debounce";
 import { updatePageAction } from "@/actions/pagesActions";
 import Image from "next/image";
-import { ShareDialog } from "../dialogs/ShareDialog";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPicker } from "../shared/EmojiPicker";
 
@@ -127,7 +126,6 @@ export function PageHeader({
           <div className="flex items-center gap-2">
             <EmojiPicker value={icon || ""} onChange={handleIconChange} />
           </div>
-          <ShareDialog pageId={pageId} />
         </div>
 
         <Input
