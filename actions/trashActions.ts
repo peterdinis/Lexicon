@@ -2,14 +2,10 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import {
-  getAllTrashedItemsHandler,
-  moveToTrashHandler,
-  restoreFromTrashHandler,
-  permanentlyDeleteHandler,
-} from "./handlers/trashHandlers";
 import z from "zod";
+import { getAllTrashedItemsHandler, getAllNonTrashedItemsHandler, restoreFromTrashHandler, emptyTrashHandler, getTrashStatsHandler, moveToTrashHandler, permanentlyDeleteHandler } from "./handlers/trashHandlers";
 
+// Get all trashed items for trash page
 export const getAllTrashedItemsAction = actionClient.action(async () => {
   try {
     const items = await getAllTrashedItemsHandler();
@@ -19,6 +15,17 @@ export const getAllTrashedItemsAction = actionClient.action(async () => {
   }
 });
 
+// Get all non-trashed items for dashboard
+export const getAllNonTrashedItemsAction = actionClient.action(async () => {
+  try {
+    const items = await getAllNonTrashedItemsHandler();
+    return items;
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+});
+
+// Move item to trash
 export const moveToTrashAction = actionClient
   .inputSchema(
     z.object({
@@ -36,6 +43,7 @@ export const moveToTrashAction = actionClient
     }
   });
 
+// Restore item from trash
 export async function restoreFromTrashAction(formData: FormData) {
   const id = formData.get("id") as string;
   const table = formData.get("table") as "pages" | "folders";
@@ -56,6 +64,7 @@ export async function restoreFromTrashAction(formData: FormData) {
   }
 }
 
+// Permanently delete item from trash
 export async function permanentlyDeleteAction(formData: FormData) {
   const id = formData.get("id") as string;
   const table = formData.get("table") as "pages" | "folders";
@@ -75,3 +84,23 @@ export async function permanentlyDeleteAction(formData: FormData) {
     return { success: false, error: errorMessage };
   }
 }
+
+// Empty entire trash
+export const emptyTrashAction = actionClient.action(async () => {
+  try {
+    await emptyTrashHandler();
+    return { success: true };
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+});
+
+// Get trash statistics
+export const getTrashStatsAction = actionClient.action(async () => {
+  try {
+    const stats = await getTrashStatsHandler();
+    return { data: stats };
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+});
