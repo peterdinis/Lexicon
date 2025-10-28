@@ -73,9 +73,9 @@ export async function updateFolderHandler(id: string, title: string) {
 
   const [updatedFolder] = await db
     .update(folders)
-    .set({ 
-      title, 
-      updated_at: new Date().toISOString() 
+    .set({
+      title,
+      updated_at: new Date().toISOString(),
     })
     .where(eq(folders.id, id))
     .returning();

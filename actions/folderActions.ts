@@ -6,9 +6,16 @@ import {
   createFolderHandler,
   getFoldersHandler,
 } from "./handlers/folderHandlers";
-import { createFolderSchema, deleteFolderSchema, updateFolderSchema } from "./schemas/folderSchemas";
+import {
+  createFolderSchema,
+  deleteFolderSchema,
+  updateFolderSchema,
+} from "./schemas/folderSchemas";
 import { revalidatePath } from "next/cache";
-import { deleteFolderHandler, updateFolderHandler } from "./handlers/todosHandler";
+import {
+  deleteFolderHandler,
+  updateFolderHandler,
+} from "./handlers/todosHandler";
 
 export const createFolderAction = actionClient
   .inputSchema(createFolderSchema)

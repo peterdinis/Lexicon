@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { File, Folder, MoreHorizontal, Pencil, Trash2, Move } from "lucide-react";
+import {
+  File,
+  Folder,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Move,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Pagination,
@@ -46,8 +53,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePageAction, deletePageAction, movePageAction } from "@/actions/pagesActions";
-import { updateFolderAction, deleteFolderAction } from "@/actions/folderActions";
+import {
+  updatePageAction,
+  deletePageAction,
+  movePageAction,
+} from "@/actions/pagesActions";
+import {
+  updateFolderAction,
+  deleteFolderAction,
+} from "@/actions/folderActions";
 
 interface Page {
   id: string;
@@ -75,23 +89,23 @@ export default function DashboardClient({
 }: DashboardClientProps) {
   const [pagesPage, setPagesPage] = useState(1);
   const [foldersPage, setFoldersPage] = useState(1);
-  
+
   // State pre dialógy
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
-    type: 'page' | 'folder';
+    type: "page" | "folder";
     id: string;
     title: string;
   } | null>(null);
-  
+
   const [editDialog, setEditDialog] = useState<{
     open: boolean;
-    type: 'page' | 'folder';
+    type: "page" | "folder";
     id: string;
     title: string;
     description?: string;
   } | null>(null);
-  
+
   const [moveDialog, setMoveDialog] = useState<{
     open: boolean;
     pageId: string;
@@ -109,7 +123,10 @@ export default function DashboardClient({
   const foldersStart = (foldersPage - 1) * itemsPerPage;
 
   const pagesToShow = pages.slice(pagesStart, pagesStart + itemsPerPage);
-  const foldersToShow = folders.slice(foldersStart, foldersStart + itemsPerPage);
+  const foldersToShow = folders.slice(
+    foldersStart,
+    foldersStart + itemsPerPage,
+  );
 
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
@@ -117,22 +134,22 @@ export default function DashboardClient({
   // Funkcie pre prácu so stránkami
   const handleDelete = async () => {
     if (!deleteDialog) return;
-    
+
     setLoading(true);
     try {
-      if (deleteDialog.type === 'page') {
+      if (deleteDialog.type === "page") {
         const result = await deletePageAction({ id: deleteDialog.id });
         if (!result.data) throw new Error("Something went wrong");
       } else {
         const result = await deleteFolderAction({ id: deleteDialog.id });
         if (!result.data) throw new Error("Something went wrong");
       }
-      
+
       // Refresh stránky pre získanie aktuálnych dát
       window.location.reload();
     } catch (error) {
-      console.error('Error deleting:', error);
-      alert('Failed to delete');
+      console.error("Error deleting:", error);
+      alert("Failed to delete");
     } finally {
       setLoading(false);
       setDeleteDialog(null);
@@ -141,10 +158,10 @@ export default function DashboardClient({
 
   const handleEdit = async () => {
     if (!editDialog) return;
-    
+
     setLoading(true);
     try {
-      if (editDialog.type === 'page') {
+      if (editDialog.type === "page") {
         const result = await updatePageAction({
           id: editDialog.id,
           title: editTitle,
@@ -152,17 +169,17 @@ export default function DashboardClient({
         });
         if (!result.success) throw new Error(result.error);
       } else {
-        const result = await updateFolderAction({ 
-          id: editDialog.id, 
-          title: editTitle 
+        const result = await updateFolderAction({
+          id: editDialog.id,
+          title: editTitle,
         });
         if (!result.data) throw new Error("Something went wrong");
       }
-      
+
       window.location.reload();
     } catch (error) {
-      console.error('Error updating:', error);
-      alert('Failed to update');
+      console.error("Error updating:", error);
+      alert("Failed to update");
     } finally {
       setLoading(false);
       setEditDialog(null);
@@ -171,20 +188,20 @@ export default function DashboardClient({
 
   const handleMove = async () => {
     if (!moveDialog) return;
-    
+
     setLoading(true);
     try {
       const result = await movePageAction({
         id: moveDialog.pageId,
         parent_id: selectedFolderId,
       });
-      
-      if (!result.data) throw new Error('Failed to move page');
-      
+
+      if (!result.data) throw new Error("Failed to move page");
+
       window.location.reload();
     } catch (error) {
-      console.error('Error moving page:', error);
-      alert('Failed to move page');
+      console.error("Error moving page:", error);
+      alert("Failed to move page");
     } finally {
       setLoading(false);
       setMoveDialog(null);
@@ -192,17 +209,30 @@ export default function DashboardClient({
   };
 
   // Otvorenie dialógov
-  const openDeleteDialog = (type: 'page' | 'folder', id: string, title: string) => {
+  const openDeleteDialog = (
+    type: "page" | "folder",
+    id: string,
+    title: string,
+  ) => {
     setDeleteDialog({ open: true, type, id, title });
   };
 
-  const openEditDialog = (type: 'page' | 'folder', id: string, title: string, description?: string) => {
+  const openEditDialog = (
+    type: "page" | "folder",
+    id: string,
+    title: string,
+    description?: string,
+  ) => {
     setEditDialog({ open: true, type, id, title, description });
     setEditTitle(title);
-    setEditDescription(description || '');
+    setEditDescription(description || "");
   };
 
-  const openMoveDialog = (pageId: string, pageTitle: string, currentFolderId?: string | null) => {
+  const openMoveDialog = (
+    pageId: string,
+    pageTitle: string,
+    currentFolderId?: string | null,
+  ) => {
     setMoveDialog({ open: true, pageId, pageTitle, currentFolderId });
     setSelectedFolderId(currentFolderId || null);
   };
@@ -233,10 +263,7 @@ export default function DashboardClient({
                 key={folder.id}
                 className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
               >
-                <Link
-                  href={`/folder/${folder.id}`}
-                  className="block"
-                >
+                <Link href={`/folder/${folder.id}`} className="block">
                   <div className="flex items-center mb-2">
                     <Folder className="w-5 h-5 mr-2 text-neutral-500" />
                     <h3 className="font-medium text-neutral-900 dark:text-white">
@@ -244,7 +271,7 @@ export default function DashboardClient({
                     </h3>
                   </div>
                 </Link>
-                
+
                 {/* Dropdown menu pre akcie */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -258,14 +285,26 @@ export default function DashboardClient({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => openEditDialog('folder', folder.id, folder.title || 'Unnamed Folder')}
+                      onClick={() =>
+                        openEditDialog(
+                          "folder",
+                          folder.id,
+                          folder.title || "Unnamed Folder",
+                        )
+                      }
                     >
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => openDeleteDialog('folder', folder.id, folder.title || 'Unnamed Folder')}
+                      onClick={() =>
+                        openDeleteDialog(
+                          "folder",
+                          folder.id,
+                          folder.title || "Unnamed Folder",
+                        )
+                      }
                       className="text-red-600"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -336,10 +375,7 @@ export default function DashboardClient({
                 key={page.id}
                 className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors"
               >
-                <Link
-                  href={`/page/${page.id}`}
-                  className="block"
-                >
+                <Link href={`/page/${page.id}`} className="block">
                   <h3 className="font-medium text-neutral-900 dark:text-white mb-2">
                     {page.title || "Untitled"}
                   </h3>
@@ -347,7 +383,7 @@ export default function DashboardClient({
                     {page.description || "No description available"}
                   </p>
                 </Link>
-                
+
                 {/* Dropdown menu pre akcie */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -361,20 +397,39 @@ export default function DashboardClient({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      onClick={() => openEditDialog('page', page.id, page.title || 'Untitled', page.description)}
+                      onClick={() =>
+                        openEditDialog(
+                          "page",
+                          page.id,
+                          page.title || "Untitled",
+                          page.description,
+                        )
+                      }
                     >
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => openMoveDialog(page.id, page.title || 'Untitled', page.parent_id)}
+                      onClick={() =>
+                        openMoveDialog(
+                          page.id,
+                          page.title || "Untitled",
+                          page.parent_id,
+                        )
+                      }
                     >
                       <Move className="h-4 w-4 mr-2" />
                       Move to Folder
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => openDeleteDialog('page', page.id, page.title || 'Untitled')}
+                      onClick={() =>
+                        openDeleteDialog(
+                          "page",
+                          page.id,
+                          page.title || "Untitled",
+                        )
+                      }
                       className="text-red-600"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -441,13 +496,16 @@ export default function DashboardClient({
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialog?.open || false} onOpenChange={() => setDeleteDialog(null)}>
+      <AlertDialog
+        open={deleteDialog?.open || false}
+        onOpenChange={() => setDeleteDialog(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the {deleteDialog?.type} "{deleteDialog?.title}".
-              This action cannot be undone.
+              This will permanently delete the {deleteDialog?.type} "
+              {deleteDialog?.title}". This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -464,11 +522,14 @@ export default function DashboardClient({
       </AlertDialog>
 
       {/* Edit Dialog */}
-      <Dialog open={editDialog?.open || false} onOpenChange={() => setEditDialog(null)}>
+      <Dialog
+        open={editDialog?.open || false}
+        onOpenChange={() => setEditDialog(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Edit {editDialog?.type === 'page' ? 'Page' : 'Folder'}
+              Edit {editDialog?.type === "page" ? "Page" : "Folder"}
             </DialogTitle>
             <DialogDescription>
               Update the details for this {editDialog?.type}.
@@ -484,7 +545,7 @@ export default function DashboardClient({
                 placeholder={`Enter ${editDialog?.type} title`}
               />
             </div>
-            {editDialog?.type === 'page' && (
+            {editDialog?.type === "page" && (
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Input
@@ -515,7 +576,10 @@ export default function DashboardClient({
       </Dialog>
 
       {/* Move to Folder Dialog */}
-      <Dialog open={moveDialog?.open || false} onOpenChange={() => setMoveDialog(null)}>
+      <Dialog
+        open={moveDialog?.open || false}
+        onOpenChange={() => setMoveDialog(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Move Page</DialogTitle>
@@ -526,7 +590,10 @@ export default function DashboardClient({
           <div className="space-y-4">
             <div>
               <Label htmlFor="folder">Select Folder</Label>
-              <Select value={selectedFolderId || ""} onValueChange={setSelectedFolderId}>
+              <Select
+                value={selectedFolderId || ""}
+                onValueChange={setSelectedFolderId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a folder" />
                 </SelectTrigger>
@@ -549,10 +616,7 @@ export default function DashboardClient({
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleMove}
-              disabled={loading}
-            >
+            <Button onClick={handleMove} disabled={loading}>
               {loading ? "Moving..." : "Move Page"}
             </Button>
           </DialogFooter>
