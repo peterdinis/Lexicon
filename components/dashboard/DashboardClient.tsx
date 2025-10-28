@@ -124,7 +124,7 @@ export default function DashboardClient({
         const result = await deletePageAction({ id: deleteDialog.id });
         if (!result.data) throw new Error("Something went wrong");
       } else {
-        const result = await deleteFolderAction(deleteDialog.id);
+        const result = await deleteFolderAction({ id: deleteDialog.id });
         if (!result.data) throw new Error("Something went wrong");
       }
       
@@ -152,8 +152,11 @@ export default function DashboardClient({
         });
         if (!result.success) throw new Error(result.error);
       } else {
-        const result = await updateFolderAction(editDialog.id, editTitle);
-        if (!result.success) throw new Error(result.error);
+        const result = await updateFolderAction({ 
+          id: editDialog.id, 
+          title: editTitle 
+        });
+        if (!result.data) throw new Error("Something went wrong");
       }
       
       window.location.reload();
@@ -528,7 +531,7 @@ export default function DashboardClient({
                   <SelectValue placeholder="Select a folder" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="null">Root (No Folder)</SelectItem>
+                  <SelectItem value="">Root (No Folder)</SelectItem>
                   {folders.map((folder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.title || "Unnamed Folder"}
