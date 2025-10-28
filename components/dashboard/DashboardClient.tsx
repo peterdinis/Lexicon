@@ -46,6 +46,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { updatePageAction, deletePageAction, movePageAction } from "@/actions/pagesActions";
+import { updateFolderAction, deleteFolderAction } from "@/actions/folderActions";
 
 interface Page {
   id: string;
@@ -118,15 +120,13 @@ export default function DashboardClient({
     
     setLoading(true);
     try {
-      const endpoint = deleteDialog.type === 'page' 
-        ? '/api/pages' 
-        : '/api/folders';
-      
-      const response = await fetch(`${endpoint}/${deleteDialog.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete');
+      if (deleteDialog.type === 'page') {
+        const result = await deletePageAction({ id: deleteDialog.id });
+        if (!result.data) throw new Error("Something went wrong");
+      } else {
+        const result = await deleteFolderAction(deleteDialog.id);
+        if (!result.data) throw new Error("Something went wrong");
+      }
       
       // Refresh stránky pre získanie aktuálnych dát
       window.location.reload();
@@ -144,23 +144,17 @@ export default function DashboardClient({
     
     setLoading(true);
     try {
-      const endpoint = editDialog.type === 'page' 
-        ? '/api/pages' 
-        : '/api/folders';
-      
-      const body = editDialog.type === 'page' 
-        ? { title: editTitle, description: editDescription }
-        : { title: editTitle };
-
-      const response = await fetch(`${endpoint}/${editDialog.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) throw new Error('Failed to update');
+      if (editDialog.type === 'page') {
+        const result = await updatePageAction({
+          id: editDialog.id,
+          title: editTitle,
+          description: editDescription,
+        });
+        if (!result.success) throw new Error(result.error);
+      } else {
+        const result = await updateFolderAction(editDialog.id, editTitle);
+        if (!result.success) throw new Error(result.error);
+      }
       
       window.location.reload();
     } catch (error) {
@@ -177,17 +171,12 @@ export default function DashboardClient({
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/pages/${moveDialog.pageId}/move`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          parent_id: selectedFolderId,
-        }),
+      const result = await movePageAction({
+        id: moveDialog.pageId,
+        parent_id: selectedFolderId,
       });
-
-      if (!response.ok) throw new Error('Failed to move page');
+      
+      if (!result.data) throw new Error('Failed to move page');
       
       window.location.reload();
     } catch (error) {
