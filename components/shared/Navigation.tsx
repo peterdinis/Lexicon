@@ -22,27 +22,6 @@ const Navigation: FC = () => {
           </motion.div>
           <span className="text-xl font-bold">Lexicon</span>
         </Link>
-        <div className="hidden items-center gap-6 md:flex">
-          <Link
-            href="#features"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Features
-          </Link>
-          <Link
-            href="#pricing"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="#about"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            About
-          </Link>
-          <ModeToggle />
-        </div>
         <div className="flex items-center gap-3">
           <Link href="/auth/login">
             <Button variant="ghost" size="sm">
@@ -56,6 +35,7 @@ const Navigation: FC = () => {
               </Button>
             </motion.div>
           </Link>
+          <ModeToggle />
         </div>
       </div>
     </motion.nav>
