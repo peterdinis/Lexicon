@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useCallback,
-} from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -43,9 +40,7 @@ interface DashboardSidebarProps {
   currentPageId?: string;
 }
 
-export function DashboardSidebar({
-  initialPages,
-}: DashboardSidebarProps) {
+export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
   const [, setPages] = useState<Page[]>(
     initialPages.filter((p) => p.in_trash === 0),
   );
@@ -55,9 +50,7 @@ export function DashboardSidebar({
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [folderParentId, setFolderParentId] = useState<string | null>(null);
@@ -174,7 +167,9 @@ export function DashboardSidebar({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
+                  <p>
+                    {desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -199,7 +194,11 @@ export function DashboardSidebar({
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{workspaceExpanded ? "Collapse workspace" : "Expand workspace"}</p>
+                      <p>
+                        {workspaceExpanded
+                          ? "Collapse workspace"
+                          : "Expand workspace"}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                   {workspaceExpanded && (
@@ -309,7 +308,9 @@ export function DashboardSidebar({
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{pagesExpanded ? "Collapse pages" : "Expand pages"}</p>
+                        <p>
+                          {pagesExpanded ? "Collapse pages" : "Expand pages"}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                     <div className="flex gap-1">
