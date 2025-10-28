@@ -8,6 +8,7 @@ import {
   Pencil,
   Trash2,
   Move,
+  Trash,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -63,6 +64,7 @@ import {
   deleteFolderAction,
   getFolderDetailAction,
 } from "@/actions/folderActions";
+import { moveToTrashAction } from "@/actions/trashActions";
 
 // Importy pre tabuľku
 import {
@@ -188,16 +190,16 @@ const pageColumns: ColumnDef<Page>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() =>
-                (window as any).openDeleteDialog?.(
+                (window as any).openMoveToTrashDialog?.(
                   "page",
                   page.id,
                   page.title || "Untitled",
                 )
               }
-              className="text-red-600"
+              className="text-amber-600"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              <Trash className="h-4 w-4 mr-2" />
+              Move to Trash
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -265,16 +267,16 @@ const folderColumns: ColumnDef<FolderType>[] = [
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() =>
-                  (window as any).openDeleteDialog?.(
+                  (window as any).openMoveToTrashDialog?.(
                     "folder",
                     folder.id,
                     folder.title || "Unnamed Folder",
                   )
                 }
-                className="text-red-600"
+                className="text-amber-600"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                <Trash className="h-4 w-4 mr-2" />
+                Move to Trash
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -293,7 +295,7 @@ export default function DashboardClient({
   const [foldersPage, setFoldersPage] = useState(1);
 
   // State pre dialógy
-  const [deleteDialog, setDeleteDialog] = useState<{
+  const [moveToTrashDialog, setMoveToTrashDialog] = useState<{
     open: boolean;
     type: "page" | "folder";
     id: string;
@@ -398,7 +400,7 @@ export default function DashboardClient({
       if (result.data) {
         setFolderDetailDialog((prev) => ({
           ...prev,
-          data: result.data as unknown as FolderDetail, // explicitný typ
+          data: result.data as unknown as FolderDetail,
           loading: false,
         }));
       } else {
@@ -421,25 +423,25 @@ export default function DashboardClient({
     await loadFolderDetail(folderId);
   };
 
-  // Funkcie pre prácu so stránkami a priečinkami
-  const handleDelete = async () => {
-    if (!deleteDialog) return;
+  // Funkcia pre presun do koša
+  const handleMoveToTrash = async () => {
+    if (!moveToTrashDialog) return;
     setLoading(true);
     try {
-      if (deleteDialog.type === "page") {
-        const result = await deletePageAction({ id: deleteDialog.id });
-        if (!result.data) throw new Error("Something went wrong");
-      } else {
-        const result = await deleteFolderAction({ id: deleteDialog.id });
-        if (!result.data) throw new Error("Something went wrong");
-      }
+      const result = await moveToTrashAction({
+        id: moveToTrashDialog.id,
+        table: moveToTrashDialog.type === "page" ? "pages" : "folders",
+      });
+
+      if (!result.data) throw new Error("Failed to move to trash");
+
       window.location.reload();
     } catch (error) {
-      console.error("Error deleting:", error);
-      alert("Failed to delete");
+      console.error("Error moving to trash:", error);
+      alert("Failed to move to trash");
     } finally {
       setLoading(false);
-      setDeleteDialog(null);
+      setMoveToTrashDialog(null);
     }
   };
 
@@ -490,12 +492,12 @@ export default function DashboardClient({
     }
   };
 
-  const openDeleteDialog = (
+  const openMoveToTrashDialog = (
     type: "page" | "folder",
     id: string,
     title: string,
   ) => {
-    setDeleteDialog({ open: true, type, id, title });
+    setMoveToTrashDialog({ open: true, type, id, title });
   };
 
   const openEditDialog = (
@@ -521,9 +523,9 @@ export default function DashboardClient({
   // Vystavenie funkcií pre globálny prístup
   useEffect(() => {
     (window as any).openEditDialog = openEditDialog;
-    (window as any).openDeleteDialog = openDeleteDialog;
     (window as any).openMoveDialog = openMoveDialog;
     (window as any).openFolderDetailDialog = openFolderDetailDialog;
+    (window as any).openMoveToTrashDialog = openMoveToTrashDialog;
   }, []);
 
   return (
@@ -595,16 +597,16 @@ export default function DashboardClient({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() =>
-                        openDeleteDialog(
+                        openMoveToTrashDialog(
                           "folder",
                           folder.id,
                           folder.title || "Unnamed Folder",
                         )
                       }
-                      className="text-red-600"
+                      className="text-amber-600"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      <Trash className="h-4 w-4 mr-2" />
+                      Move to Trash
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -719,16 +721,16 @@ export default function DashboardClient({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() =>
-                        openDeleteDialog(
+                        openMoveToTrashDialog(
                           "page",
                           page.id,
                           page.title || "Untitled",
                         )
                       }
-                      className="text-red-600"
+                      className="text-amber-600"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      <Trash className="h-4 w-4 mr-2" />
+                      Move to Trash
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -954,27 +956,28 @@ export default function DashboardClient({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Move to Trash Dialog */}
       <AlertDialog
-        open={deleteDialog?.open || false}
-        onOpenChange={() => setDeleteDialog(null)}
+        open={moveToTrashDialog?.open || false}
+        onOpenChange={() => setMoveToTrashDialog(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Move to Trash</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the {deleteDialog?.type} "
-              {deleteDialog?.title}". This action cannot be undone.
+              This will move the {moveToTrashDialog?.type} "
+              {moveToTrashDialog?.title}" to trash. You can restore it later
+              from the trash.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={handleMoveToTrash}
               disabled={loading}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-amber-600 hover:bg-amber-700"
             >
-              {loading ? "Deleting..." : "Delete"}
+              {loading ? "Moving..." : "Move to Trash"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
