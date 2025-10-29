@@ -61,8 +61,17 @@ export const updateDiagramAction = actionClient
   .inputSchema(updateDiagramSchema)
   .action(async ({ parsedInput }) => {
     try {
-      const { id, ...data } = parsedInput;
-      return await updateDiagramHandler(id, data);
+      const { id, nodes, edges, viewport, ...rest } = parsedInput;
+
+      // Parse JSON fields if they exist
+      const parsedData: any = {
+        ...rest,
+        nodes: nodes ? JSON.parse(nodes) : undefined,
+        edges: edges ? JSON.parse(edges) : undefined,
+        viewport: viewport ? JSON.parse(viewport) : undefined,
+      };
+
+      return await updateDiagramHandler(id, parsedData);
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
