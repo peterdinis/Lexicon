@@ -14,7 +14,7 @@ const CTAWrapper: FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="mx-auto max-w-3xl rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 p-12 text-center"
+          className="mx-auto max-w-3xl rounded-3xl border border-primary/20 bg-linear-to-br from-primary/10 to-accent/10 p-12 text-center"
         >
           <h2 className="mb-4 text-4xl font-bold md:text-5xl">
             Ready to get started?

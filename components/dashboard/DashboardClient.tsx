@@ -6,7 +6,6 @@ import {
   Folder,
   MoreHorizontal,
   Pencil,
-  Trash2,
   Move,
   Trash,
 } from "lucide-react";
@@ -56,12 +55,10 @@ import {
 } from "@/components/ui/select";
 import {
   updatePageAction,
-  deletePageAction,
   movePageAction,
 } from "@/actions/pagesActions";
 import {
   updateFolderAction,
-  deleteFolderAction,
   getFolderDetailAction,
 } from "@/actions/folderActions";
 import { moveToTrashAction } from "@/actions/trashActions";
