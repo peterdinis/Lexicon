@@ -1,1 +1,0 @@
-ALTER TABLE `todos` ADD `status` text DEFAULT 'pending';

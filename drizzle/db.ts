@@ -1,6 +1,13 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
 
-const sqliteDb = new Database("dev.db");
+const connectionString = process.env.DATABASE_URL!;
 
-export const db = drizzle(sqliteDb);
+// Disable prefetch as it is not supported for "Transaction" pool mode
+export const client = postgres(connectionString, { 
+  max: 1, // Recommended for drizzle
+  prepare: false // Disable prepared statements for better compatibility
+});
+
+export const db = drizzle(client, { schema });
