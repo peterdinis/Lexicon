@@ -6,20 +6,35 @@ import { getSupabaseServerClient } from "@/supabase/server";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
+// Custom types for todo operations
+interface CreateTodoData {
+  title: string;
+  description?: string;
+  priority?: string;
+  due_date?: Date | null;
+  status?: string;
+  notes?: string;
+  tags?: string;
+}
+
+interface UpdateTodoData {
+  title?: string;
+  description?: string;
+  priority?: string;
+  due_date?: Date | null;
+  status?: string;
+  completed?: boolean;
+  notes?: string;
+  tags?: string;
+  updated_at: Date;
+}
+
 // ----------------------
 // TODO HANDLERS
 // ----------------------
 
 // CREATE TODO
-export async function createTodoHandler(data: {
-  title: string;
-  description?: string;
-  priority?: string;
-  due_date?: Date | string | null;
-  status?: string;
-  notes?: string;
-  tags?: string;
-}) {
+export async function createTodoHandler(data: CreateTodoData) {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -37,12 +52,12 @@ export async function createTodoHandler(data: {
     description: data.description ?? "",
     priority: data.priority ?? "low",
     status: data.status ?? "pending",
-    due_date: data.due_date ? new Date(data.due_date) : null,
+    due_date: data.due_date,
     notes: data.notes ?? "",
     tags: data.tags ?? "",
     completed: false,
-    created_at: new Date(), // Use Date object
-    updated_at: new Date(), // Use Date object
+    created_at: new Date(),
+    updated_at: new Date(),
   };
 
   const [createdTodo] = await db.insert(todos).values(newTodo).returning();
@@ -67,7 +82,7 @@ export async function getTodoHandler(id: string) {
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id), // Add user ownership check
+        eq(todos.user_id, user.id),
       ),
     );
 
@@ -90,7 +105,7 @@ export async function getAllTodosHandler() {
     .select()
     .from(todos)
     .where(eq(todos.user_id, user.id))
-    .orderBy(desc(todos.created_at)); // Most recent first
+    .orderBy(desc(todos.created_at));
 
   return allTodos;
 }
@@ -110,7 +125,7 @@ export async function getTodosByStatusHandler(status: string) {
     .select()
     .from(todos)
     .where(and(eq(todos.user_id, user.id), eq(todos.status, status)))
-    .orderBy(asc(todos.due_date)); // Order by due date
+    .orderBy(asc(todos.due_date));
 
   return todosList;
 }
@@ -118,16 +133,7 @@ export async function getTodosByStatusHandler(status: string) {
 // UPDATE TODO
 export async function updateTodoHandler(
   id: string,
-  updates: {
-    title?: string;
-    description?: string;
-    priority?: string;
-    due_date?: Date | string | null;
-    status?: string;
-    completed?: boolean;
-    notes?: string;
-    tags?: string;
-  },
+  updates: Omit<UpdateTodoData, 'updated_at'> & { due_date?: Date | string | null }
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -138,20 +144,20 @@ export async function updateTodoHandler(
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const updateData: any = {
-    updated_at: new Date(), // Use Date object
+  const updateData: UpdateTodoData = {
+    updated_at: new Date(),
   };
 
   // Only include fields that are provided
   if (updates.title !== undefined) updateData.title = updates.title;
-  if (updates.description !== undefined)
-    updateData.description = updates.description;
+  if (updates.description !== undefined) updateData.description = updates.description;
   if (updates.priority !== undefined) updateData.priority = updates.priority;
   if (updates.status !== undefined) updateData.status = updates.status;
   if (updates.completed !== undefined) updateData.completed = updates.completed;
   if (updates.notes !== undefined) updateData.notes = updates.notes;
   if (updates.tags !== undefined) updateData.tags = updates.tags;
   if (updates.due_date !== undefined) {
+    // Convert string to Date if necessary
     updateData.due_date = updates.due_date ? new Date(updates.due_date) : null;
   }
 
@@ -161,7 +167,7 @@ export async function updateTodoHandler(
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id), // Add user ownership check
+        eq(todos.user_id, user.id),
       ),
     )
     .returning();
@@ -186,7 +192,7 @@ export async function deleteTodoHandler(id: string) {
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id), // Add user ownership check
+        eq(todos.user_id, user.id),
       ),
     )
     .returning();
@@ -207,7 +213,6 @@ export async function toggleTodoHandler(id: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  // First get the current todo to toggle the completed status
   const [currentTodo] = await db
     .select()
     .from(todos)
@@ -246,13 +251,13 @@ export async function updateFolderHandler(id: string, title: string) {
     .update(folders)
     .set({
       title,
-      updated_at: new Date(), // Use Date object
+      updated_at: new Date(),
     })
     .where(
       and(
         eq(folders.id, id),
-        eq(folders.user_id, user.id), // Add user ownership check
-        eq(folders.in_trash, false), // Can't update trashed folders
+        eq(folders.user_id, user.id),
+        eq(folders.in_trash, false),
       ),
     )
     .returning();
@@ -276,7 +281,7 @@ export async function deleteFolderHandler(id: string) {
     .update(folders)
     .set({
       in_trash: true,
-      updated_at: new Date(), // Use Date object
+      updated_at: new Date(),
     })
     .where(and(eq(folders.id, id), eq(folders.user_id, user.id)))
     .returning();

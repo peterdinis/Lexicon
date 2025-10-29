@@ -4,6 +4,23 @@ import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
 
+// Custom types for page operations
+interface CreatePageData {
+  title?: string;
+  description?: string;
+  parent_id?: string | null;
+  is_folder?: boolean;
+}
+
+interface UpdatePageData {
+  title?: string;
+  description?: string;
+  icon?: string;
+  coverImage?: string | null;
+  parent_id?: string | null;
+  updated_at: Date;
+}
+
 // ----------------------
 // Get Single Page
 // ----------------------
@@ -91,7 +108,7 @@ export async function updatePageHandler(
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const updateData: any = {
+  const updateData: UpdatePageData = {
     updated_at: new Date(), // Use Date object
   };
 
@@ -99,11 +116,12 @@ export async function updatePageHandler(
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
   if (data.icon !== undefined) updateData.icon = data.icon;
-  if (data.coverImage !== undefined) updateData.cover_image = data.coverImage;
+  if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
   if (data.parent_id !== undefined) updateData.parent_id = data.parent_id;
 
   // Check if there's anything to update (besides updated_at)
-  if (Object.keys(updateData).length <= 1) {
+  const fieldsToUpdate = Object.keys(updateData).filter(key => key !== 'updated_at');
+  if (fieldsToUpdate.length === 0) {
     throw new Error("No valid fields to update");
   }
 
@@ -160,7 +178,12 @@ export async function getPagesByParentHandler(parent_id: string | null = null) {
   const pagesList = await db
     .select()
     .from(pages)
-    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
+    .where(
+      and(
+        eq(pages.user_id, user.id),
+        eq(pages.in_trash, false),
+      )
+    )
     .orderBy(asc(pages.created_at));
 
   return pagesList || [];
