@@ -1,6 +1,7 @@
 import { db } from "@/drizzle/db";
 import { folders, pages } from "@/drizzle/schema";
 import { generateId } from "@/lib/generate-id";
+import { getUserId } from "@/supabase/get-user-id";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { eq, asc, and } from "drizzle-orm";
 
@@ -8,19 +9,11 @@ export async function createFolderHandler(
   parentId: string | null,
   title: string,
 ) {
-  const supabase = await getSupabaseServerClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const newFolder = {
     id: generateId(),
-    user_id: user.id,
+    user_id: userId,
     title,
     parent_id: parentId,
     in_trash: false, // Add missing required field

@@ -3,19 +3,10 @@
 import { db } from "@/drizzle/db";
 import { todos } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 import { CreateTodoSchema } from "./schemas/todosSchemas";
 import { Todo } from "@/types/applicationTypes";
-
-async function getUserId() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  return user.id;
-}
+import { getUserId } from "@/supabase/get-user-id";
 
 export async function getTodosAction() {
   try {

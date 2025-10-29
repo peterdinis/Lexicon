@@ -1,6 +1,6 @@
 import { db } from "@/drizzle/db";
 import { diagrams } from "@/drizzle/schema";
-import { getSupabaseServerClient } from "@/supabase/server";
+import { getUserId } from "@/supabase/get-user-id";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
 
@@ -8,14 +8,7 @@ import { eq, asc, and } from "drizzle-orm";
 // Get Single Diagram
 // ----------------------
 export async function getDiagramHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const [diagram] = await db
     .select()
@@ -23,7 +16,7 @@ export async function getDiagramHandler(id: string) {
     .where(
       and(
         eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id), // Add user ownership check
+        eq(diagrams.user_id, userId), // Add user ownership check
       ),
     );
 
@@ -41,20 +34,13 @@ export async function createDiagramHandler(
   edges: any[] = [], // Accept array/object instead of string
   viewport: object = { x: 0, y: 0, zoom: 1 }, // Accept object instead of string
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const [newDiagram] = await db
     .insert(diagrams)
     .values({
       id: randomUUID(),
-      user_id: user.id,
+      user_id: userId,
       title,
       description,
       nodes: nodes, // Direct object/array assignment
@@ -82,14 +68,7 @@ export async function updateDiagramHandler(
     viewport: object; // Change to object instead of string
   }>,
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const updateData: any = {
     updated_at: new Date(), // Use Date object
@@ -108,7 +87,7 @@ export async function updateDiagramHandler(
     .where(
       and(
         eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id), // Add user ownership check
+        eq(diagrams.user_id, userId), // Add user ownership check
       ),
     )
     .returning();
@@ -121,21 +100,14 @@ export async function updateDiagramHandler(
 // Get All Diagrams
 // ----------------------
 export async function getAllDiagramsHandler() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const allDiagrams = await db
     .select()
     .from(diagrams)
     .where(
       and(
-        eq(diagrams.user_id, user.id),
+        eq(diagrams.user_id, userId),
         eq(diagrams.in_trash, false), // Exclude trashed diagrams
       ),
     )
@@ -148,14 +120,7 @@ export async function getAllDiagramsHandler() {
 // Soft Delete Diagram (Move to trash)
 // ----------------------
 export async function deleteDiagramHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const [deletedDiagram] = await db
     .update(diagrams)
@@ -163,7 +128,7 @@ export async function deleteDiagramHandler(id: string) {
       in_trash: true,
       updated_at: new Date(),
     })
-    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, userId)))
     .returning();
 
   if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
@@ -175,18 +140,11 @@ export async function deleteDiagramHandler(id: string) {
 // Hard Delete Diagram (Permanent)
 // ----------------------
 export async function hardDeleteDiagramHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const [deletedDiagram] = await db
     .delete(diagrams)
-    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, userId)))
     .returning();
 
   if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
@@ -198,14 +156,7 @@ export async function hardDeleteDiagramHandler(id: string) {
 // Restore Diagram from Trash
 // ----------------------
 export async function restoreDiagramHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const [restoredDiagram] = await db
     .update(diagrams)
@@ -213,7 +164,7 @@ export async function restoreDiagramHandler(id: string) {
       in_trash: false,
       updated_at: new Date(),
     })
-    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, userId)))
     .returning();
 
   if (!restoredDiagram) throw new Error("Diagram not found or unauthorized");
@@ -225,19 +176,12 @@ export async function restoreDiagramHandler(id: string) {
 // Get Trashed Diagrams
 // ----------------------
 export async function getTrashedDiagramsHandler() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const userId = await getUserId();
 
   const trashedDiagrams = await db
     .select()
     .from(diagrams)
-    .where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, true)))
+    .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, true)))
     .orderBy(asc(diagrams.updated_at));
 
   return trashedDiagrams || [];
