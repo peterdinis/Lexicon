@@ -8,7 +8,26 @@ import { CreateTodoSchema } from "./schemas/todosSchemas";
 import { Todo } from "@/types/applicationTypes";
 import { getUserId } from "@/supabase/get-user-id";
 
-export async function getTodosAction() {
+// Custom types for update operations
+interface TodoUpdateData {
+  title?: string;
+  description?: string | null;
+  priority?: "low" | "medium" | "high";
+  due_date?: Date | null;
+  completed?: boolean;
+  status?: string;
+  tags?: string | null; // JSON string in database
+  notes?: string | null;
+  updated_at: Date;
+}
+
+interface TodoResponse {
+  success: boolean;
+  data?: unknown;
+  error?: string;
+}
+
+export async function getTodosAction(): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
     const result = await db
@@ -22,7 +41,7 @@ export async function getTodosAction() {
   }
 }
 
-export async function createTodoAction(data: CreateTodoSchema) {
+export async function createTodoAction(data: CreateTodoSchema): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
@@ -51,7 +70,7 @@ export async function createTodoAction(data: CreateTodoSchema) {
   }
 }
 
-export async function updateTodoAction(id: string, data: Partial<Todo>) {
+export async function updateTodoAction(id: string, data: Partial<Todo>): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
@@ -66,7 +85,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       notes,
     } = data;
 
-    const updateData: any = {
+    const updateData: TodoUpdateData = {
       updated_at: new Date(),
     };
 
@@ -79,7 +98,10 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
     }
     if (completed !== undefined) updateData.completed = completed;
     if (status !== undefined) updateData.status = status;
-    if (tags !== undefined) updateData.tags = tags;
+    if (tags !== undefined) {
+      // Convert array to JSON string for database storage
+      updateData.tags = tags ? JSON.stringify(tags) : null;
+    }
     if (notes !== undefined) updateData.notes = notes;
 
     const result = await db
@@ -100,7 +122,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
   }
 }
 
-export async function deleteTodoAction(id: string) {
+export async function deleteTodoAction(id: string): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
@@ -122,7 +144,7 @@ export async function deleteTodoAction(id: string) {
 }
 
 // Additional useful actions
-export async function toggleTodoAction(id: string) {
+export async function toggleTodoAction(id: string): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
@@ -152,7 +174,7 @@ export async function toggleTodoAction(id: string) {
   }
 }
 
-export async function getTodoAction(id: string) {
+export async function getTodoAction(id: string): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 

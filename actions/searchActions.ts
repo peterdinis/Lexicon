@@ -2,29 +2,28 @@
 
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
-import { z } from "zod";
 import Fuse from "fuse.js";
 import { db } from "@/drizzle/db";
-import {
-  pages,
-  todos,
-  calendarEvents,
-  diagrams,
-  folders,
-} from "@/drizzle/schema";
+import { pages, todos, calendarEvents, diagrams, folders } from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { searchSchema } from "./schemas/searchSchemas";
+import { searchSchema, quickSearchSchema } from "./schemas/searchSchemas";
 import { fetchUser } from "./authActions";
-import { SearchData, PageItem, SearchResult, TodoItem, EventItem, DiagramItem, FolderItem } from "@/types/applicationTypes";
-
-const fuseInstances = new Map();
-
-let cachedSearchData: SearchData | null = null;
+import type { 
+  PageItem, 
+  TodoItem, 
+  EventItem, 
+  DiagramItem, 
+  FolderItem, 
+  SearchType,
+  FuseOptions 
+} from "@/types/searchTypes";
+// Cache management
+let cachedSearchData: any | null = null;
 let lastCacheUpdate = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Fixed Fuse.js options with proper typing
-const fuseOptions: Record<string, any> = {
+// Type-safe Fuse.js options
+const fuseOptions: Record<string, FuseOptions> = {
   pages: {
     keys: ["title", "description"],
     threshold: 0.6,
@@ -72,7 +71,16 @@ const fuseOptions: Record<string, any> = {
   },
 };
 
-async function loadSearchData(userId: string): Promise<SearchData> {
+// URL mapping
+const urlMap: Record<SearchType, (item: { id: string }) => string> = {
+  page: (item) => `/page/${item.id}`,
+  todo: (item) => `/todos#todo-${item.id}`,
+  event: (item) => `/calendar#event-${item.id}`,
+  diagram: (item) => `/diagrams/${item.id}`,
+  folder: (item) => `/folder/${item.id}`,
+};
+
+async function loadSearchData(userId: string) {
   const now = Date.now();
 
   if (cachedSearchData && now - lastCacheUpdate < CACHE_TTL) {
@@ -80,75 +88,62 @@ async function loadSearchData(userId: string): Promise<SearchData> {
   }
 
   try {
-    const [pagesData, todosData, eventsData, diagramsData, foldersData] =
-      await Promise.all([
-        // Pages
-        db
-          .select()
-          .from(pages)
-          .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
-          .orderBy(desc(pages.updated_at))
-          .limit(1000)
-          .catch((error) => {
-            console.error("Error loading pages:", error);
-            return [];
-          }),
+    const [pagesData, todosData, eventsData, diagramsData, foldersData] = await Promise.all([
+      db
+        .select()
+        .from(pages)
+        .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
+        .orderBy(desc(pages.updated_at))
+        .limit(1000)
+        .catch((error) => {
+          console.error("Error loading pages:", error);
+          return [] as PageItem[];
+        }),
 
-        // Todos
-        db
-          .select()
-          .from(todos)
-          .where(eq(todos.user_id, userId))
-          .orderBy(desc(todos.updated_at))
-          .limit(1000)
-          .catch((error) => {
-            console.error("Error loading todos:", error);
-            return [];
-          }),
+      db
+        .select()
+        .from(todos)
+        .where(eq(todos.user_id, userId))
+        .orderBy(desc(todos.updated_at))
+        .limit(1000)
+        .catch((error) => {
+          console.error("Error loading todos:", error);
+          return [] as TodoItem[];
+        }),
 
-        // Events
-        db
-          .select()
-          .from(calendarEvents)
-          .where(
-            and(
-              eq(calendarEvents.user_id, userId),
-              eq(calendarEvents.in_trash, false),
-            ),
-          )
-          .orderBy(desc(calendarEvents.updated_at))
-          .limit(1000)
-          .catch((error) => {
-            console.error("Error loading events:", error);
-            return [];
-          }),
+      db
+        .select()
+        .from(calendarEvents)
+        .where(and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, false)))
+        .orderBy(desc(calendarEvents.updated_at))
+        .limit(1000)
+        .catch((error) => {
+          console.error("Error loading events:", error);
+          return [] as EventItem[];
+        }),
 
-        // Diagrams
-        db
-          .select()
-          .from(diagrams)
-          .where(
-            and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)),
-          )
-          .orderBy(desc(diagrams.updated_at))
-          .limit(1000)
-          .catch((error) => {
-            console.error("Error loading diagrams:", error);
-            return [];
-          }),
+      db
+        .select()
+        .from(diagrams)
+        .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)))
+        .orderBy(desc(diagrams.updated_at))
+        .limit(1000)
+        .catch((error) => {
+          console.error("Error loading diagrams:", error);
+          return [] as DiagramItem[];
+        }),
 
-        // Folders
-        db
-          .select()
-          .from(folders)
-          .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
-          .orderBy(desc(folders.updated_at))
-          .limit(1000)
-          .catch((error) => {
-            console.error("Error loading folders:", error);
-            return [];
-          }),
-      ]);
+      db
+        .select()
+        .from(folders)
+        .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
+        .orderBy(desc(folders.updated_at))
+        .limit(1000)
+        .catch((error) => {
+          console.error("Error loading folders:", error);
+          return [] as FolderItem[];
+        }),
+    ]);
 
     cachedSearchData = {
       pages: pagesData,
@@ -159,8 +154,8 @@ async function loadSearchData(userId: string): Promise<SearchData> {
     };
 
     lastCacheUpdate = now;
-
     return cachedSearchData;
+
   } catch (error) {
     console.error("❌ Error loading search data:", error);
     return {
@@ -173,121 +168,64 @@ async function loadSearchData(userId: string): Promise<SearchData> {
   }
 }
 
-function getUrlForType(type: string, item: any): string {
-  const urls = {
-    page: `/page/${item.id}`,
-    todo: `/todos#todo-${item.id}`,
-    event: `/calendar#event-${item.id}`,
-    diagram: `/diagrams/${item.id}`,
-    folder: `/folder/${item.id}`,
-  };
-  return urls[type as keyof typeof urls] || "/";
-}
-
-function getMetadataForType(type: string, item: any): Record<string, any> {
-  const metadata: Record<string, any> = {
+function getMetadataForItem(type: SearchType, item: PageItem | TodoItem | EventItem | DiagramItem | FolderItem): Record<string, unknown> {
+  const baseMetadata = {
     created_at: item.created_at,
     updated_at: item.updated_at,
   };
 
   switch (type) {
     case "page":
-      metadata.is_folder = item.is_folder;
-      break;
+      return {
+        ...baseMetadata,
+        is_folder: (item as PageItem).is_folder,
+      };
     case "todo":
-      metadata.completed = item.completed;
-      metadata.priority = item.priority;
-      metadata.due_date = item.due_date;
-      break;
+      const todoItem = item as TodoItem;
+      return {
+        ...baseMetadata,
+        completed: todoItem.completed,
+        priority: todoItem.priority,
+        due_date: todoItem.due_date,
+      };
     case "event":
-      metadata.start_time = item.start_time;
-      metadata.end_time = item.end_time;
-      metadata.all_day = item.all_day;
-      break;
+      const eventItem = item as EventItem;
+      return {
+        ...baseMetadata,
+        start_time: eventItem.start_time,
+        end_time: eventItem.end_time,
+        all_day: eventItem.all_day,
+      };
+    default:
+      return baseMetadata;
   }
-
-  return metadata;
 }
 
-function createPageResult(item: PageItem, score?: number): SearchResult {
+function createSearchResult<T>(
+  item: T,
+  type: SearchType,
+  score?: number
+): any {
+  const baseItem = item as { id: string; title: string; description?: string | null; icon?: string | null };
+  
   return {
-    id: item.id,
-    type: "page",
-    title: item.title || "Untitled Page",
-    description: item.description || undefined,
-    icon: item.icon as string | undefined,
-    url: getUrlForType("page", item),
+    id: baseItem.id,
+    type,
+    title: baseItem.title || `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+    description: baseItem.description || undefined,
+    icon: baseItem.icon || undefined,
+    url: urlMap[type]({ id: baseItem.id }),
     score,
-    metadata: getMetadataForType("page", item),
+    metadata: getMetadataForItem(type, item as any),
   };
 }
 
-function createTodoResult(item: TodoItem, score?: number): SearchResult {
-  return {
-    id: item.id,
-    type: "todo",
-    title: item.title || "Untitled Todo",
-    description: item.description as string | undefined,
-    url: getUrlForType("todo", item),
-    score,
-    metadata: getMetadataForType("todo", item),
-  };
-}
-
-function createEventResult(item: EventItem, score?: number): SearchResult {
-  return {
-    id: item.id,
-    type: "event",
-    title: item.title || "Untitled Event",
-    description: item.description as string | undefined,
-    url: getUrlForType("event", item),
-    score,
-    metadata: getMetadataForType("event", item),
-  };
-}
-
-function createDiagramResult(item: DiagramItem, score?: number): SearchResult {
-  return {
-    id: item.id,
-    type: "diagram",
-    title: item.title || "Untitled Diagram",
-    description: item.description as string | undefined,
-    url: getUrlForType("diagram", item),
-    score,
-    metadata: getMetadataForType("diagram", item),
-  };
-}
-
-function createFolderResult(item: FolderItem, score?: number): SearchResult {
-  return {
-    id: item.id,
-    type: "folder",
-    title: item.title || "Untitled Folder",
-    url: getUrlForType("folder", item),
-    score,
-    metadata: getMetadataForType("folder", item),
-  };
-}
-
-// FIXED: Proper type mapping with correct keys
-const resultCreators: Record<
-  string,
-  (item: any, score?: number) => SearchResult
-> = {
-  pages: createPageResult,
-  todos: createTodoResult,
-  events: createEventResult,
-  diagrams: createDiagramResult,
-  folders: createFolderResult,
-};
-
-// Improved search function with better error handling
-function searchInCollection(
-  data: any[],
+function searchInCollection<T>(
+  data: T[],
   query: string,
   type: string,
-  limit: number,
-): SearchResult[] {
+  limit: number
+): any[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
   }
@@ -295,73 +233,50 @@ function searchInCollection(
   try {
     const options = fuseOptions[type];
     if (!options) {
-      console.warn(`No Fuse options found for type: ${type}`);
-      return simpleSearch(data, query, type, limit);
+      return simpleSearch(data, query, type as SearchType, limit);
     }
 
     const fuse = new Fuse(data, options);
     const searchResults = fuse.search(query, { limit });
 
-    const results = searchResults.map((result): SearchResult => {
-      const creator = resultCreators[type];
-      if (!creator) {
-        console.warn(`Unknown type: ${type}`);
-        return {
-          id: result.item.id,
-          type: "page",
-          title: "Unknown Item",
-          url: "/",
-          score: result.score,
-        };
-      }
-
-      return creator(result.item, result.score);
+    return searchResults.map((result): any => {
+      return createSearchResult(result.item, type as SearchType, result.score);
     });
 
-    return results;
   } catch (error) {
     console.error(`❌ Error searching in ${type}:`, error);
-    return simpleSearch(data, query, type, limit);
+    return simpleSearch(data, query, type as SearchType, limit);
   }
 }
 
-// Simple fallback search for debugging
-function simpleSearch(
-  data: any[],
+function simpleSearch<T>(
+  data: T[],
   query: string,
-  type: string,
-  limit: number,
-): SearchResult[] {
+  type: SearchType,
+  limit: number
+): any[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
   }
 
   const lowerQuery = query.toLowerCase();
-  const filtered = data
+  
+  return data
     .filter((item) => {
-      if (item.title && item.title.toLowerCase().includes(lowerQuery))
-        return true;
-      if (
-        item.description &&
-        item.description.toLowerCase().includes(lowerQuery)
-      )
-        return true;
-      return false;
+      const baseItem = item as { title?: string; description?: string | null };
+      return (
+        baseItem.title?.toLowerCase().includes(lowerQuery) ||
+        baseItem.description?.toLowerCase().includes(lowerQuery)
+      );
     })
-    .slice(0, limit);
-
-  return filtered.map((item) => {
-    const creator = resultCreators[type];
-    return creator ? creator(item) : createPageResult(item);
-  });
+    .slice(0, limit)
+    .map((item) => createSearchResult(item, type));
 }
 
-// Fixed search action
 export const searchAction = actionClient
   .inputSchema(searchSchema)
   .action(async ({ parsedInput: { query, limit, types } }) => {
     try {
-      // Skontrolovať dĺžku query
       if (query.trim().length < 1) {
         return {
           success: true,
@@ -374,30 +289,25 @@ export const searchAction = actionClient
       }
 
       const user = await fetchUser();
-      const userId = user.id;
+      const searchData = await loadSearchData(user.id);
 
-      // Načítať všetky dáta naraz
-      const searchData = await loadSearchData(userId);
+      const results: any[] = [];
 
-      const results: SearchResult[] = [];
-
-      // Search in each type
       for (const type of types) {
-        const data = searchData[type as keyof SearchData];
+        const data = searchData[type as keyof any];
         if (data && data.length > 0) {
           const typeResults = searchInCollection(
             data,
             query,
             type,
-            Math.ceil(limit / types.length),
+            Math.ceil(limit / types.length)
           );
           results.push(...typeResults);
         }
       }
 
-      // Zoradiť a limitovať výsledky
       const sortedResults = results
-        .filter((result) => result && result.score !== undefined)
+        .filter((result) => result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, limit);
 
@@ -409,6 +319,7 @@ export const searchAction = actionClient
           query,
         },
       };
+
     } catch (error) {
       console.error("❌ Search action error:", error);
       return {
@@ -423,13 +334,8 @@ export const searchAction = actionClient
     }
   });
 
-// Fixed quick search action
 export const quickSearchAction = actionClient
-  .inputSchema(
-    z.object({
-      query: z.string().min(1, "Query must be at least 1 character long"),
-    }),
-  )
+  .inputSchema(quickSearchSchema)
   .action(async ({ parsedInput: { query } }) => {
     try {
       if (query.trim().length < 1) {
@@ -446,9 +352,8 @@ export const quickSearchAction = actionClient
       const user = await fetchUser();
       const searchData = await loadSearchData(user.id);
 
-      // Vyhľadávať len v najdôležitejších typoch
       const quickTypes = ["pages", "todos", "events"] as const;
-      const results: SearchResult[] = [];
+      const results: any[] = [];
 
       for (const type of quickTypes) {
         const data = searchData[type];
@@ -459,7 +364,7 @@ export const quickSearchAction = actionClient
       }
 
       const sortedResults = results
-        .filter((result) => result && result.score !== undefined)
+        .filter((result) => result.score !== undefined)
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, 5);
 
@@ -471,6 +376,7 @@ export const quickSearchAction = actionClient
           query,
         },
       };
+
     } catch (error) {
       console.error("❌ Quick search error:", error);
       return {
@@ -485,9 +391,7 @@ export const quickSearchAction = actionClient
     }
   });
 
-// Funkcia pre invalidáciu cache
 export async function invalidateSearchCache() {
   cachedSearchData = null;
-  fuseInstances.clear();
   lastCacheUpdate = 0;
 }
