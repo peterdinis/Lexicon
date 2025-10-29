@@ -17,7 +17,7 @@ import {
 export const getAllTrashedItemsAction = actionClient.action(async () => {
   try {
     const items = await getAllTrashedItemsHandler();
-    return items;
+    return { data: items };
   } catch (err) {
     throw new Error(getErrorMessage(err));
   }
@@ -27,7 +27,7 @@ export const getAllTrashedItemsAction = actionClient.action(async () => {
 export const getAllNonTrashedItemsAction = actionClient.action(async () => {
   try {
     const items = await getAllNonTrashedItemsHandler();
-    return items;
+    return { data: items };
   } catch (err) {
     throw new Error(getErrorMessage(err));
   }
@@ -52,10 +52,7 @@ export const moveToTrashAction = actionClient
   });
 
 // Restore item from trash
-export async function restoreFromTrashAction(formData: FormData) {
-  const id = formData.get("id") as string;
-  const table = formData.get("table") as "pages" | "folders";
-
+export async function restoreFromTrashAction(id: string, table: "pages" | "folders") {
   if (!id || !table) {
     return { success: false, error: "Missing ID or table name" };
   }
@@ -73,10 +70,7 @@ export async function restoreFromTrashAction(formData: FormData) {
 }
 
 // Permanently delete item from trash
-export async function permanentlyDeleteAction(formData: FormData) {
-  const id = formData.get("id") as string;
-  const table = formData.get("table") as "pages" | "folders";
-
+export async function permanentlyDeleteAction(id: string, table: "pages" | "folders") {
   if (!id || !table) {
     return { success: false, error: "Missing ID or table name" };
   }

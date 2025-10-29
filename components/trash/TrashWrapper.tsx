@@ -30,28 +30,41 @@ interface FolderType {
   deleted_at?: string;
 }
 
+interface TrashItems {
+  pages: Page[];
+  folders: FolderType[];
+}
+
 interface TrashWrapperProps {}
 
 export function TrashWrapper({}: TrashWrapperProps) {
   const [pages, setPages] = useState<Page[]>([]);
   const [folders, setFolders] = useState<FolderType[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchTrash() {
       try {
-        const items = await getAllTrashedItemsAction();
-        setPages(
-          items.data && Array.isArray(items.data.pages) ? items.data.pages : [],
-        );
-        setFolders(
-          items.data && Array.isArray(items.data.folders)
-            ? items.data.folders
-            : [],
-        );
+        setIsLoading(true);
+        const result = await getAllTrashedItemsAction();
+        
+        // SafeActionResult vracia data v result.data
+        if (result?.data?.data) {
+          const trashData = result.data.data as unknown as TrashItems;
+          setPages(Array.isArray(trashData.pages) ? trashData.pages : []);
+          setFolders(Array.isArray(trashData.folders) ? trashData.folders : []);
+        } else {
+          setPages([]);
+          setFolders([]);
+        }
       } catch (err) {
         console.error("Error loading trash:", err);
+        setPages([]);
+        setFolders([]);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchTrash();
@@ -60,23 +73,21 @@ export function TrashWrapper({}: TrashWrapperProps) {
   const restoreItem = async (id: string, table: "pages" | "folders") => {
     setLoading((prev) => ({ ...prev, [`restore-${id}`]: true }));
     try {
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("table", table);
+      const result = await restoreFromTrashAction(id, table);
 
-      const result = await restoreFromTrashAction(formData);
-
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to restore item");
+      }
 
       if (table === "pages") {
-        setPages(pages.filter((p) => p.id !== id));
+        setPages(prev => prev.filter((p) => p.id !== id));
       } else {
-        setFolders(folders.filter((f) => f.id !== id));
+        setFolders(prev => prev.filter((f) => f.id !== id));
       }
       router.refresh();
     } catch (error) {
       console.error("Error restoring item:", error);
-      alert("Failed to restore item");
+      alert(error instanceof Error ? error.message : "Failed to restore item");
     } finally {
       setLoading((prev) => ({ ...prev, [`restore-${id}`]: false }));
     }
@@ -92,28 +103,52 @@ export function TrashWrapper({}: TrashWrapperProps) {
 
     setLoading((prev) => ({ ...prev, [`delete-${id}`]: true }));
     try {
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("table", table);
+      const result = await permanentlyDeleteAction(id, table);
 
-      const result = await permanentlyDeleteAction(formData);
-
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete item");
+      }
 
       if (table === "pages") {
-        setPages(pages.filter((p) => p.id !== id));
+        setPages(prev => prev.filter((p) => p.id !== id));
       } else {
-        setFolders(folders.filter((f) => f.id !== id));
+        setFolders(prev => prev.filter((f) => f.id !== id));
       }
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("Failed to delete item");
+      alert(error instanceof Error ? error.message : "Failed to delete item");
     } finally {
       setLoading((prev) => ({ ...prev, [`delete-${id}`]: false }));
     }
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Unknown date";
+    try {
+      return format(new Date(dateString), "MMM d, yyyy 'at' h:mm a");
+    } catch {
+      return "Invalid date";
+    }
+  };
+
   const isEmpty = pages.length === 0 && folders.length === 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-neutral-900 dark:text-white mb-2">
+              Trash
+            </h1>
+            <p className="text-lg text-neutral-600 dark:text-neutral-400">
+              Loading...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -166,15 +201,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                           {page.description}
                         </p>
                       )}
-                      {page.deleted_at && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Deleted{" "}
-                          {format(
-                            new Date(page.deleted_at),
-                            "MMM d, yyyy 'at' h:mm a",
-                          )}
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Deleted {formatDate(page.deleted_at)}
+                      </p>
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <Button
@@ -223,15 +252,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
                       <h3 className="font-medium truncate">
                         {folder.title || "Unnamed Folder"}
                       </h3>
-                      {folder.deleted_at && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Deleted{" "}
-                          {format(
-                            new Date(folder.deleted_at),
-                            "MMM d, yyyy 'at' h:mm a",
-                          )}
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Deleted {formatDate(folder.deleted_at)}
+                      </p>
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <Button
