@@ -13,14 +13,15 @@ import {
   getTrashedDiagramsHandler,
 } from "./handlers/diagramsHandlers";
 import {
-  createDiagramSchema,
+  createDiagramInputSchema,
   diagramIdSchema,
+  updateDiagramInputSchema,
   updateDiagramSchema,
 } from "./schemas/diagramsShcemas";
 
 // CREATE
 export const createDiagramAction = actionClient
-  .inputSchema(createDiagramSchema)
+  .inputSchema(createDiagramInputSchema)
   .action(
     async ({
       parsedInput: {
@@ -58,10 +59,10 @@ export const getDiagramAction = actionClient
 
 // UPDATE
 export const updateDiagramAction = actionClient
-  .inputSchema(updateDiagramSchema)
+  .inputSchema(updateDiagramInputSchema)
   .action(async ({ parsedInput }) => {
     try {
-      const { id, nodes, edges, viewport, ...rest } = parsedInput;
+      const { nodes, edges, viewport, ...rest } = parsedInput;
 
       // Parse JSON fields if they exist
       const parsedData: any = {
