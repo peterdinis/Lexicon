@@ -44,7 +44,7 @@ export const updateDiagramSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(255).optional(),
   description: z.string().max(1000).optional(),
-  nodes: z.array(nodeSchema).optional(),
-  edges: z.array(edgeSchema).optional(),
-  viewport: viewportSchema.optional(),
+  nodes: z.string().optional(), // Zmeňte na string
+  edges: z.string().optional(), // Zmeňte na string
+  viewport: z.string().optional(), // Zmeňte na string
 });
