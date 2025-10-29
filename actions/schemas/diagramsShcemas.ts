@@ -1,4 +1,6 @@
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from "zod";
+import { diagrams } from "@/drizzle/schema";
 
 export const nodeSchema = z.object({
   id: z.string(),
@@ -10,41 +12,70 @@ export const nodeSchema = z.object({
   data: z.any(),
 });
 
-// Base edge schema for validation
 export const edgeSchema = z.object({
   id: z.string(),
   source: z.string(),
   target: z.string(),
   type: z.string().optional(),
+  data: z.any(),
 });
 
-// Viewport schema
 export const viewportSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  zoom: z.number(),
+  x: z.number().default(0),
+  y: z.number().default(0),
+  zoom: z.number().min(0.1).max(2).default(1),
 });
 
-// Diagram ID Schema
-export const diagramIdSchema = z.object({
-  id: z.string().uuid(),
+// Zod Schemas for diagrams
+export const insertDiagramSchema = createInsertSchema(diagrams, {
+  title: z.string().min(1, "Title is required").max(255, "Title too long"),
+  description: z.string().max(1000, "Description too long").optional(),
+  nodes: z.array(nodeSchema).default([]),
+  edges: z.array(edgeSchema).default([]),
+  viewport: viewportSchema.default({ x: 0, y: 0, zoom: 1 }),
+}).omit({
+  user_id: true,
+  deleted_at: true,
 });
 
-// Create Diagram Schema
-export const createDiagramSchema = z.object({
-  title: z.string().min(1).max(255).default("Untitled Diagram"),
-  description: z.string().max(1000).default(""),
+export const updateDiagramSchema = insertDiagramSchema.partial().omit({
+  id: true,
+  created_at: true,
+});
+
+// Validation schemas for handlers
+export const createDiagramInputSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .default("Untitled Diagram"),
+  description: z.string().max(1000, "Description too long").default(""),
   nodes: z.array(nodeSchema).default([]),
   edges: z.array(edgeSchema).default([]),
   viewport: viewportSchema.default({ x: 0, y: 0, zoom: 1 }),
 });
 
-// Update Diagram Schema
-export const updateDiagramSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1).max(255).optional(),
-  description: z.string().max(1000).optional(),
-  nodes: z.string().optional(), // Zmeňte na string
-  edges: z.string().optional(), // Zmeňte na string
-  viewport: z.string().optional(), // Zmeňte na string
+export const updateDiagramInputSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .optional(),
+  description: z.string().max(1000, "Description too long").optional(),
+  nodes: z.array(nodeSchema).optional(),
+  edges: z.array(edgeSchema).optional(),
+  viewport: viewportSchema.optional(),
 });
+
+export const diagramIdSchema = z.object({
+  id: z.string().uuid("Invalid diagram ID"),
+});
+
+// Types
+export type Diagram = z.infer<typeof createSelectSchema>;
+export type CreateDiagramInput = z.infer<typeof createDiagramInputSchema>;
+export type UpdateDiagramInput = z.infer<typeof updateDiagramInputSchema>;
+export type Node = z.infer<typeof nodeSchema>;
+export type Edge = z.infer<typeof edgeSchema>;
+export type Viewport = z.infer<typeof viewportSchema>;

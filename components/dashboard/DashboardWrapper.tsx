@@ -14,32 +14,57 @@ export default async function DashboardPage() {
   let folders: FolderType[] = [];
 
   try {
-    const pagesPromise = getAllPagesHandler() as Promise<PageType[] | { data: PageType[] } | { success: boolean; data: PageType[] }>;
-    const foldersPromise = getFoldersAction() as Promise<FolderType[] | { data: FolderType[] } | { success: boolean; data: FolderType[] }>;
+    const pagesPromise = getAllPagesHandler() as Promise<
+      PageType[] | { data: PageType[] } | { success: boolean; data: PageType[] }
+    >;
+    const foldersPromise = getFoldersAction() as Promise<
+      | FolderType[]
+      | { data: FolderType[] }
+      | { success: boolean; data: FolderType[] }
+    >;
 
     const [pagesResponse, foldersResponse] = await Promise.all([
       pagesPromise,
-      foldersPromise
+      foldersPromise,
     ]);
 
     // Extrahovanie pages dát
     if (Array.isArray(pagesResponse)) {
       pages = pagesResponse;
-    } else if (pagesResponse && typeof pagesResponse === 'object' && 'data' in pagesResponse) {
+    } else if (
+      pagesResponse &&
+      typeof pagesResponse === "object" &&
+      "data" in pagesResponse
+    ) {
       pages = Array.isArray(pagesResponse.data) ? pagesResponse.data : [];
-    } else if (pagesResponse && typeof pagesResponse === 'object' && 'success' in pagesResponse) {
-      pages = Array.isArray((pagesResponse as any).data) ? (pagesResponse as any).data : [];
+    } else if (
+      pagesResponse &&
+      typeof pagesResponse === "object" &&
+      "success" in pagesResponse
+    ) {
+      pages = Array.isArray((pagesResponse as any).data)
+        ? (pagesResponse as any).data
+        : [];
     }
 
     // Extrahovanie folders dát
     if (Array.isArray(foldersResponse)) {
       folders = foldersResponse;
-    } else if (foldersResponse && typeof foldersResponse === 'object' && 'data' in foldersResponse) {
+    } else if (
+      foldersResponse &&
+      typeof foldersResponse === "object" &&
+      "data" in foldersResponse
+    ) {
       folders = Array.isArray(foldersResponse.data) ? foldersResponse.data : [];
-    } else if (foldersResponse && typeof foldersResponse === 'object' && 'success' in foldersResponse) {
-      folders = Array.isArray((foldersResponse as any).data) ? (foldersResponse as any).data : [];
+    } else if (
+      foldersResponse &&
+      typeof foldersResponse === "object" &&
+      "success" in foldersResponse
+    ) {
+      folders = Array.isArray((foldersResponse as any).data)
+        ? (foldersResponse as any).data
+        : [];
     }
-
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");

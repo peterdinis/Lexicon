@@ -29,7 +29,7 @@ export interface Todo {
   user_id: string;
   title: string;
   description: string;
-  completed: number;
+  completed: boolean;
   priority?: "low" | "medium" | "high";
   status?: "not_started" | "in_progress" | "done";
   due_date?: string;

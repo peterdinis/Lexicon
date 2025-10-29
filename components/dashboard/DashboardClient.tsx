@@ -54,10 +54,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  updatePageAction,
-  movePageAction,
-} from "@/actions/pagesActions";
-import {
   updateFolderAction,
   getFolderDetailAction,
 } from "@/actions/folderActions";
@@ -84,6 +80,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { updatePageHandler } from "@/actions/pagesActions";
 
 interface Page {
   id: string;
@@ -447,7 +444,7 @@ export default function DashboardClient({
     setLoading(true);
     try {
       if (editDialog.type === "page") {
-        const result = await updatePageAction({
+        const result = await updatePageHandler({
           id: editDialog.id,
           title: editTitle,
           description: editDescription,

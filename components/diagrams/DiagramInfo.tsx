@@ -994,7 +994,7 @@ const DiagramInfo: FC = () => {
         title,
         description,
         nodes: nodes as any,
-        edges: edges as any
+        edges: edges as any,
       });
       if (result?.data) setDiagram(result.data);
     } catch (err) {
