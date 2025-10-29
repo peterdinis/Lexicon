@@ -48,7 +48,6 @@ interface CalendarViewProps {
   initialEvents: any[];
 }
 
-// Upravený interface - zhodný s dátami z databázy
 interface CalendarEvent {
   id: string;
   title: string;
@@ -148,8 +147,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     },
   );
-
-  // Memoizovaný dátumový rozsah
+  
   const dateRange = useMemo(() => {
     return {
       startDate: format(startOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
