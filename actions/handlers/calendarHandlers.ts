@@ -19,8 +19,8 @@ export async function createCalendarEventHandler(
   data: {
     title: string;
     description?: string | null;
-    start_time: string;
-    end_time: string;
+    start_time: string; // ISO string from client
+    end_time: string; // ISO string from client
     all_day?: boolean;
     color?: string | null;
   },
@@ -30,11 +30,15 @@ export async function createCalendarEventHandler(
   const newEvent = {
     id: crypto.randomUUID(),
     user_id: userId,
-    ...data,
+    title: data.title,
+    description: data.description,
+    start_time: new Date(data.start_time), // Convert to Date object
+    end_time: new Date(data.end_time), // Convert to Date object
     all_day: data.all_day ?? false,
-    in_trash: false, // Add missing required field
-    created_at: new Date(), // Use Date object instead of string
-    updated_at: new Date(), // Use Date object instead of string
+    color: data.color,
+    in_trash: false,
+    created_at: new Date(),
+    updated_at: new Date(),
   };
 
   const [createdEvent] = await db
@@ -56,7 +60,7 @@ export async function getCalendarEventHandler(id: string) {
       and(
         eq(calendarEvents.id, id), 
         eq(calendarEvents.user_id, userId),
-        eq(calendarEvents.in_trash, false) // Exclude trashed events
+        eq(calendarEvents.in_trash, false)
       )
     );
 
@@ -71,30 +75,23 @@ export async function updateCalendarEventHandler(
   data: {
     title?: string;
     description?: string | null;
-    start_time?: string;
-    end_time?: string;
+    start_time?: string; // ISO string from client
+    end_time?: string; // ISO string from client
     all_day?: boolean;
     color?: string | null;
   },
 ) {
   const userId = await getUserId();
 
-  const updateData: {
-    updated_at: Date;
-    title?: string;
-    description?: string | null;
-    start_time?: string;
-    end_time?: string;
-    all_day?: boolean;
-    color?: string | null;
-  } = {
+  const updateData: any = {
     updated_at: new Date(),
   };
 
+  // Only include fields that are provided
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
-  if (data.start_time !== undefined) updateData.start_time = data.start_time;
-  if (data.end_time !== undefined) updateData.end_time = data.end_time;
+  if (data.start_time !== undefined) updateData.start_time = new Date(data.start_time);
+  if (data.end_time !== undefined) updateData.end_time = new Date(data.end_time);
   if (data.color !== undefined) updateData.color = data.color;
   if (data.all_day !== undefined) updateData.all_day = data.all_day;
 
@@ -108,6 +105,8 @@ export async function updateCalendarEventHandler(
       )
     )
     .returning();
+
+  if (!updatedEvent) throw new Error("Event not found or update failed");
 
   revalidatePath("/calendar");
   return updatedEvent;
@@ -131,6 +130,8 @@ export async function deleteCalendarEventHandler(id: string) {
     )
     .returning();
 
+  if (!deletedEvent) throw new Error("Event not found or already deleted");
+
   revalidatePath("/calendar");
   return deletedEvent;
 }
@@ -139,14 +140,17 @@ export async function deleteCalendarEventHandler(id: string) {
 export async function hardDeleteCalendarEventHandler(id: string) {
   const userId = await getUserId();
   
-  await db
+  const [deletedEvent] = await db
     .delete(calendarEvents)
     .where(
       and(
         eq(calendarEvents.id, id), 
         eq(calendarEvents.user_id, userId)
       )
-    );
+    )
+    .returning();
+
+  if (!deletedEvent) throw new Error("Event not found");
 
   revalidatePath("/calendar");
   return true;
@@ -169,12 +173,17 @@ export async function getAllCalendarEventsHandler() {
   return events;
 }
 
-// GET BY DATE RANGE (Exclude trashed events)
+// GET BY DATE RANGE (Exclude trashed events) - FIXED
 export async function getCalendarEventsByDateRangeHandler(
-  startDate: string,
-  endDate: string,
+  startDate: string, // ISO string
+  endDate: string, // ISO string
 ) {
   const userId = await getUserId();
+  
+  // Convert to Date objects for proper timestamp comparison
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+  
   const events = await db
     .select()
     .from(calendarEvents)
@@ -182,8 +191,36 @@ export async function getCalendarEventsByDateRangeHandler(
       and(
         eq(calendarEvents.user_id, userId),
         eq(calendarEvents.in_trash, false),
-        gte(calendarEvents.start_time, startDate),
-        lte(calendarEvents.start_time, endDate),
+        gte(calendarEvents.start_time, startDateObj),
+        lte(calendarEvents.start_time, endDateObj),
+      ),
+    )
+    .orderBy(calendarEvents.start_time);
+
+  return events;
+}
+
+// GET BY DATE RANGE - ALTERNATIVE VERSION (if you need to query across both start and end times)
+export async function getCalendarEventsByDateRangeHandlerV2(
+  startDate: string,
+  endDate: string,
+) {
+  const userId = await getUserId();
+  
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+  
+  // This version finds events that overlap with the date range
+  const events = await db
+    .select()
+    .from(calendarEvents)
+    .where(
+      and(
+        eq(calendarEvents.user_id, userId),
+        eq(calendarEvents.in_trash, false),
+        // Event starts before the range ends AND ends after the range starts
+        lte(calendarEvents.start_time, endDateObj),
+        gte(calendarEvents.end_time, startDateObj),
       ),
     )
     .orderBy(calendarEvents.start_time);
@@ -208,6 +245,8 @@ export async function restoreCalendarEventHandler(id: string) {
       )
     )
     .returning();
+
+  if (!restoredEvent) throw new Error("Event not found");
 
   revalidatePath("/calendar");
   return restoredEvent;
