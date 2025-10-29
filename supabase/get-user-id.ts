@@ -8,3 +8,9 @@ export async function getUserId() {
   if (!user) throw new Error("Not authenticated");
   return user.id;
 }
+
+export async function validateUser() {
+  const userId = await getUserId();
+  if (!userId) throw new Error("Unauthorized");
+  return userId;
+}
