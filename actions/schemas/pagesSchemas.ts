@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import {pages} from "@/drizzle/schema"
+import { pages } from "@/drizzle/schema";
 
 // Zod Schemas
 export const insertPageSchema = createInsertSchema(pages, {
@@ -21,14 +21,22 @@ export const updatePageSchema = insertPageSchema.partial().omit({
 
 // Validation schemas for handlers
 export const createPageInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").default("Untitled"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .default("Untitled"),
   description: z.string().max(1000, "Description too long").default(""),
   parent_id: z.string().uuid("Invalid parent ID").nullable().default(null),
   is_folder: z.boolean().default(false),
 });
 
 export const updatePageInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .optional(),
   description: z.string().max(1000, "Description too long").optional(),
   icon: z.string().max(50, "Icon too long").optional(),
   coverImage: z.string().url("Invalid cover image URL").nullable().optional(),
@@ -44,7 +52,10 @@ export const movePageInputSchema = z.object({
 });
 
 export const searchPagesInputSchema = z.object({
-  query: z.string().min(1, "Search query is required").max(100, "Search query too long"),
+  query: z
+    .string()
+    .min(1, "Search query is required")
+    .max(100, "Search query too long"),
 });
 
 // Types

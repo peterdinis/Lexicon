@@ -12,10 +12,12 @@ export const insertCalendarEventSchema = createInsertSchema(calendarEvents, {
   user_id: true,
 });
 
-export const updateCalendarEventSchema = insertCalendarEventSchema.partial().omit({
-  id: true,
-  created_at: true,
-});
+export const updateCalendarEventSchema = insertCalendarEventSchema
+  .partial()
+  .omit({
+    id: true,
+    created_at: true,
+  });
 
 // Validation schemas for handlers
 export const createCalendarEventInputSchema = z.object({
@@ -27,7 +29,8 @@ export const createCalendarEventInputSchema = z.object({
   color: z.string().optional().nullable(),
 });
 
-export const updateCalendarEventInputSchema = createCalendarEventInputSchema.partial();
+export const updateCalendarEventInputSchema =
+  createCalendarEventInputSchema.partial();
 
 export const dateRangeInputSchema = z.object({
   startDate: z.string().datetime("Invalid start date"),
@@ -39,6 +42,10 @@ export const eventIdSchema = z.object({
 });
 
 // Types
-export type CreateCalendarEventInput = z.infer<typeof createCalendarEventInputSchema>;
-export type UpdateCalendarEventInput = z.infer<typeof updateCalendarEventInputSchema>;
+export type CreateCalendarEventInput = z.infer<
+  typeof createCalendarEventInputSchema
+>;
+export type UpdateCalendarEventInput = z.infer<
+  typeof updateCalendarEventInputSchema
+>;
 export type DateRangeInput = z.infer<typeof dateRangeInputSchema>;

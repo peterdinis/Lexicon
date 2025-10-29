@@ -21,7 +21,11 @@ export const createFolderInputSchema = z.object({
 });
 
 export const updateFolderInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .optional(),
   parent_id: z.string().uuid("Invalid parent ID").nullable().optional(),
 });
 

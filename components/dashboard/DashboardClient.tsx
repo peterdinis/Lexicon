@@ -53,10 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  updatePageAction,
-  movePageAction,
-} from "@/actions/pagesActions";
+import { updatePageAction, movePageAction } from "@/actions/pagesActions";
 import {
   updateFolderAction,
   getFolderDetailAction,

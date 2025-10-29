@@ -3,9 +3,13 @@ import { folders, pages } from "@/drizzle/schema";
 import { generateId } from "@/lib/generate-id";
 import { eq, asc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { createFolderInputSchema, folderIdSchema, UpdateFolderInput, updateFolderInputSchema } from "../schemas/folderSchemas";
+import {
+  createFolderInputSchema,
+  folderIdSchema,
+  UpdateFolderInput,
+  updateFolderInputSchema,
+} from "../schemas/folderSchemas";
 import { validateUser } from "@/supabase/get-user-id";
-
 
 export async function createFolderHandler(
   parentId: string | null,
@@ -38,12 +42,7 @@ export async function getFoldersHandler() {
   const data = await db
     .select()
     .from(folders)
-    .where(
-      and(
-        eq(folders.user_id, userId),
-        eq(folders.in_trash, false),
-      ),
-    )
+    .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
     .orderBy(asc(folders.created_at));
 
   return data;
@@ -84,12 +83,7 @@ export async function getFolderDetailHandler(folderId: string) {
   const subfolders = await db
     .select()
     .from(folders)
-    .where(
-      and(
-        eq(folders.user_id, userId),
-        eq(folders.in_trash, false),
-      ),
-    )
+    .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
     .orderBy(asc(folders.created_at));
 
   return {
@@ -183,12 +177,7 @@ export async function getTrashedFoldersHandler() {
   const data = await db
     .select()
     .from(folders)
-    .where(
-      and(
-        eq(folders.user_id, userId),
-        eq(folders.in_trash, true),
-      ),
-    )
+    .where(and(eq(folders.user_id, userId), eq(folders.in_trash, true)))
     .orderBy(asc(folders.updated_at));
 
   return data;

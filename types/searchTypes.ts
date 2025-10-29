@@ -87,4 +87,3 @@ export interface FuseOptions {
   ignoreLocation: boolean;
   distance: number;
 }
-

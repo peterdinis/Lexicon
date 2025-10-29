@@ -4,18 +4,24 @@ import { getErrorMessage } from "@/constants/applicationConstants";
 import { actionClient } from "@/lib/safe-action";
 import Fuse from "fuse.js";
 import { db } from "@/drizzle/db";
-import { pages, todos, calendarEvents, diagrams, folders } from "@/drizzle/schema";
+import {
+  pages,
+  todos,
+  calendarEvents,
+  diagrams,
+  folders,
+} from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { searchSchema, quickSearchSchema } from "./schemas/searchSchemas";
 import { fetchUser } from "./authActions";
-import type { 
-  PageItem, 
-  TodoItem, 
-  EventItem, 
-  DiagramItem, 
-  FolderItem, 
+import type {
+  PageItem,
+  TodoItem,
+  EventItem,
+  DiagramItem,
+  FolderItem,
   SearchType,
-  FuseOptions 
+  FuseOptions,
 } from "@/types/searchTypes";
 // Cache management
 let cachedSearchData: any | null = null;
@@ -88,62 +94,70 @@ async function loadSearchData(userId: string) {
   }
 
   try {
-    const [pagesData, todosData, eventsData, diagramsData, foldersData] = await Promise.all([
-      db
-        .select()
-        .from(pages)
-        .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
-        .orderBy(desc(pages.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading pages:", error);
-          return [] as PageItem[];
-        }),
+    const [pagesData, todosData, eventsData, diagramsData, foldersData] =
+      await Promise.all([
+        db
+          .select()
+          .from(pages)
+          .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
+          .orderBy(desc(pages.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading pages:", error);
+            return [] as PageItem[];
+          }),
 
-      db
-        .select()
-        .from(todos)
-        .where(eq(todos.user_id, userId))
-        .orderBy(desc(todos.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading todos:", error);
-          return [] as TodoItem[];
-        }),
+        db
+          .select()
+          .from(todos)
+          .where(eq(todos.user_id, userId))
+          .orderBy(desc(todos.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading todos:", error);
+            return [] as TodoItem[];
+          }),
 
-      db
-        .select()
-        .from(calendarEvents)
-        .where(and(eq(calendarEvents.user_id, userId), eq(calendarEvents.in_trash, false)))
-        .orderBy(desc(calendarEvents.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading events:", error);
-          return [] as EventItem[];
-        }),
+        db
+          .select()
+          .from(calendarEvents)
+          .where(
+            and(
+              eq(calendarEvents.user_id, userId),
+              eq(calendarEvents.in_trash, false),
+            ),
+          )
+          .orderBy(desc(calendarEvents.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading events:", error);
+            return [] as EventItem[];
+          }),
 
-      db
-        .select()
-        .from(diagrams)
-        .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)))
-        .orderBy(desc(diagrams.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading diagrams:", error);
-          return [] as DiagramItem[];
-        }),
+        db
+          .select()
+          .from(diagrams)
+          .where(
+            and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)),
+          )
+          .orderBy(desc(diagrams.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading diagrams:", error);
+            return [] as DiagramItem[];
+          }),
 
-      db
-        .select()
-        .from(folders)
-        .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
-        .orderBy(desc(folders.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading folders:", error);
-          return [] as FolderItem[];
-        }),
-    ]);
+        db
+          .select()
+          .from(folders)
+          .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
+          .orderBy(desc(folders.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading folders:", error);
+            return [] as FolderItem[];
+          }),
+      ]);
 
     cachedSearchData = {
       pages: pagesData,
@@ -155,7 +169,6 @@ async function loadSearchData(userId: string) {
 
     lastCacheUpdate = now;
     return cachedSearchData;
-
   } catch (error) {
     console.error("❌ Error loading search data:", error);
     return {
@@ -168,7 +181,10 @@ async function loadSearchData(userId: string) {
   }
 }
 
-function getMetadataForItem(type: SearchType, item: PageItem | TodoItem | EventItem | DiagramItem | FolderItem): Record<string, unknown> {
+function getMetadataForItem(
+  type: SearchType,
+  item: PageItem | TodoItem | EventItem | DiagramItem | FolderItem,
+): Record<string, unknown> {
   const baseMetadata = {
     created_at: item.created_at,
     updated_at: item.updated_at,
@@ -201,17 +217,20 @@ function getMetadataForItem(type: SearchType, item: PageItem | TodoItem | EventI
   }
 }
 
-function createSearchResult<T>(
-  item: T,
-  type: SearchType,
-  score?: number
-): any {
-  const baseItem = item as { id: string; title: string; description?: string | null; icon?: string | null };
-  
+function createSearchResult<T>(item: T, type: SearchType, score?: number): any {
+  const baseItem = item as {
+    id: string;
+    title: string;
+    description?: string | null;
+    icon?: string | null;
+  };
+
   return {
     id: baseItem.id,
     type,
-    title: baseItem.title || `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+    title:
+      baseItem.title ||
+      `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
     description: baseItem.description || undefined,
     icon: baseItem.icon || undefined,
     url: urlMap[type]({ id: baseItem.id }),
@@ -224,7 +243,7 @@ function searchInCollection<T>(
   data: T[],
   query: string,
   type: string,
-  limit: number
+  limit: number,
 ): any[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
@@ -242,7 +261,6 @@ function searchInCollection<T>(
     return searchResults.map((result): any => {
       return createSearchResult(result.item, type as SearchType, result.score);
     });
-
   } catch (error) {
     console.error(`❌ Error searching in ${type}:`, error);
     return simpleSearch(data, query, type as SearchType, limit);
@@ -253,14 +271,14 @@ function simpleSearch<T>(
   data: T[],
   query: string,
   type: SearchType,
-  limit: number
+  limit: number,
 ): any[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
   }
 
   const lowerQuery = query.toLowerCase();
-  
+
   return data
     .filter((item) => {
       const baseItem = item as { title?: string; description?: string | null };
@@ -300,7 +318,7 @@ export const searchAction = actionClient
             data,
             query,
             type,
-            Math.ceil(limit / types.length)
+            Math.ceil(limit / types.length),
           );
           results.push(...typeResults);
         }
@@ -319,7 +337,6 @@ export const searchAction = actionClient
           query,
         },
       };
-
     } catch (error) {
       console.error("❌ Search action error:", error);
       return {
@@ -376,7 +393,6 @@ export const quickSearchAction = actionClient
           query,
         },
       };
-
     } catch (error) {
       console.error("❌ Quick search error:", error);
       return {

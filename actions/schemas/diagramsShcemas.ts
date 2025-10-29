@@ -9,7 +9,7 @@ export const nodeSchema = z.object({
     x: z.number(),
     y: z.number(),
   }),
-  data: z.any()
+  data: z.any(),
 });
 
 export const edgeSchema = z.object({
@@ -17,7 +17,7 @@ export const edgeSchema = z.object({
   source: z.string(),
   target: z.string(),
   type: z.string().optional(),
-  data: z.any()
+  data: z.any(),
 });
 
 export const viewportSchema = z.object({
@@ -45,7 +45,11 @@ export const updateDiagramSchema = insertDiagramSchema.partial().omit({
 
 // Validation schemas for handlers
 export const createDiagramInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").default("Untitled Diagram"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .default("Untitled Diagram"),
   description: z.string().max(1000, "Description too long").default(""),
   nodes: z.array(nodeSchema).default([]),
   edges: z.array(edgeSchema).default([]),
@@ -53,7 +57,11 @@ export const createDiagramInputSchema = z.object({
 });
 
 export const updateDiagramInputSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255, "Title too long").optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .optional(),
   description: z.string().max(1000, "Description too long").optional(),
   nodes: z.array(nodeSchema).optional(),
   edges: z.array(edgeSchema).optional(),

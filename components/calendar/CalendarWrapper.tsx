@@ -82,17 +82,19 @@ type OptimisticEvent = CalendarEvent & { pending?: boolean };
 export function CalendarView({ initialEvents }: CalendarViewProps) {
   // Konverzia initialEvents na správny typ
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
-    return initialEvents.map(event => ({
+    return initialEvents.map((event) => ({
       ...event,
-      start_time: typeof event.start_time === 'string' 
-        ? event.start_time 
-        : event.start_time?.toISOString() || new Date().toISOString(),
-      end_time: typeof event.end_time === 'string'
-        ? event.end_time
-        : event.end_time?.toISOString() || new Date().toISOString(),
+      start_time:
+        typeof event.start_time === "string"
+          ? event.start_time
+          : event.start_time?.toISOString() || new Date().toISOString(),
+      end_time:
+        typeof event.end_time === "string"
+          ? event.end_time
+          : event.end_time?.toISOString() || new Date().toISOString(),
     }));
   });
-  
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -147,7 +149,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     },
   );
-  
+
   const dateRange = useMemo(() => {
     return {
       startDate: format(startOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
@@ -163,15 +165,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
       if (result?.data) {
         // Konverzia dát na správny typ
-        const convertedEvents: CalendarEvent[] = result.data.map((event: any) => ({
-          ...event,
-          start_time: typeof event.start_time === 'string' 
-            ? event.start_time 
-            : event.start_time?.toISOString() || new Date().toISOString(),
-          end_time: typeof event.end_time === 'string'
-            ? event.end_time
-            : event.end_time?.toISOString() || new Date().toISOString(),
-        }));
+        const convertedEvents: CalendarEvent[] = result.data.map(
+          (event: any) => ({
+            ...event,
+            start_time:
+              typeof event.start_time === "string"
+                ? event.start_time
+                : event.start_time?.toISOString() || new Date().toISOString(),
+            end_time:
+              typeof event.end_time === "string"
+                ? event.end_time
+                : event.end_time?.toISOString() || new Date().toISOString(),
+          }),
+        );
         setEvents(convertedEvents);
       }
     } catch (error) {

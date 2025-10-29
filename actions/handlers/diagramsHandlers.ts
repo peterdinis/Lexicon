@@ -3,8 +3,43 @@ import { diagrams } from "@/drizzle/schema";
 import { getUserId } from "@/supabase/get-user-id";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
-import { createDiagramInputSchema, diagramIdSchema, UpdateDiagramInput, updateDiagramInputSchema } from "../schemas/diagramsShcemas";
+import {
+  createDiagramInputSchema,
+  diagramIdSchema,
+  UpdateDiagramInput,
+  updateDiagramInputSchema,
+} from "../schemas/diagramsShcemas";
 import { revalidatePath } from "next/cache";
+
+// Custom types for diagram data
+interface DiagramViewport {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+interface DiagramNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: Record<string, unknown>;
+}
+
+interface DiagramEdge {
+  id: string;
+  source: string;
+  target: string;
+  type?: string;
+}
+
+interface DiagramUpdateData {
+  title?: string;
+  description?: string | null;
+  nodes?: DiagramNode[];
+  edges?: DiagramEdge[];
+  viewport?: DiagramViewport;
+  updated_at: Date;
+}
 
 // ----------------------
 // Get Single Diagram
@@ -29,9 +64,9 @@ export async function getDiagramHandler(id: string) {
 export async function createDiagramHandler(
   title: string = "Untitled Diagram",
   description: string = "",
-  nodes: any[] = [],
-  edges: any[] = [],
-  viewport: object = { x: 0, y: 0, zoom: 1 },
+  nodes: DiagramNode[] = [],
+  edges: DiagramEdge[] = [],
+  viewport: DiagramViewport = { x: 0, y: 0, zoom: 1 },
 ) {
   // Validate input
   const validatedData = createDiagramInputSchema.parse({
@@ -60,7 +95,7 @@ export async function createDiagramHandler(
     .returning();
 
   if (!newDiagram) throw new Error("Failed to create diagram");
-  
+
   revalidatePath("/diagrams");
   return newDiagram;
 }
@@ -74,30 +109,27 @@ export async function updateDiagramHandler(
   const validatedData = updateDiagramInputSchema.parse(data);
   const userId = await getUserId();
 
-  const updateData: any = {
+  const updateData: DiagramUpdateData = {
     updated_at: new Date(),
   };
 
   // Only include fields that are provided
   if (validatedData.title !== undefined) updateData.title = validatedData.title;
-  if (validatedData.description !== undefined) updateData.description = validatedData.description;
+  if (validatedData.description !== undefined)
+    updateData.description = validatedData.description;
   if (validatedData.nodes !== undefined) updateData.nodes = validatedData.nodes;
   if (validatedData.edges !== undefined) updateData.edges = validatedData.edges;
-  if (validatedData.viewport !== undefined) updateData.viewport = validatedData.viewport;
+  if (validatedData.viewport !== undefined)
+    updateData.viewport = validatedData.viewport;
 
   const [updatedDiagram] = await db
     .update(diagrams)
     .set(updateData)
-    .where(
-      and(
-        eq(diagrams.id, validatedId),
-        eq(diagrams.user_id, userId),
-      ),
-    )
+    .where(and(eq(diagrams.id, validatedId), eq(diagrams.user_id, userId)))
     .returning();
 
   if (!updatedDiagram) throw new Error("Diagram not found or unauthorized");
-  
+
   revalidatePath("/diagrams");
   return updatedDiagram;
 }

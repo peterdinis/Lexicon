@@ -5,9 +5,29 @@ import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getUserId } from "@/supabase/get-user-id";
 import { calendarEvents } from "@/drizzle/schema";
-import { CreateCalendarEventInput, createCalendarEventInputSchema, eventIdSchema, UpdateCalendarEventInput, updateCalendarEventInputSchema, dateRangeInputSchema } from "../schemas/calendarSchemas";
+import {
+  CreateCalendarEventInput,
+  createCalendarEventInputSchema,
+  eventIdSchema,
+  UpdateCalendarEventInput,
+  updateCalendarEventInputSchema,
+  dateRangeInputSchema,
+} from "../schemas/calendarSchemas";
 
-export async function createCalendarEventHandler(data: CreateCalendarEventInput) {
+// Custom type for update operations
+interface CalendarEventUpdateData {
+  title?: string;
+  description?: string | null;
+  start_time?: Date;
+  end_time?: Date;
+  color?: string | null;
+  all_day?: boolean;
+  updated_at: Date;
+}
+
+export async function createCalendarEventHandler(
+  data: CreateCalendarEventInput,
+) {
   // Validate input
   const validatedData = createCalendarEventInputSchema.parse(data);
   const userId = await getUserId();
@@ -57,29 +77,38 @@ export async function getCalendarEventHandler(id: string) {
 
 export async function updateCalendarEventHandler(
   id: string,
-  data: UpdateCalendarEventInput
+  data: UpdateCalendarEventInput,
 ) {
   // Validate inputs
   const { id: validatedId } = eventIdSchema.parse({ id });
   const validatedData = updateCalendarEventInputSchema.parse(data);
   const userId = await getUserId();
 
-  const updateData: any = {
+  const updateData: CalendarEventUpdateData = {
     updated_at: new Date(),
   };
 
   // Only include fields that are provided
   if (validatedData.title !== undefined) updateData.title = validatedData.title;
-  if (validatedData.description !== undefined) updateData.description = validatedData.description;
-  if (validatedData.start_time !== undefined) updateData.start_time = new Date(validatedData.start_time);
-  if (validatedData.end_time !== undefined) updateData.end_time = new Date(validatedData.end_time);
+  if (validatedData.description !== undefined)
+    updateData.description = validatedData.description;
+  if (validatedData.start_time !== undefined)
+    updateData.start_time = new Date(validatedData.start_time);
+  if (validatedData.end_time !== undefined)
+    updateData.end_time = new Date(validatedData.end_time);
   if (validatedData.color !== undefined) updateData.color = validatedData.color;
-  if (validatedData.all_day !== undefined) updateData.all_day = validatedData.all_day;
+  if (validatedData.all_day !== undefined)
+    updateData.all_day = validatedData.all_day;
 
   const [updatedEvent] = await db
     .update(calendarEvents)
     .set(updateData)
-    .where(and(eq(calendarEvents.id, validatedId), eq(calendarEvents.user_id, userId)))
+    .where(
+      and(
+        eq(calendarEvents.id, validatedId),
+        eq(calendarEvents.user_id, userId),
+      ),
+    )
     .returning();
 
   if (!updatedEvent) throw new Error("Event not found or update failed");
@@ -98,7 +127,12 @@ export async function deleteCalendarEventHandler(id: string) {
       in_trash: true,
       updated_at: new Date(),
     })
-    .where(and(eq(calendarEvents.id, validatedId), eq(calendarEvents.user_id, userId)))
+    .where(
+      and(
+        eq(calendarEvents.id, validatedId),
+        eq(calendarEvents.user_id, userId),
+      ),
+    )
     .returning();
 
   if (!deletedEvent) throw new Error("Event not found or already deleted");
@@ -113,7 +147,12 @@ export async function hardDeleteCalendarEventHandler(id: string) {
 
   const [deletedEvent] = await db
     .delete(calendarEvents)
-    .where(and(eq(calendarEvents.id, validatedId), eq(calendarEvents.user_id, userId)))
+    .where(
+      and(
+        eq(calendarEvents.id, validatedId),
+        eq(calendarEvents.user_id, userId),
+      ),
+    )
     .returning();
 
   if (!deletedEvent) throw new Error("Event not found");
@@ -202,7 +241,12 @@ export async function restoreCalendarEventHandler(id: string) {
       in_trash: false,
       updated_at: new Date(),
     })
-    .where(and(eq(calendarEvents.id, validatedId), eq(calendarEvents.user_id, userId)))
+    .where(
+      and(
+        eq(calendarEvents.id, validatedId),
+        eq(calendarEvents.user_id, userId),
+      ),
+    )
     .returning();
 
   if (!restoredEvent) throw new Error("Event not found");

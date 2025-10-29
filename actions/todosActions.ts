@@ -41,7 +41,9 @@ export async function getTodosAction(): Promise<TodoResponse> {
   }
 }
 
-export async function createTodoAction(data: CreateTodoSchema): Promise<TodoResponse> {
+export async function createTodoAction(
+  data: CreateTodoSchema,
+): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
@@ -70,7 +72,10 @@ export async function createTodoAction(data: CreateTodoSchema): Promise<TodoResp
   }
 }
 
-export async function updateTodoAction(id: string, data: Partial<Todo>): Promise<TodoResponse> {
+export async function updateTodoAction(
+  id: string,
+  data: Partial<Todo>,
+): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
 
