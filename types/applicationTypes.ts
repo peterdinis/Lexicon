@@ -1,4 +1,11 @@
 import { ReactNode } from "react";
+import {
+  pages,
+  todos,
+  calendarEvents,
+  diagrams,
+  folders,
+} from "@/drizzle/schema";
 
 export interface Page {
   children?(children: ReactNode, arg1: number): unknown;
@@ -73,3 +80,30 @@ export interface Folder {
   created_at: string;
   updated_at: string;
 }
+
+export type SearchResult = {
+  id: string;
+  type: "page" | "todo" | "event" | "diagram" | "folder";
+  title: string;
+  description?: string;
+  content?: string;
+  icon?: string;
+  url: string;
+  score?: number;
+  metadata?: Record<string, any>;
+};
+
+// Types for database items
+export type PageItem = typeof pages.$inferSelect;
+export type TodoItem = typeof todos.$inferSelect;
+export type EventItem = typeof calendarEvents.$inferSelect;
+export type DiagramItem = typeof diagrams.$inferSelect;
+export type FolderItem = typeof folders.$inferSelect;
+
+export type SearchData = {
+  pages: PageItem[];
+  todos: TodoItem[];
+  events: EventItem[];
+  diagrams: DiagramItem[];
+  folders: FolderItem[];
+};

@@ -3,17 +3,8 @@
 import { db } from "@/drizzle/db";
 import { calendarEvents } from "@/drizzle/schema";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
-import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-
-async function getUserId() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  return user.id;
-}
+import { getUserId } from "@/supabase/get-user-id";
 
 export async function createCalendarEventHandler(data: {
   title: string;

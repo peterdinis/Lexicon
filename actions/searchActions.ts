@@ -15,34 +15,7 @@ import {
 import { eq, and, desc } from "drizzle-orm";
 import { searchSchema } from "./schemas/searchSchemas";
 import { fetchUser } from "./authActions";
-
-// Types for search results
-export type SearchResult = {
-  id: string;
-  type: "page" | "todo" | "event" | "diagram" | "folder";
-  title: string;
-  description?: string;
-  content?: string;
-  icon?: string;
-  url: string;
-  score?: number;
-  metadata?: Record<string, any>;
-};
-
-// Types for database items
-type PageItem = typeof pages.$inferSelect;
-type TodoItem = typeof todos.$inferSelect;
-type EventItem = typeof calendarEvents.$inferSelect;
-type DiagramItem = typeof diagrams.$inferSelect;
-type FolderItem = typeof folders.$inferSelect;
-
-type SearchData = {
-  pages: PageItem[];
-  todos: TodoItem[];
-  events: EventItem[];
-  diagrams: DiagramItem[];
-  folders: FolderItem[];
-};
+import { SearchData, PageItem, SearchResult, TodoItem, EventItem, DiagramItem, FolderItem } from "@/types/applicationTypes";
 
 const fuseInstances = new Map();
 

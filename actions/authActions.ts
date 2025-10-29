@@ -15,7 +15,7 @@ export const fetchUser = async () => {
     {
       cookies: {
         async getAll() {
-          return (await cookieStore).getAll();
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(async ({ name, value, options }) =>

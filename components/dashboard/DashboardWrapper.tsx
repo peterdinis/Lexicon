@@ -6,9 +6,8 @@ import { getFoldersAction } from "@/actions/folderActions";
 import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 
-// Použite existujúce typy z vašej aplikácie alebo definujte základné
-type PageType = any; // Nahraďte správnym typom
-type FolderType = any; // Nahraďte správnym typom
+type PageType = any;
+type FolderType = any;
 
 export default async function DashboardPage() {
   let pages: PageType[] = [];

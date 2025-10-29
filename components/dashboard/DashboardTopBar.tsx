@@ -35,16 +35,9 @@ import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import { Spinner } from "../ui/spinner";
 import { FC, useState, useEffect, useCallback } from "react";
-import { SearchResult } from "@/actions/searchActions";
 import { useSearch } from "@/hooks/use-search";
-
-const supabase = getSupabaseBrowserClient();
-
-const fetchUser = async () => {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new Error("No user");
-  return data.user;
-};
+import { SearchResult } from "@/types/applicationTypes";
+import { fetchUser, supabase } from "@/supabase/fetch-user";
 
 // SearchResultItem komponent
 const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
