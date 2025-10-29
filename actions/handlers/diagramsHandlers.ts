@@ -3,6 +3,8 @@ import { diagrams } from "@/drizzle/schema";
 import { getUserId } from "@/supabase/get-user-id";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
+import { createDiagramInputSchema, diagramIdSchema, UpdateDiagramInput, updateDiagramInputSchema } from "../schemas/diagramsShcemas";
+import { revalidatePath } from "next/cache";
 
 // ----------------------
 // Get Single Diagram
@@ -24,16 +26,22 @@ export async function getDiagramHandler(id: string) {
   return diagram;
 }
 
-// ----------------------
-// Create Diagram
-// ----------------------
 export async function createDiagramHandler(
   title: string = "Untitled Diagram",
   description: string = "",
-  nodes: any[] = [], // Accept array/object instead of string
-  edges: any[] = [], // Accept array/object instead of string
-  viewport: object = { x: 0, y: 0, zoom: 1 }, // Accept object instead of string
+  nodes: any[] = [],
+  edges: any[] = [],
+  viewport: object = { x: 0, y: 0, zoom: 1 },
 ) {
+  // Validate input
+  const validatedData = createDiagramInputSchema.parse({
+    title,
+    description,
+    nodes,
+    edges,
+    viewport,
+  });
+
   const userId = await getUserId();
 
   const [newDiagram] = await db
@@ -41,58 +49,56 @@ export async function createDiagramHandler(
     .values({
       id: randomUUID(),
       user_id: userId,
-      title,
-      description,
-      nodes: nodes, // Direct object/array assignment
-      edges: edges, // Direct object/array assignment
-      viewport: viewport, // Direct object assignment
-      created_at: new Date(), // Use Date object
-      updated_at: new Date(), // Use Date object
+      title: validatedData.title,
+      description: validatedData.description,
+      nodes: validatedData.nodes,
+      edges: validatedData.edges,
+      viewport: validatedData.viewport,
+      created_at: new Date(),
+      updated_at: new Date(),
     })
     .returning();
 
   if (!newDiagram) throw new Error("Failed to create diagram");
+  
+  revalidatePath("/diagrams");
   return newDiagram;
 }
 
-// ----------------------
-// Update Diagram
-// ----------------------
 export async function updateDiagramHandler(
   id: string,
-  data: Partial<{
-    title: string;
-    description: string;
-    nodes: any[]; // Change to any[] instead of string
-    edges: any[]; // Change to any[] instead of string
-    viewport: object; // Change to object instead of string
-  }>,
+  data: UpdateDiagramInput,
 ) {
+  // Validate inputs
+  const { id: validatedId } = diagramIdSchema.parse({ id });
+  const validatedData = updateDiagramInputSchema.parse(data);
   const userId = await getUserId();
 
   const updateData: any = {
-    updated_at: new Date(), // Use Date object
+    updated_at: new Date(),
   };
 
   // Only include fields that are provided
-  if (data.title !== undefined) updateData.title = data.title;
-  if (data.description !== undefined) updateData.description = data.description;
-  if (data.nodes !== undefined) updateData.nodes = data.nodes; // Direct assignment
-  if (data.edges !== undefined) updateData.edges = data.edges; // Direct assignment
-  if (data.viewport !== undefined) updateData.viewport = data.viewport; // Direct assignment
+  if (validatedData.title !== undefined) updateData.title = validatedData.title;
+  if (validatedData.description !== undefined) updateData.description = validatedData.description;
+  if (validatedData.nodes !== undefined) updateData.nodes = validatedData.nodes;
+  if (validatedData.edges !== undefined) updateData.edges = validatedData.edges;
+  if (validatedData.viewport !== undefined) updateData.viewport = validatedData.viewport;
 
   const [updatedDiagram] = await db
     .update(diagrams)
     .set(updateData)
     .where(
       and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, userId), // Add user ownership check
+        eq(diagrams.id, validatedId),
+        eq(diagrams.user_id, userId),
       ),
     )
     .returning();
 
   if (!updatedDiagram) throw new Error("Diagram not found or unauthorized");
+  
+  revalidatePath("/diagrams");
   return updatedDiagram;
 }
 
