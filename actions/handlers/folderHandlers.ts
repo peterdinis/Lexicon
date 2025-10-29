@@ -28,10 +28,7 @@ export async function createFolderHandler(
     updated_at: new Date(), // Use Date object
   };
 
-  const [created] = await db
-    .insert(folders)
-    .values(newFolder)
-    .returning();
+  const [created] = await db.insert(folders).values(newFolder).returning();
 
   if (!created) throw new Error("Failed to create folder");
 
@@ -55,8 +52,8 @@ export async function getFoldersHandler() {
     .where(
       and(
         eq(folders.user_id, user.id),
-        eq(folders.in_trash, false) // Exclude trashed folders
-      )
+        eq(folders.in_trash, false), // Exclude trashed folders
+      ),
     )
     .orderBy(asc(folders.created_at));
 
@@ -80,10 +77,10 @@ export async function getFolderDetailHandler(folderId: string) {
     .from(folders)
     .where(
       and(
-        eq(folders.id, folderId), 
+        eq(folders.id, folderId),
         eq(folders.user_id, user.id),
-        eq(folders.in_trash, false) // Exclude trashed folders
-      )
+        eq(folders.in_trash, false), // Exclude trashed folders
+      ),
     );
 
   if (!folder) throw new Error("Folder not found");
@@ -94,10 +91,10 @@ export async function getFolderDetailHandler(folderId: string) {
     .from(pages)
     .where(
       and(
-        eq(pages.parent_id, folderId), 
+        eq(pages.parent_id, folderId),
         eq(pages.user_id, user.id),
-        eq(pages.in_trash, false) // Exclude trashed pages
-      )
+        eq(pages.in_trash, false), // Exclude trashed pages
+      ),
     )
     .orderBy(asc(pages.created_at));
 
@@ -108,8 +105,8 @@ export async function getFolderDetailHandler(folderId: string) {
     .where(
       and(
         eq(folders.user_id, user.id),
-        eq(folders.in_trash, false) // Exclude trashed folders
-      )
+        eq(folders.in_trash, false), // Exclude trashed folders
+      ),
     )
     .orderBy(asc(folders.created_at));
 
@@ -126,7 +123,7 @@ export async function updateFolderHandler(
   data: {
     title?: string;
     parent_id?: string | null;
-  }
+  },
 ) {
   const supabase = await getSupabaseServerClient();
 
@@ -148,12 +145,7 @@ export async function updateFolderHandler(
   const [updatedFolder] = await db
     .update(folders)
     .set(updateData)
-    .where(
-      and(
-        eq(folders.id, folderId),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, folderId), eq(folders.user_id, user.id)))
     .returning();
 
   if (!updatedFolder) throw new Error("Folder not found or update failed");
@@ -175,16 +167,11 @@ export async function deleteFolderHandler(folderId: string) {
 
   const [deletedFolder] = await db
     .update(folders)
-    .set({ 
+    .set({
       in_trash: true,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(folders.id, folderId),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, folderId), eq(folders.user_id, user.id)))
     .returning();
 
   if (!deletedFolder) throw new Error("Folder not found");
@@ -206,12 +193,7 @@ export async function hardDeleteFolderHandler(folderId: string) {
 
   const [deletedFolder] = await db
     .delete(folders)
-    .where(
-      and(
-        eq(folders.id, folderId),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, folderId), eq(folders.user_id, user.id)))
     .returning();
 
   if (!deletedFolder) throw new Error("Folder not found");
@@ -233,16 +215,11 @@ export async function restoreFolderHandler(folderId: string) {
 
   const [restoredFolder] = await db
     .update(folders)
-    .set({ 
+    .set({
       in_trash: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(folders.id, folderId),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, folderId), eq(folders.user_id, user.id)))
     .returning();
 
   if (!restoredFolder) throw new Error("Folder not found");
@@ -268,8 +245,8 @@ export async function getTrashedFoldersHandler() {
     .where(
       and(
         eq(folders.user_id, user.id),
-        eq(folders.in_trash, true) // Only trashed folders
-      )
+        eq(folders.in_trash, true), // Only trashed folders
+      ),
     )
     .orderBy(asc(folders.updated_at));
 

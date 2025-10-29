@@ -15,18 +15,16 @@ async function getUserId() {
   return user.id;
 }
 
-export async function createCalendarEventHandler(
-  data: {
-    title: string;
-    description?: string | null;
-    start_time: string; // ISO string from client
-    end_time: string; // ISO string from client
-    all_day?: boolean;
-    color?: string | null;
-  },
-) {
+export async function createCalendarEventHandler(data: {
+  title: string;
+  description?: string | null;
+  start_time: string; // ISO string from client
+  end_time: string; // ISO string from client
+  all_day?: boolean;
+  color?: string | null;
+}) {
   const userId = await getUserId();
-  
+
   const newEvent = {
     id: crypto.randomUUID(),
     user_id: userId,
@@ -58,10 +56,10 @@ export async function getCalendarEventHandler(id: string) {
     .from(calendarEvents)
     .where(
       and(
-        eq(calendarEvents.id, id), 
+        eq(calendarEvents.id, id),
         eq(calendarEvents.user_id, userId),
-        eq(calendarEvents.in_trash, false)
-      )
+        eq(calendarEvents.in_trash, false),
+      ),
     );
 
   if (!event) throw new Error("Event not found");
@@ -90,20 +88,17 @@ export async function updateCalendarEventHandler(
   // Only include fields that are provided
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
-  if (data.start_time !== undefined) updateData.start_time = new Date(data.start_time);
-  if (data.end_time !== undefined) updateData.end_time = new Date(data.end_time);
+  if (data.start_time !== undefined)
+    updateData.start_time = new Date(data.start_time);
+  if (data.end_time !== undefined)
+    updateData.end_time = new Date(data.end_time);
   if (data.color !== undefined) updateData.color = data.color;
   if (data.all_day !== undefined) updateData.all_day = data.all_day;
 
   const [updatedEvent] = await db
     .update(calendarEvents)
     .set(updateData)
-    .where(
-      and(
-        eq(calendarEvents.id, id), 
-        eq(calendarEvents.user_id, userId)
-      )
-    )
+    .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)))
     .returning();
 
   if (!updatedEvent) throw new Error("Event not found or update failed");
@@ -115,19 +110,14 @@ export async function updateCalendarEventHandler(
 // DELETE (Soft delete using in_trash)
 export async function deleteCalendarEventHandler(id: string) {
   const userId = await getUserId();
-  
+
   const [deletedEvent] = await db
     .update(calendarEvents)
-    .set({ 
+    .set({
       in_trash: true,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(calendarEvents.id, id), 
-        eq(calendarEvents.user_id, userId)
-      )
-    )
+    .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)))
     .returning();
 
   if (!deletedEvent) throw new Error("Event not found or already deleted");
@@ -139,15 +129,10 @@ export async function deleteCalendarEventHandler(id: string) {
 // HARD DELETE (Permanent removal)
 export async function hardDeleteCalendarEventHandler(id: string) {
   const userId = await getUserId();
-  
+
   const [deletedEvent] = await db
     .delete(calendarEvents)
-    .where(
-      and(
-        eq(calendarEvents.id, id), 
-        eq(calendarEvents.user_id, userId)
-      )
-    )
+    .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)))
     .returning();
 
   if (!deletedEvent) throw new Error("Event not found");
@@ -165,8 +150,8 @@ export async function getAllCalendarEventsHandler() {
     .where(
       and(
         eq(calendarEvents.user_id, userId),
-        eq(calendarEvents.in_trash, false)
-      )
+        eq(calendarEvents.in_trash, false),
+      ),
     )
     .orderBy(desc(calendarEvents.created_at));
 
@@ -179,11 +164,11 @@ export async function getCalendarEventsByDateRangeHandler(
   endDate: string, // ISO string
 ) {
   const userId = await getUserId();
-  
+
   // Convert to Date objects for proper timestamp comparison
   const startDateObj = new Date(startDate);
   const endDateObj = new Date(endDate);
-  
+
   const events = await db
     .select()
     .from(calendarEvents)
@@ -206,10 +191,10 @@ export async function getCalendarEventsByDateRangeHandlerV2(
   endDate: string,
 ) {
   const userId = await getUserId();
-  
+
   const startDateObj = new Date(startDate);
   const endDateObj = new Date(endDate);
-  
+
   // This version finds events that overlap with the date range
   const events = await db
     .select()
@@ -231,19 +216,14 @@ export async function getCalendarEventsByDateRangeHandlerV2(
 // RESTORE FROM TRASH
 export async function restoreCalendarEventHandler(id: string) {
   const userId = await getUserId();
-  
+
   const [restoredEvent] = await db
     .update(calendarEvents)
-    .set({ 
+    .set({
       in_trash: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(calendarEvents.id, id), 
-        eq(calendarEvents.user_id, userId)
-      )
-    )
+    .where(and(eq(calendarEvents.id, id), eq(calendarEvents.user_id, userId)))
     .returning();
 
   if (!restoredEvent) throw new Error("Event not found");
@@ -261,8 +241,8 @@ export async function getTrashedCalendarEventsHandler() {
     .where(
       and(
         eq(calendarEvents.user_id, userId),
-        eq(calendarEvents.in_trash, true)
-      )
+        eq(calendarEvents.in_trash, true),
+      ),
     )
     .orderBy(desc(calendarEvents.updated_at));
 

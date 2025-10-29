@@ -23,8 +23,8 @@ export async function getDiagramHandler(id: string) {
     .where(
       and(
         eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id) // Add user ownership check
-      )
+        eq(diagrams.user_id, user.id), // Add user ownership check
+      ),
     );
 
   if (!diagram) throw new Error("Diagram not found");
@@ -108,8 +108,8 @@ export async function updateDiagramHandler(
     .where(
       and(
         eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id) // Add user ownership check
-      )
+        eq(diagrams.user_id, user.id), // Add user ownership check
+      ),
     )
     .returning();
 
@@ -136,8 +136,8 @@ export async function getAllDiagramsHandler() {
     .where(
       and(
         eq(diagrams.user_id, user.id),
-        eq(diagrams.in_trash, false) // Exclude trashed diagrams
-      )
+        eq(diagrams.in_trash, false), // Exclude trashed diagrams
+      ),
     )
     .orderBy(asc(diagrams.created_at));
 
@@ -159,16 +159,11 @@ export async function deleteDiagramHandler(id: string) {
 
   const [deletedDiagram] = await db
     .update(diagrams)
-    .set({ 
+    .set({
       in_trash: true,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id)
-      )
-    )
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
     .returning();
 
   if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
@@ -191,12 +186,7 @@ export async function hardDeleteDiagramHandler(id: string) {
 
   const [deletedDiagram] = await db
     .delete(diagrams)
-    .where(
-      and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id)
-      )
-    )
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
     .returning();
 
   if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
@@ -219,16 +209,11 @@ export async function restoreDiagramHandler(id: string) {
 
   const [restoredDiagram] = await db
     .update(diagrams)
-    .set({ 
+    .set({
       in_trash: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, user.id)
-      )
-    )
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
     .returning();
 
   if (!restoredDiagram) throw new Error("Diagram not found or unauthorized");
@@ -252,12 +237,7 @@ export async function getTrashedDiagramsHandler() {
   const trashedDiagrams = await db
     .select()
     .from(diagrams)
-    .where(
-      and(
-        eq(diagrams.user_id, user.id),
-        eq(diagrams.in_trash, true)
-      )
-    )
+    .where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, true)))
     .orderBy(asc(diagrams.updated_at));
 
   return trashedDiagrams || [];

@@ -7,7 +7,7 @@ export const nodeSchema = z.object({
     x: z.number(),
     y: z.number(),
   }),
-  data: z.any()
+  data: z.any(),
 });
 
 // Base edge schema for validation

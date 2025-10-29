@@ -11,17 +11,15 @@ import { nanoid } from "nanoid";
 // ----------------------
 
 // CREATE TODO
-export async function createTodoHandler(
-  data: {
-    title: string;
-    description?: string;
-    priority?: string;
-    due_date?: Date | string | null;
-    status?: string;
-    notes?: string;
-    tags?: string;
-  },
-) {
+export async function createTodoHandler(data: {
+  title: string;
+  description?: string;
+  priority?: string;
+  due_date?: Date | string | null;
+  status?: string;
+  notes?: string;
+  tags?: string;
+}) {
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
@@ -47,10 +45,7 @@ export async function createTodoHandler(
     updated_at: new Date(), // Use Date object
   };
 
-  const [createdTodo] = await db
-    .insert(todos)
-    .values(newTodo)
-    .returning();
+  const [createdTodo] = await db.insert(todos).values(newTodo).returning();
 
   return createdTodo;
 }
@@ -72,10 +67,10 @@ export async function getTodoHandler(id: string) {
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id) // Add user ownership check
-      )
+        eq(todos.user_id, user.id), // Add user ownership check
+      ),
     );
-  
+
   if (!todo) throw new Error("Todo not found");
   return todo;
 }
@@ -114,12 +109,7 @@ export async function getTodosByStatusHandler(status: string) {
   const todosList = await db
     .select()
     .from(todos)
-    .where(
-      and(
-        eq(todos.user_id, user.id),
-        eq(todos.status, status)
-      )
-    )
+    .where(and(eq(todos.user_id, user.id), eq(todos.status, status)))
     .orderBy(asc(todos.due_date)); // Order by due date
 
   return todosList;
@@ -154,7 +144,8 @@ export async function updateTodoHandler(
 
   // Only include fields that are provided
   if (updates.title !== undefined) updateData.title = updates.title;
-  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.description !== undefined)
+    updateData.description = updates.description;
   if (updates.priority !== undefined) updateData.priority = updates.priority;
   if (updates.status !== undefined) updateData.status = updates.status;
   if (updates.completed !== undefined) updateData.completed = updates.completed;
@@ -170,8 +161,8 @@ export async function updateTodoHandler(
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id) // Add user ownership check
-      )
+        eq(todos.user_id, user.id), // Add user ownership check
+      ),
     )
     .returning();
 
@@ -195,13 +186,13 @@ export async function deleteTodoHandler(id: string) {
     .where(
       and(
         eq(todos.id, id),
-        eq(todos.user_id, user.id) // Add user ownership check
-      )
+        eq(todos.user_id, user.id), // Add user ownership check
+      ),
     )
     .returning();
 
   if (!deletedTodo) throw new Error("Todo not found or unauthorized");
-  
+
   return { success: true, todo: deletedTodo };
 }
 
@@ -220,27 +211,17 @@ export async function toggleTodoHandler(id: string) {
   const [currentTodo] = await db
     .select()
     .from(todos)
-    .where(
-      and(
-        eq(todos.id, id),
-        eq(todos.user_id, user.id)
-      )
-    );
+    .where(and(eq(todos.id, id), eq(todos.user_id, user.id)));
 
   if (!currentTodo) throw new Error("Todo not found");
 
   const [updatedTodo] = await db
     .update(todos)
-    .set({ 
+    .set({
       completed: !currentTodo.completed,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(todos.id, id),
-        eq(todos.user_id, user.id)
-      )
-    )
+    .where(and(eq(todos.id, id), eq(todos.user_id, user.id)))
     .returning();
 
   return updatedTodo;
@@ -271,8 +252,8 @@ export async function updateFolderHandler(id: string, title: string) {
       and(
         eq(folders.id, id),
         eq(folders.user_id, user.id), // Add user ownership check
-        eq(folders.in_trash, false) // Can't update trashed folders
-      )
+        eq(folders.in_trash, false), // Can't update trashed folders
+      ),
     )
     .returning();
 
@@ -293,16 +274,11 @@ export async function deleteFolderHandler(id: string) {
 
   const [deletedFolder] = await db
     .update(folders)
-    .set({ 
+    .set({
       in_trash: true,
-      updated_at: new Date() // Use Date object
+      updated_at: new Date(), // Use Date object
     })
-    .where(
-      and(
-        eq(folders.id, id),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, id), eq(folders.user_id, user.id)))
     .returning();
 
   if (!deletedFolder) throw new Error("Folder not found or unauthorized");
@@ -322,12 +298,7 @@ export async function hardDeleteFolderHandler(id: string) {
 
   const [deletedFolder] = await db
     .delete(folders)
-    .where(
-      and(
-        eq(folders.id, id),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, id), eq(folders.user_id, user.id)))
     .returning();
 
   if (!deletedFolder) throw new Error("Folder not found or unauthorized");
@@ -347,16 +318,11 @@ export async function restoreFolderHandler(id: string) {
 
   const [restoredFolder] = await db
     .update(folders)
-    .set({ 
+    .set({
       in_trash: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(folders.id, id),
-        eq(folders.user_id, user.id)
-      )
-    )
+    .where(and(eq(folders.id, id), eq(folders.user_id, user.id)))
     .returning();
 
   if (!restoredFolder) throw new Error("Folder not found or unauthorized");

@@ -12,7 +12,11 @@ import {
   restoreDiagramHandler,
   getTrashedDiagramsHandler,
 } from "./handlers/diagramsHandlers";
-import { createDiagramSchema, diagramIdSchema, updateDiagramSchema } from "./schemas/diagramsShcemas";
+import {
+  createDiagramSchema,
+  diagramIdSchema,
+  updateDiagramSchema,
+} from "./schemas/diagramsShcemas";
 
 // CREATE
 export const createDiagramAction = actionClient

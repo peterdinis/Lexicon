@@ -107,78 +107,75 @@ async function loadSearchData(userId: string): Promise<SearchData> {
   }
 
   try {
-    const [
-      pagesData,
-      todosData,
-      eventsData,
-      diagramsData,
-      foldersData,
-    ] = await Promise.all([
-      // Pages
-      db
-        .select()
-        .from(pages)
-        .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
-        .orderBy(desc(pages.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading pages:", error);
-          return [];
-        }),
+    const [pagesData, todosData, eventsData, diagramsData, foldersData] =
+      await Promise.all([
+        // Pages
+        db
+          .select()
+          .from(pages)
+          .where(and(eq(pages.user_id, userId), eq(pages.in_trash, false)))
+          .orderBy(desc(pages.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading pages:", error);
+            return [];
+          }),
 
-      // Todos
-      db
-        .select()
-        .from(todos)
-        .where(eq(todos.user_id, userId))
-        .orderBy(desc(todos.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading todos:", error);
-          return [];
-        }),
+        // Todos
+        db
+          .select()
+          .from(todos)
+          .where(eq(todos.user_id, userId))
+          .orderBy(desc(todos.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading todos:", error);
+            return [];
+          }),
 
-      // Events
-      db
-        .select()
-        .from(calendarEvents)
-        .where(
-          and(
-            eq(calendarEvents.user_id, userId),
-            eq(calendarEvents.in_trash, false),
-          ),
-        )
-        .orderBy(desc(calendarEvents.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading events:", error);
-          return [];
-        }),
+        // Events
+        db
+          .select()
+          .from(calendarEvents)
+          .where(
+            and(
+              eq(calendarEvents.user_id, userId),
+              eq(calendarEvents.in_trash, false),
+            ),
+          )
+          .orderBy(desc(calendarEvents.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading events:", error);
+            return [];
+          }),
 
-      // Diagrams
-      db
-        .select()
-        .from(diagrams)
-        .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)))
-        .orderBy(desc(diagrams.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading diagrams:", error);
-          return [];
-        }),
+        // Diagrams
+        db
+          .select()
+          .from(diagrams)
+          .where(
+            and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)),
+          )
+          .orderBy(desc(diagrams.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading diagrams:", error);
+            return [];
+          }),
 
-      // Folders
-      db
-        .select()
-        .from(folders)
-        .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
-        .orderBy(desc(folders.updated_at))
-        .limit(1000)
-        .catch((error) => {
-          console.error("Error loading folders:", error);
-          return [];
-        }),
-    ]);
+        // Folders
+        db
+          .select()
+          .from(folders)
+          .where(and(eq(folders.user_id, userId), eq(folders.in_trash, false)))
+          .orderBy(desc(folders.updated_at))
+          .limit(1000)
+          .catch((error) => {
+            console.error("Error loading folders:", error);
+            return [];
+          }),
+      ]);
 
     cachedSearchData = {
       pages: pagesData,
@@ -300,7 +297,10 @@ function createFolderResult(item: FolderItem, score?: number): SearchResult {
 }
 
 // FIXED: Proper type mapping with correct keys
-const resultCreators: Record<string, (item: any, score?: number) => SearchResult> = {
+const resultCreators: Record<
+  string,
+  (item: any, score?: number) => SearchResult
+> = {
   pages: createPageResult,
   todos: createTodoResult,
   events: createEventResult,
@@ -344,7 +344,7 @@ function searchInCollection(
 
       return creator(result.item, result.score);
     });
-    
+
     return results;
   } catch (error) {
     console.error(`❌ Error searching in ${type}:`, error);
@@ -402,7 +402,7 @@ export const searchAction = actionClient
 
       const user = await fetchUser();
       const userId = user.id;
-      
+
       // Načítať všetky dáta naraz
       const searchData = await loadSearchData(userId);
 

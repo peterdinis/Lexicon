@@ -54,8 +54,8 @@ export async function getAllTrashedItemsHandler(): Promise<{
       .where(
         and(
           eq(pages.user_id, user.id),
-          eq(pages.in_trash, true) // true = in trash
-        )
+          eq(pages.in_trash, true), // true = in trash
+        ),
       )
       .orderBy(desc(pages.updated_at));
 
@@ -66,8 +66,8 @@ export async function getAllTrashedItemsHandler(): Promise<{
       .where(
         and(
           eq(folders.user_id, user.id),
-          eq(folders.in_trash, true) // true = in trash
-        )
+          eq(folders.in_trash, true), // true = in trash
+        ),
       )
       .orderBy(desc(folders.updated_at));
 
@@ -106,8 +106,8 @@ export async function getAllNonTrashedItemsHandler(): Promise<{
       .where(
         and(
           eq(pages.user_id, user.id),
-          eq(pages.in_trash, false) // false = not in trash
-        )
+          eq(pages.in_trash, false), // false = not in trash
+        ),
       )
       .orderBy(desc(pages.created_at));
 
@@ -118,8 +118,8 @@ export async function getAllNonTrashedItemsHandler(): Promise<{
       .where(
         and(
           eq(folders.user_id, user.id),
-          eq(folders.in_trash, false) // false = not in trash
-        )
+          eq(folders.in_trash, false), // false = not in trash
+        ),
       )
       .orderBy(desc(folders.created_at));
 
@@ -163,8 +163,8 @@ export async function moveToTrashHandler(
           and(
             eq(pages.id, id),
             eq(pages.user_id, user.id),
-            eq(pages.in_trash, false) // false = not in trash
-          )
+            eq(pages.in_trash, false), // false = not in trash
+          ),
         )
         .limit(1);
 
@@ -200,8 +200,8 @@ export async function moveToTrashHandler(
           and(
             eq(folders.id, id),
             eq(folders.user_id, user.id),
-            eq(folders.in_trash, false) // false = not in trash
-          )
+            eq(folders.in_trash, false), // false = not in trash
+          ),
         )
         .limit(1);
 
@@ -254,8 +254,8 @@ export async function restoreFromTrashHandler(
           and(
             eq(pages.id, id),
             eq(pages.user_id, user.id),
-            eq(pages.in_trash, true) // true = in trash
-          )
+            eq(pages.in_trash, true), // true = in trash
+          ),
         )
         .limit(1);
 
@@ -291,8 +291,8 @@ export async function restoreFromTrashHandler(
           and(
             eq(folders.id, id),
             eq(folders.user_id, user.id),
-            eq(folders.in_trash, true) // true = in trash
-          )
+            eq(folders.in_trash, true), // true = in trash
+          ),
         )
         .limit(1);
 
@@ -343,8 +343,8 @@ export async function permanentlyDeleteHandler(
           and(
             eq(pages.id, id),
             eq(pages.user_id, user.id),
-            eq(pages.in_trash, true) // true = in trash
-          )
+            eq(pages.in_trash, true), // true = in trash
+          ),
         )
         .limit(1);
 
@@ -368,8 +368,8 @@ export async function permanentlyDeleteHandler(
           and(
             eq(folders.id, id),
             eq(folders.user_id, user.id),
-            eq(folders.in_trash, true) // true = in trash
-          )
+            eq(folders.in_trash, true), // true = in trash
+          ),
         )
         .limit(1);
 
@@ -385,8 +385,8 @@ export async function permanentlyDeleteHandler(
           and(
             eq(pages.parent_id, id),
             eq(pages.user_id, user.id),
-            eq(pages.in_trash, true) // only delete pages that are in trash
-          )
+            eq(pages.in_trash, true), // only delete pages that are in trash
+          ),
         );
 
       for (const page of folderPages) {
@@ -422,12 +422,7 @@ export async function emptyTrashHandler(): Promise<void> {
     const trashedPages = await db
       .select({ id: pages.id })
       .from(pages)
-      .where(
-        and(
-          eq(pages.user_id, user.id),
-          eq(pages.in_trash, true)
-        )
-      );
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)));
 
     for (const page of trashedPages) {
       await db.delete(blocks).where(eq(blocks.page_id, page.id));
@@ -436,22 +431,12 @@ export async function emptyTrashHandler(): Promise<void> {
     // Permanently delete all trashed pages for user
     await db
       .delete(pages)
-      .where(
-        and(
-          eq(pages.user_id, user.id),
-          eq(pages.in_trash, true)
-        )
-      );
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)));
 
     // Permanently delete all trashed folders for user
     await db
       .delete(folders)
-      .where(
-        and(
-          eq(folders.user_id, user.id),
-          eq(folders.in_trash, true)
-        )
-      );
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, true)));
 
     console.log("Emptied trash for user:", user.id);
   } catch (error) {
@@ -485,8 +470,8 @@ export async function getTrashStatsHandler(): Promise<{
       .where(
         and(
           eq(pages.user_id, user.id),
-          eq(pages.in_trash, true) // true = in trash
-        )
+          eq(pages.in_trash, true), // true = in trash
+        ),
       );
 
     // Get folders count in trash for user
@@ -496,8 +481,8 @@ export async function getTrashStatsHandler(): Promise<{
       .where(
         and(
           eq(folders.user_id, user.id),
-          eq(folders.in_trash, true) // true = in trash
-        )
+          eq(folders.in_trash, true), // true = in trash
+        ),
       );
 
     return {
@@ -537,8 +522,8 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
         and(
           eq(folders.id, folderId),
           eq(folders.user_id, user.id),
-          eq(folders.in_trash, false) // false = not in trash
-        )
+          eq(folders.in_trash, false), // false = not in trash
+        ),
       )
       .limit(1);
 
@@ -555,8 +540,8 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
           eq(pages.parent_id, folderId),
           eq(pages.user_id, user.id),
           eq(pages.in_trash, false), // false = not in trash
-          eq(pages.is_folder, false) // false = not a folder (actual page)
-        )
+          eq(pages.is_folder, false), // false = not a folder (actual page)
+        ),
       )
       .orderBy(desc(pages.updated_at));
 
@@ -568,8 +553,8 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
       .where(
         and(
           eq(folders.user_id, user.id),
-          eq(folders.in_trash, false) // false = not in trash
-        )
+          eq(folders.in_trash, false), // false = not in trash
+        ),
       )
       .orderBy(desc(folders.updated_at));
 

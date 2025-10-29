@@ -34,18 +34,18 @@ export async function getTodosAction() {
 export async function createTodoAction(data: CreateTodoSchema) {
   try {
     const userId = await getUserId();
-    
+
     // Create properly typed todo object that matches the schema
     const newTodo = {
       id: crypto.randomUUID(),
       user_id: userId,
       title: data.title,
       description: data.description || null,
-      priority: data.priority || 'medium',
-      due_date: data.due_date ? new Date(data.due_date) : null, // Convert string to Date
+      priority: data.priority || "medium",
+      due_date: data.due_date ? new Date(data.due_date) : null,
       completed: false,
-      status: 'not_started' as const,
-      tags: data.tags || null,
+      status: "not_started" as const,
+      tags: data.tags ? JSON.stringify(data.tags) : null, // Convert array to JSON string
       notes: data.notes || null,
       created_at: new Date(),
       updated_at: new Date(),
@@ -63,7 +63,7 @@ export async function createTodoAction(data: CreateTodoSchema) {
 export async function updateTodoAction(id: string, data: Partial<Todo>) {
   try {
     const userId = await getUserId();
-    
+
     const {
       title,
       description,
@@ -94,12 +94,7 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
     const result = await db
       .update(todos)
       .set(updateData)
-      .where(
-        and(
-          eq(todos.id, id),
-          eq(todos.user_id, userId)
-        )
-      )
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
       .returning();
 
     if (result.length === 0) {
@@ -117,15 +112,10 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
 export async function deleteTodoAction(id: string) {
   try {
     const userId = await getUserId();
-    
+
     const result = await db
       .delete(todos)
-      .where(
-        and(
-          eq(todos.id, id),
-          eq(todos.user_id, userId)
-        )
-      )
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
       .returning();
 
     if (result.length === 0) {
@@ -144,16 +134,11 @@ export async function deleteTodoAction(id: string) {
 export async function toggleTodoAction(id: string) {
   try {
     const userId = await getUserId();
-    
+
     const [currentTodo] = await db
       .select()
       .from(todos)
-      .where(
-        and(
-          eq(todos.id, id),
-          eq(todos.user_id, userId)
-        )
-      );
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)));
 
     if (!currentTodo) {
       return { success: false, error: "Todo not found" };
@@ -161,16 +146,11 @@ export async function toggleTodoAction(id: string) {
 
     const result = await db
       .update(todos)
-      .set({ 
+      .set({
         completed: !currentTodo.completed,
-        updated_at: new Date()
+        updated_at: new Date(),
       })
-      .where(
-        and(
-          eq(todos.id, id),
-          eq(todos.user_id, userId)
-        )
-      )
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
       .returning();
 
     revalidatePath("/todos");
@@ -184,16 +164,11 @@ export async function toggleTodoAction(id: string) {
 export async function getTodoAction(id: string) {
   try {
     const userId = await getUserId();
-    
+
     const [todo] = await db
       .select()
       .from(todos)
-      .where(
-        and(
-          eq(todos.id, id),
-          eq(todos.user_id, userId)
-        )
-      );
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)));
 
     if (!todo) {
       return { success: false, error: "Todo not found" };

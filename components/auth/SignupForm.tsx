@@ -41,7 +41,6 @@ const SignupForm: FC = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<FormValues>();
 

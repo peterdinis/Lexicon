@@ -67,12 +67,8 @@
           "name": "blocks_page_id_pages_id_fk",
           "tableFrom": "blocks",
           "tableTo": "pages",
-          "columnsFrom": [
-            "page_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["page_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

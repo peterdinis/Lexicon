@@ -24,8 +24,8 @@ export async function getPageHandler(id: string) {
       and(
         eq(pages.id, id),
         eq(pages.user_id, user.id),
-        eq(pages.in_trash, false) // Exclude trashed pages
-      )
+        eq(pages.in_trash, false), // Exclude trashed pages
+      ),
     );
 
   if (!page) throw new Error("Page not found");
@@ -39,7 +39,7 @@ export async function createPageHandler(
   title: string = "Untitled",
   description: string = "",
   parent_id: string | null = null,
-  is_folder: boolean = false
+  is_folder: boolean = false,
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -110,12 +110,7 @@ export async function updatePageHandler(
   const [updatedPage] = await db
     .update(pages)
     .set(updateData)
-    .where(
-      and(
-        eq(pages.id, id),
-        eq(pages.user_id, user.id)
-      )
-    )
+    .where(and(eq(pages.id, id), eq(pages.user_id, user.id)))
     .returning();
 
   if (!updatedPage) throw new Error("Page not found or unauthorized");
@@ -141,8 +136,8 @@ export async function getAllPagesHandler() {
     .where(
       and(
         eq(pages.user_id, user.id),
-        eq(pages.in_trash, false) // Exclude trashed pages
-      )
+        eq(pages.in_trash, false), // Exclude trashed pages
+      ),
     )
     .orderBy(asc(pages.created_at));
 
@@ -165,12 +160,7 @@ export async function getPagesByParentHandler(parent_id: string | null = null) {
   const pagesList = await db
     .select()
     .from(pages)
-    .where(
-      and(
-        eq(pages.user_id, user.id),
-        eq(pages.in_trash, false)
-      )
-    )
+    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
     .orderBy(asc(pages.created_at));
 
   return pagesList || [];
@@ -191,16 +181,11 @@ export async function deletePageHandler(pageId: string) {
 
   const [deletedPage] = await db
     .update(pages)
-    .set({ 
+    .set({
       in_trash: true,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(pages.id, pageId),
-        eq(pages.user_id, user.id)
-      )
-    )
+    .where(and(eq(pages.id, pageId), eq(pages.user_id, user.id)))
     .returning();
 
   if (!deletedPage) throw new Error("Page not found or unauthorized");
@@ -223,12 +208,7 @@ export async function hardDeletePageHandler(pageId: string) {
 
   const [deletedPage] = await db
     .delete(pages)
-    .where(
-      and(
-        eq(pages.id, pageId),
-        eq(pages.user_id, user.id)
-      )
-    )
+    .where(and(eq(pages.id, pageId), eq(pages.user_id, user.id)))
     .returning();
 
   if (!deletedPage) throw new Error("Page not found or unauthorized");
@@ -251,16 +231,11 @@ export async function restorePageHandler(pageId: string) {
 
   const [restoredPage] = await db
     .update(pages)
-    .set({ 
+    .set({
       in_trash: false,
-      updated_at: new Date()
+      updated_at: new Date(),
     })
-    .where(
-      and(
-        eq(pages.id, pageId),
-        eq(pages.user_id, user.id)
-      )
-    )
+    .where(and(eq(pages.id, pageId), eq(pages.user_id, user.id)))
     .returning();
 
   if (!restoredPage) throw new Error("Page not found or unauthorized");
@@ -290,12 +265,7 @@ export async function movePageHandler(
       parent_id: parent_id,
       updated_at: new Date(), // Use Date object
     })
-    .where(
-      and(
-        eq(pages.id, id),
-        eq(pages.user_id, user.id)
-      )
-    )
+    .where(and(eq(pages.id, id), eq(pages.user_id, user.id)))
     .returning();
 
   if (!updatedPage) throw new Error("Failed to move page or unauthorized");
@@ -318,12 +288,7 @@ export async function getTrashedPagesHandler() {
   const trashedPages = await db
     .select()
     .from(pages)
-    .where(
-      and(
-        eq(pages.user_id, user.id),
-        eq(pages.in_trash, true)
-      )
-    )
+    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)))
     .orderBy(asc(pages.updated_at));
 
   return trashedPages || [];
@@ -346,18 +311,14 @@ export async function searchPagesHandler(query: string) {
   const searchResults = await db
     .select()
     .from(pages)
-    .where(
-      and(
-        eq(pages.user_id, user.id),
-        eq(pages.in_trash, false)
-      )
-    )
+    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
     .orderBy(asc(pages.created_at));
 
   // Filter in JavaScript for simple search (for more complex search, use PostgreSQL full-text search)
-  const filteredResults = searchResults.filter(page => 
-    page.title.toLowerCase().includes(query.toLowerCase()) ||
-    page.description.toLowerCase().includes(query.toLowerCase())
+  const filteredResults = searchResults.filter(
+    (page) =>
+      page.title.toLowerCase().includes(query.toLowerCase()) ||
+      page.description.toLowerCase().includes(query.toLowerCase()),
   );
 
   return filteredResults;
