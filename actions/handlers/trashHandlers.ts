@@ -1,24 +1,29 @@
 import { db } from "@/drizzle/db";
 import { pages, folders, blocks } from "@/drizzle/schema";
+import { getSupabaseServerClient } from "@/supabase/server";
 import { eq, desc, count, and } from "drizzle-orm";
 
 export interface TrashedPage {
   id: string;
+  user_id: string;
   title: string | null;
   description: string | null;
+  icon?: string | null;
+  cover_image?: string | null;
   parent_id: string | null;
-  is_folder: number;
-  in_trash: number;
-  created_at: string;
-  updated_at: string;
+  is_folder: boolean;
+  in_trash: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface TrashedFolder {
   id: string;
+  user_id: string;
   title: string | null;
-  in_trash: number;
-  created_at: string;
-  updated_at: string;
+  in_trash: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface TrashItems {
@@ -27,24 +32,43 @@ export interface TrashItems {
 }
 
 /**
- * Get all trashed items (pages and folders)
+ * Get all trashed items (pages and folders) for current user
  */
 export async function getAllTrashedItemsHandler(): Promise<{
   data: TrashItems;
 }> {
   try {
-    // Get trashed pages (where in_trash = 0 means NOT in trash, 1 means IN trash)
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    // Get trashed pages (where in_trash = true means IN trash)
     const trashedPages = await db
       .select()
       .from(pages)
-      .where(eq(pages.in_trash, 0)) // 0 = in trash
+      .where(
+        and(
+          eq(pages.user_id, user.id),
+          eq(pages.in_trash, true), // true = in trash
+        ),
+      )
       .orderBy(desc(pages.updated_at));
 
     // Get trashed folders
     const trashedFolders = await db
       .select()
       .from(folders)
-      .where(eq(folders.in_trash, 0)) // 0 = in trash
+      .where(
+        and(
+          eq(folders.user_id, user.id),
+          eq(folders.in_trash, true), // true = in trash
+        ),
+      )
       .orderBy(desc(folders.updated_at));
 
     return {
@@ -60,24 +84,43 @@ export async function getAllTrashedItemsHandler(): Promise<{
 }
 
 /**
- * Get all non-trashed items (for dashboard)
+ * Get all non-trashed items (for dashboard) for current user
  */
 export async function getAllNonTrashedItemsHandler(): Promise<{
   data: TrashItems;
 }> {
   try {
-    // Get non-trashed pages (where in_trash = 1 means NOT in trash)
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    // Get non-trashed pages (where in_trash = false means NOT in trash)
     const nonTrashedPages = await db
       .select()
       .from(pages)
-      .where(eq(pages.in_trash, 1)) // 1 = not in trash
+      .where(
+        and(
+          eq(pages.user_id, user.id),
+          eq(pages.in_trash, false), // false = not in trash
+        ),
+      )
       .orderBy(desc(pages.created_at));
 
     // Get non-trashed folders
     const nonTrashedFolders = await db
       .select()
       .from(folders)
-      .where(eq(folders.in_trash, 1)) // 1 = not in trash
+      .where(
+        and(
+          eq(folders.user_id, user.id),
+          eq(folders.in_trash, false), // false = not in trash
+        ),
+      )
       .orderBy(desc(folders.created_at));
 
     return {
@@ -100,25 +143,40 @@ export async function moveToTrashHandler(
   id: string,
 ): Promise<void> {
   try {
-    const currentTime = new Date().toISOString();
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    const currentTime = new Date(); // Use Date object
 
     if (table === "pages") {
-      // Check if page exists and is not already trashed
+      // Check if page exists, is not already trashed, and belongs to user
       const [page] = await db
         .select()
         .from(pages)
-        .where(and(eq(pages.id, id), eq(pages.in_trash, 1))) // 1 = not in trash
+        .where(
+          and(
+            eq(pages.id, id),
+            eq(pages.user_id, user.id),
+            eq(pages.in_trash, false), // false = not in trash
+          ),
+        )
         .limit(1);
 
       if (!page) {
-        throw new Error("Page not found or already in trash");
+        throw new Error("Page not found, already in trash, or unauthorized");
       }
 
-      // Move to trash by setting in_trash = 0
+      // Move to trash by setting in_trash = true
       await db
         .update(pages)
         .set({
-          in_trash: 0, // 0 = in trash
+          in_trash: true, // true = in trash
           updated_at: currentTime,
         })
         .where(eq(pages.id, id));
@@ -127,29 +185,35 @@ export async function moveToTrashHandler(
       await db
         .update(blocks)
         .set({
-          in_trash: 0,
+          in_trash: true,
           updated_at: currentTime,
         })
         .where(eq(blocks.page_id, id));
 
       console.log(`Moved page ${id} to trash`);
     } else {
-      // Check if folder exists and is not already trashed
+      // Check if folder exists, is not already trashed, and belongs to user
       const [folder] = await db
         .select()
         .from(folders)
-        .where(and(eq(folders.id, id), eq(folders.in_trash, 1))) // 1 = not in trash
+        .where(
+          and(
+            eq(folders.id, id),
+            eq(folders.user_id, user.id),
+            eq(folders.in_trash, false), // false = not in trash
+          ),
+        )
         .limit(1);
 
       if (!folder) {
-        throw new Error("Folder not found or already in trash");
+        throw new Error("Folder not found, already in trash, or unauthorized");
       }
 
-      // Move to trash by setting in_trash = 0
+      // Move to trash by setting in_trash = true
       await db
         .update(folders)
         .set({
-          in_trash: 0, // 0 = in trash
+          in_trash: true, // true = in trash
           updated_at: currentTime,
         })
         .where(eq(folders.id, id));
@@ -170,25 +234,40 @@ export async function restoreFromTrashHandler(
   id: string,
 ): Promise<void> {
   try {
-    const currentTime = new Date().toISOString();
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    const currentTime = new Date(); // Use Date object
 
     if (table === "pages") {
-      // Check if page exists in trash
+      // Check if page exists in trash and belongs to user
       const [page] = await db
         .select()
         .from(pages)
-        .where(and(eq(pages.id, id), eq(pages.in_trash, 0))) // 0 = in trash
+        .where(
+          and(
+            eq(pages.id, id),
+            eq(pages.user_id, user.id),
+            eq(pages.in_trash, true), // true = in trash
+          ),
+        )
         .limit(1);
 
       if (!page) {
-        throw new Error("Page not found in trash");
+        throw new Error("Page not found in trash or unauthorized");
       }
 
-      // Restore by setting in_trash = 1
+      // Restore by setting in_trash = false
       await db
         .update(pages)
         .set({
-          in_trash: 1, // 1 = not in trash
+          in_trash: false, // false = not in trash
           updated_at: currentTime,
         })
         .where(eq(pages.id, id));
@@ -197,29 +276,35 @@ export async function restoreFromTrashHandler(
       await db
         .update(blocks)
         .set({
-          in_trash: 1,
+          in_trash: false,
           updated_at: currentTime,
         })
         .where(eq(blocks.page_id, id));
 
       console.log(`Restored page ${id} from trash`);
     } else {
-      // Check if folder exists in trash
+      // Check if folder exists in trash and belongs to user
       const [folder] = await db
         .select()
         .from(folders)
-        .where(and(eq(folders.id, id), eq(folders.in_trash, 0))) // 0 = in trash
+        .where(
+          and(
+            eq(folders.id, id),
+            eq(folders.user_id, user.id),
+            eq(folders.in_trash, true), // true = in trash
+          ),
+        )
         .limit(1);
 
       if (!folder) {
-        throw new Error("Folder not found in trash");
+        throw new Error("Folder not found in trash or unauthorized");
       }
 
-      // Restore by setting in_trash = 1
+      // Restore by setting in_trash = false
       await db
         .update(folders)
         .set({
-          in_trash: 1, // 1 = not in trash
+          in_trash: false, // false = not in trash
           updated_at: currentTime,
         })
         .where(eq(folders.id, id));
@@ -240,16 +325,31 @@ export async function permanentlyDeleteHandler(
   id: string,
 ): Promise<void> {
   try {
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
     if (table === "pages") {
-      // Check if page exists in trash
+      // Check if page exists in trash and belongs to user
       const [page] = await db
         .select()
         .from(pages)
-        .where(and(eq(pages.id, id), eq(pages.in_trash, 0))) // 0 = in trash
+        .where(
+          and(
+            eq(pages.id, id),
+            eq(pages.user_id, user.id),
+            eq(pages.in_trash, true), // true = in trash
+          ),
+        )
         .limit(1);
 
       if (!page) {
-        throw new Error("Page not found in trash");
+        throw new Error("Page not found in trash or unauthorized");
       }
 
       // First delete all blocks associated with this page
@@ -260,22 +360,34 @@ export async function permanentlyDeleteHandler(
 
       console.log(`Permanently deleted page ${id}`);
     } else {
-      // Check if folder exists in trash
+      // Check if folder exists in trash and belongs to user
       const [folder] = await db
         .select()
         .from(folders)
-        .where(and(eq(folders.id, id), eq(folders.in_trash, 0))) // 0 = in trash
+        .where(
+          and(
+            eq(folders.id, id),
+            eq(folders.user_id, user.id),
+            eq(folders.in_trash, true), // true = in trash
+          ),
+        )
         .limit(1);
 
       if (!folder) {
-        throw new Error("Folder not found in trash");
+        throw new Error("Folder not found in trash or unauthorized");
       }
 
-      // For folders, find and permanently delete all pages in this folder
+      // For folders, find and permanently delete all pages in this folder that are in trash
       const folderPages = await db
         .select()
         .from(pages)
-        .where(and(eq(pages.parent_id, id), eq(pages.in_trash, 1))); // pages not in trash
+        .where(
+          and(
+            eq(pages.parent_id, id),
+            eq(pages.user_id, user.id),
+            eq(pages.in_trash, true), // only delete pages that are in trash
+          ),
+        );
 
       for (const page of folderPages) {
         await permanentlyDeleteHandler("pages", page.id);
@@ -293,27 +405,40 @@ export async function permanentlyDeleteHandler(
 }
 
 /**
- * Empty entire trash
+ * Empty entire trash for current user
  */
 export async function emptyTrashHandler(): Promise<void> {
   try {
-    // First delete all blocks from trashed pages
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    // First delete all blocks from trashed pages that belong to user
     const trashedPages = await db
       .select({ id: pages.id })
       .from(pages)
-      .where(eq(pages.in_trash, 0));
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)));
 
     for (const page of trashedPages) {
       await db.delete(blocks).where(eq(blocks.page_id, page.id));
     }
 
-    // Permanently delete all trashed pages
-    await db.delete(pages).where(eq(pages.in_trash, 0));
+    // Permanently delete all trashed pages for user
+    await db
+      .delete(pages)
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)));
 
-    // Permanently delete all trashed folders
-    await db.delete(folders).where(eq(folders.in_trash, 0));
+    // Permanently delete all trashed folders for user
+    await db
+      .delete(folders)
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, true)));
 
-    console.log("Emptied trash");
+    console.log("Emptied trash for user:", user.id);
   } catch (error) {
     console.error("Error emptying trash:", error);
     throw new Error("Failed to empty trash");
@@ -321,7 +446,7 @@ export async function emptyTrashHandler(): Promise<void> {
 }
 
 /**
- * Get trash statistics
+ * Get trash statistics for current user
  */
 export async function getTrashStatsHandler(): Promise<{
   pagesCount: number;
@@ -329,17 +454,36 @@ export async function getTrashStatsHandler(): Promise<{
   totalCount: number;
 }> {
   try {
-    // Get pages count in trash
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    // Get pages count in trash for user
     const [pagesResult] = await db
       .select({ count: count() })
       .from(pages)
-      .where(eq(pages.in_trash, 0)); // 0 = in trash
+      .where(
+        and(
+          eq(pages.user_id, user.id),
+          eq(pages.in_trash, true), // true = in trash
+        ),
+      );
 
-    // Get folders count in trash
+    // Get folders count in trash for user
     const [foldersResult] = await db
       .select({ count: count() })
       .from(folders)
-      .where(eq(folders.in_trash, 0)); // 0 = in trash
+      .where(
+        and(
+          eq(folders.user_id, user.id),
+          eq(folders.in_trash, true), // true = in trash
+        ),
+      );
 
     return {
       pagesCount: pagesResult?.count || 0,
@@ -353,7 +497,7 @@ export async function getTrashStatsHandler(): Promise<{
 }
 
 /**
- * Get folder detail with pages and subfolders
+ * Get folder detail with pages and subfolders for current user
  */
 export async function getFolderDetailHandler(folderId: string): Promise<{
   folder: TrashedFolder;
@@ -361,15 +505,30 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
   subfolders: TrashedFolder[];
 }> {
   try {
-    // Get folder info
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) throw new Error(userError.message);
+    if (!user) throw new Error("Unauthorized");
+
+    // Get folder info (not in trash)
     const [folder] = await db
       .select()
       .from(folders)
-      .where(and(eq(folders.id, folderId), eq(folders.in_trash, 1))) // 1 = not in trash
+      .where(
+        and(
+          eq(folders.id, folderId),
+          eq(folders.user_id, user.id),
+          eq(folders.in_trash, false), // false = not in trash
+        ),
+      )
       .limit(1);
 
     if (!folder) {
-      throw new Error("Folder not found");
+      throw new Error("Folder not found or unauthorized");
     }
 
     // Get pages in this folder (not in trash)
@@ -379,21 +538,22 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
       .where(
         and(
           eq(pages.parent_id, folderId),
-          eq(pages.in_trash, 1), // 1 = not in trash
-          eq(pages.is_folder, 0), // 0 = not a folder (actual page)
+          eq(pages.user_id, user.id),
+          eq(pages.in_trash, false), // false = not in trash
+          eq(pages.is_folder, false), // false = not a folder (actual page)
         ),
       )
       .orderBy(desc(pages.updated_at));
 
-    // Get subfolders in this folder (not in trash)
+    // Get subfolders (folders with this folder as parent - if your schema supports it)
+    // Note: Your current folders schema doesn't have parent_id, so this returns all user folders
     const subfolders = await db
       .select()
       .from(folders)
       .where(
         and(
-          // If your folders have parent_id structure, adjust here
-          // Currently folders don't have parent_id in your schema
-          eq(folders.in_trash, 1), // 1 = not in trash
+          eq(folders.user_id, user.id),
+          eq(folders.in_trash, false), // false = not in trash
         ),
       )
       .orderBy(desc(folders.updated_at));

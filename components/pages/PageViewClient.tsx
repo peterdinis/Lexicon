@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/pages/PageHeader";
 import { TiptapEditor } from "@/components/editor/TipTapEditor";
 import { updatePageAction } from "@/actions/pagesActions";
 import { debounce } from "@/lib/debounce";
+import { Page } from "@/types/applicationTypes";
 
 export default function PageViewClient({
   id,
@@ -14,7 +15,7 @@ export default function PageViewClient({
   pages,
 }: {
   id: string;
-  page: any;
+  page: Page;
   pages: any[];
 }) {
   const [title, setTitle] = useState(page.title || "");

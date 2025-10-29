@@ -1,7 +1,6 @@
 "use client";
 
 import { FC, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,7 +31,6 @@ const LoginSchema = z.object({
 type LoginFormValues = z.infer<typeof LoginSchema>;
 
 const LoginForm: FC = () => {
-  const router = useRouter();
   const supabase = getSupabaseBrowserClient();
 
   const [serverError, setServerError] = useState("");

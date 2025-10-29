@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { todos, todos as todosTable } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { todos } from "@/drizzle/schema";
+import { eq, and } from "drizzle-orm";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 import { CreateTodoSchema } from "./schemas/todosSchemas";
@@ -22,8 +22,8 @@ export async function getTodosAction() {
     const userId = await getUserId();
     const result = await db
       .select()
-      .from(todosTable)
-      .where(eq(todosTable.user_id, userId));
+      .from(todos)
+      .where(eq(todos.user_id, userId));
     return { success: true, data: result };
   } catch (error) {
     console.error("Failed to fetch todos:", error);
@@ -34,15 +34,24 @@ export async function getTodosAction() {
 export async function createTodoAction(data: CreateTodoSchema) {
   try {
     const userId = await getUserId();
+
+    // Create properly typed todo object that matches the schema
     const newTodo = {
       id: crypto.randomUUID(),
       user_id: userId,
-      completed: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...data,
+      title: data.title,
+      description: data.description || null,
+      priority: data.priority || "medium",
+      due_date: data.due_date ? new Date(data.due_date) : null,
+      completed: false,
+      status: "not_started" as const,
+      tags: data.tags ? JSON.stringify(data.tags) : null, // Convert array to JSON string
+      notes: data.notes || null,
+      created_at: new Date(),
+      updated_at: new Date(),
     };
-    await db.insert(todosTable).values(newTodo);
+
+    await db.insert(todos).values(newTodo);
     revalidatePath("/todos");
     return { success: true, data: newTodo };
   } catch (error) {
@@ -53,6 +62,8 @@ export async function createTodoAction(data: CreateTodoSchema) {
 
 export async function updateTodoAction(id: string, data: Partial<Todo>) {
   try {
+    const userId = await getUserId();
+
     const {
       title,
       description,
@@ -64,33 +75,31 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
       notes,
     } = data;
 
-    const updateData = {
-      updated_at: new Date().toISOString(),
-      title: undefined as string | undefined,
-      description: undefined as string | undefined,
-      priority: undefined as "low" | "medium" | "high" | undefined,
-      due_date: undefined as string | undefined,
-      completed: undefined as number | undefined,
-      status: undefined as "not_started" | "in_progress" | "done" | undefined,
-      tags: undefined as string | null | undefined,
-      notes: undefined as string | undefined,
+    const updateData: any = {
+      updated_at: new Date(),
     };
 
+    // Only update fields that are provided, converting types as needed
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (priority !== undefined) updateData.priority = priority;
-    if (due_date !== undefined) updateData.due_date = due_date;
+    if (due_date !== undefined) {
+      updateData.due_date = due_date ? new Date(due_date) : null;
+    }
     if (completed !== undefined) updateData.completed = completed;
     if (status !== undefined) updateData.status = status;
-    if (tags !== undefined)
-      updateData.tags = tags ? JSON.stringify(tags) : null;
+    if (tags !== undefined) updateData.tags = tags;
     if (notes !== undefined) updateData.notes = notes;
 
     const result = await db
       .update(todos)
       .set(updateData)
-      .where(eq(todos.id, id))
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
       .returning();
+
+    if (result.length === 0) {
+      return { success: false, error: "Todo not found or unauthorized" };
+    }
 
     revalidatePath("/todos");
     return { success: true, data: result[0] };
@@ -103,11 +112,71 @@ export async function updateTodoAction(id: string, data: Partial<Todo>) {
 export async function deleteTodoAction(id: string) {
   try {
     const userId = await getUserId();
-    await db.delete(todosTable).where(eq(todosTable.id, id));
+
+    const result = await db
+      .delete(todos)
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
+      .returning();
+
+    if (result.length === 0) {
+      return { success: false, error: "Todo not found or unauthorized" };
+    }
+
     revalidatePath("/todos");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete todo:", error);
     return { success: false, error: "Failed to delete todo" };
+  }
+}
+
+// Additional useful actions
+export async function toggleTodoAction(id: string) {
+  try {
+    const userId = await getUserId();
+
+    const [currentTodo] = await db
+      .select()
+      .from(todos)
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)));
+
+    if (!currentTodo) {
+      return { success: false, error: "Todo not found" };
+    }
+
+    const result = await db
+      .update(todos)
+      .set({
+        completed: !currentTodo.completed,
+        updated_at: new Date(),
+      })
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)))
+      .returning();
+
+    revalidatePath("/todos");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error toggling todo:", error);
+    return { success: false, error: "Failed to toggle todo" };
+  }
+}
+
+export async function getTodoAction(id: string) {
+  try {
+    const userId = await getUserId();
+
+    const [todo] = await db
+      .select()
+      .from(todos)
+      .where(and(eq(todos.id, id), eq(todos.user_id, userId)));
+
+    if (!todo) {
+      return { success: false, error: "Todo not found" };
+    }
+
+    return { success: true, data: todo };
+  } catch (error) {
+    console.error("Failed to fetch todo:", error);
+    return { success: false, error: "Failed to fetch todo" };
   }
 }

@@ -8,6 +8,9 @@ import {
   updateDiagramHandler,
   getAllDiagramsHandler,
   deleteDiagramHandler,
+  hardDeleteDiagramHandler,
+  restoreDiagramHandler,
+  getTrashedDiagramsHandler,
 } from "./handlers/diagramsHandlers";
 import {
   createDiagramSchema,
@@ -23,9 +26,9 @@ export const createDiagramAction = actionClient
       parsedInput: {
         title = "Untitled Diagram",
         description = "",
-        nodes = "[]",
-        edges = "[]",
-        viewport = '{"x":0,"y":0,"zoom":1}',
+        nodes = [],
+        edges = [],
+        viewport = { x: 0, y: 0, zoom: 1 },
       },
     }) => {
       try {
@@ -75,7 +78,7 @@ export const getAllDiagramsAction = actionClient.action(async () => {
   }
 });
 
-// DELETE
+// DELETE (Soft Delete - Move to trash)
 export const deleteDiagramAction = actionClient
   .inputSchema(diagramIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -85,3 +88,35 @@ export const deleteDiagramAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
+
+// HARD DELETE (Permanent)
+export const hardDeleteDiagramAction = actionClient
+  .inputSchema(diagramIdSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      return await hardDeleteDiagramHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+// RESTORE FROM TRASH
+export const restoreDiagramAction = actionClient
+  .inputSchema(diagramIdSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      return await restoreDiagramHandler(id);
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+// GET TRASHED DIAGRAMS
+export const getTrashedDiagramsAction = actionClient.action(async () => {
+  try {
+    const diagrams = await getTrashedDiagramsHandler();
+    return diagrams;
+  } catch (err) {
+    throw new Error(getErrorMessage(err));
+  }
+});

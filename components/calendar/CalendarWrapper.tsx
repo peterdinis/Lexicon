@@ -33,10 +33,8 @@ import {
   parseISO,
   isBefore,
   isAfter,
-  isEqual,
   addHours,
   startOfDay,
-  endOfDay,
   isValid,
 } from "date-fns";
 import {
@@ -50,14 +48,19 @@ interface CalendarViewProps {
   initialEvents: any[];
 }
 
+// Upravený interface - zhodný s dátami z databázy
 interface CalendarEvent {
   id: string;
   title: string;
   description?: string | null;
-  start_time: string;
-  end_time: string;
+  start_time: string; // Zmenené z Date na string
+  end_time: string; // Zmenené z Date na string
   all_day: boolean;
   color?: string | null;
+  user_id?: string;
+  in_trash?: boolean;
+  created_at?: string | Date;
+  updated_at?: string | Date;
 }
 
 interface CreateCalendarEventData {
@@ -78,7 +81,19 @@ interface ValidationErrors {
 type OptimisticEvent = CalendarEvent & { pending?: boolean };
 
 export function CalendarView({ initialEvents }: CalendarViewProps) {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+  // Konverzia initialEvents na správny typ
+  const [events, setEvents] = useState<CalendarEvent[]>(() => {
+    return initialEvents.map(event => ({
+      ...event,
+      start_time: typeof event.start_time === 'string' 
+        ? event.start_time 
+        : event.start_time?.toISOString() || new Date().toISOString(),
+      end_time: typeof event.end_time === 'string'
+        ? event.end_time
+        : event.end_time?.toISOString() || new Date().toISOString(),
+    }));
+  });
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -149,7 +164,17 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       const result = await getCalendarEventsByDateRangeAction(dateRange);
 
       if (result?.data) {
-        setEvents(result.data);
+        // Konverzia dát na správny typ
+        const convertedEvents: CalendarEvent[] = result.data.map((event: any) => ({
+          ...event,
+          start_time: typeof event.start_time === 'string' 
+            ? event.start_time 
+            : event.start_time?.toISOString() || new Date().toISOString(),
+          end_time: typeof event.end_time === 'string'
+            ? event.end_time
+            : event.end_time?.toISOString() || new Date().toISOString(),
+        }));
+        setEvents(convertedEvents);
       }
     } catch (error) {
       console.error("Error loading events:", error);
@@ -338,7 +363,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
       const result = await deleteCalendarEventAction({ id });
 
-      if (result.data !== false) {
+      if (!result.data) {
         await loadEventsForMonth();
         setDetailDialogOpen(false);
         setSelectedEvent(null);

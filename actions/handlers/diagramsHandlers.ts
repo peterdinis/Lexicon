@@ -2,7 +2,7 @@ import { db } from "@/drizzle/db";
 import { diagrams } from "@/drizzle/schema";
 import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 
 // ----------------------
 // Get Single Diagram
@@ -17,7 +17,15 @@ export async function getDiagramHandler(id: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const [diagram] = await db.select().from(diagrams).where(eq(diagrams.id, id));
+  const [diagram] = await db
+    .select()
+    .from(diagrams)
+    .where(
+      and(
+        eq(diagrams.id, id),
+        eq(diagrams.user_id, user.id), // Add user ownership check
+      ),
+    );
 
   if (!diagram) throw new Error("Diagram not found");
   return diagram;
@@ -29,9 +37,9 @@ export async function getDiagramHandler(id: string) {
 export async function createDiagramHandler(
   title: string = "Untitled Diagram",
   description: string = "",
-  nodes: string = "[]",
-  edges: string = "[]",
-  viewport: string = '{"x":0,"y":0,"zoom":1}',
+  nodes: any[] = [], // Accept array/object instead of string
+  edges: any[] = [], // Accept array/object instead of string
+  viewport: object = { x: 0, y: 0, zoom: 1 }, // Accept object instead of string
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -49,11 +57,11 @@ export async function createDiagramHandler(
       user_id: user.id,
       title,
       description,
-      nodes,
-      edges,
-      viewport,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      nodes: nodes, // Direct object/array assignment
+      edges: edges, // Direct object/array assignment
+      viewport: viewport, // Direct object assignment
+      created_at: new Date(), // Use Date object
+      updated_at: new Date(), // Use Date object
     })
     .returning();
 
@@ -69,27 +77,43 @@ export async function updateDiagramHandler(
   data: Partial<{
     title: string;
     description: string;
-    nodes: string;
-    edges: string;
-    viewport: string;
+    nodes: any[]; // Change to any[] instead of string
+    edges: any[]; // Change to any[] instead of string
+    viewport: object; // Change to object instead of string
   }>,
 ) {
-  const updateData: Partial<typeof diagrams.$inferInsert> = {
-    ...(data.title ? { title: data.title } : {}),
-    ...(data.description ? { description: data.description } : {}),
-    ...(data.nodes ? { nodes: data.nodes } : {}),
-    ...(data.edges ? { edges: data.edges } : {}),
-    ...(data.viewport ? { viewport: data.viewport } : {}),
-    updated_at: new Date().toISOString(),
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const updateData: any = {
+    updated_at: new Date(), // Use Date object
   };
+
+  // Only include fields that are provided
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.nodes !== undefined) updateData.nodes = data.nodes; // Direct assignment
+  if (data.edges !== undefined) updateData.edges = data.edges; // Direct assignment
+  if (data.viewport !== undefined) updateData.viewport = data.viewport; // Direct assignment
 
   const [updatedDiagram] = await db
     .update(diagrams)
     .set(updateData)
-    .where(eq(diagrams.id, id))
+    .where(
+      and(
+        eq(diagrams.id, id),
+        eq(diagrams.user_id, user.id), // Add user ownership check
+      ),
+    )
     .returning();
 
-  if (!updatedDiagram) throw new Error("Diagram not found");
+  if (!updatedDiagram) throw new Error("Diagram not found or unauthorized");
   return updatedDiagram;
 }
 
@@ -109,14 +133,19 @@ export async function getAllDiagramsHandler() {
   const allDiagrams = await db
     .select()
     .from(diagrams)
-    .where(eq(diagrams.user_id, user.id))
+    .where(
+      and(
+        eq(diagrams.user_id, user.id),
+        eq(diagrams.in_trash, false), // Exclude trashed diagrams
+      ),
+    )
     .orderBy(asc(diagrams.created_at));
 
   return allDiagrams || [];
 }
 
 // ----------------------
-// Delete Diagram
+// Soft Delete Diagram (Move to trash)
 // ----------------------
 export async function deleteDiagramHandler(id: string) {
   const supabase = await getSupabaseServerClient();
@@ -128,8 +157,88 @@ export async function deleteDiagramHandler(id: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const deleted = await db.delete(diagrams).where(eq(diagrams.id, id));
-  if (!deleted) throw new Error("Failed to delete diagram");
+  const [deletedDiagram] = await db
+    .update(diagrams)
+    .set({
+      in_trash: true,
+      updated_at: new Date(),
+    })
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .returning();
+
+  if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
+
+  return { success: true, diagram: deletedDiagram };
+}
+
+// ----------------------
+// Hard Delete Diagram (Permanent)
+// ----------------------
+export async function hardDeleteDiagramHandler(id: string) {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const [deletedDiagram] = await db
+    .delete(diagrams)
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .returning();
+
+  if (!deletedDiagram) throw new Error("Diagram not found or unauthorized");
 
   return { success: true };
+}
+
+// ----------------------
+// Restore Diagram from Trash
+// ----------------------
+export async function restoreDiagramHandler(id: string) {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const [restoredDiagram] = await db
+    .update(diagrams)
+    .set({
+      in_trash: false,
+      updated_at: new Date(),
+    })
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, user.id)))
+    .returning();
+
+  if (!restoredDiagram) throw new Error("Diagram not found or unauthorized");
+
+  return { success: true, diagram: restoredDiagram };
+}
+
+// ----------------------
+// Get Trashed Diagrams
+// ----------------------
+export async function getTrashedDiagramsHandler() {
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error("Unauthorized");
+
+  const trashedDiagrams = await db
+    .select()
+    .from(diagrams)
+    .where(and(eq(diagrams.user_id, user.id), eq(diagrams.in_trash, true)))
+    .orderBy(asc(diagrams.updated_at));
+
+  return trashedDiagrams || [];
 }
