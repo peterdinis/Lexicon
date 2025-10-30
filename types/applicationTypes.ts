@@ -59,17 +59,13 @@ export interface Diagram {
   id: string;
   user_id: string;
   title: string;
-  description?: string;
-  nodes: unknown[];
-  edges: unknown[];
-  viewport: {
-    x: number;
-    y: number;
-    zoom: number;
-  };
-  deleted_at?: string | null;
-  created_at: string;
-  updated_at: string;
+  description: string | null; 
+  nodes: unknown;
+  edges: unknown;
+  viewport:any;
+  deleted_at?: any;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 export interface Folder {
