@@ -11,7 +11,7 @@ import {
 } from "./handlers/folderHandlers";
 import { revalidatePath } from "next/cache";
 import z from "zod";
-import { updateFolderInputSchema, updateFolderSchema } from "./schemas/folderSchemas";
+import { updateFolderInputSchema } from "./schemas/folderSchemas";
 import { createFolderSchema, deleteFolderSchema } from "./schemas/todosSchemas";
 
 export const createFolderAction = actionClient
