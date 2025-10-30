@@ -22,14 +22,22 @@ import type {
   FolderItem,
   SearchType,
   FuseOptions,
+  SearchResult,
+  SearchCollectionType,
+  QuickSearchType,
+  SearchData,
+  SearchResponse,
+  QuickSearchResponse,
+  SearchResultsData,
 } from "@/types/searchTypes";
+
 // Cache management
-let cachedSearchData: any | null = null;
+let cachedSearchData: SearchData | null = null;
 let lastCacheUpdate = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Type-safe Fuse.js options
-const fuseOptions: Record<string, FuseOptions> = {
+const fuseOptions: Record<SearchCollectionType, FuseOptions> = {
   pages: {
     keys: ["title", "description"],
     threshold: 0.6,
@@ -86,7 +94,19 @@ const urlMap: Record<SearchType, (item: { id: string }) => string> = {
   folder: (item) => `/folder/${item.id}`,
 };
 
-async function loadSearchData(userId: string) {
+// Helper function to convert SearchType to SearchCollectionType
+function toCollectionType(type: SearchType): SearchCollectionType {
+  const mapping: Record<SearchType, SearchCollectionType> = {
+    page: "pages",
+    todo: "todos", 
+    event: "events",
+    diagram: "diagrams",
+    folder: "folders"
+  };
+  return mapping[type];
+}
+
+async function loadSearchData(userId: string): Promise<SearchData> {
   const now = Date.now();
 
   if (cachedSearchData && now - lastCacheUpdate < CACHE_TTL) {
@@ -96,6 +116,7 @@ async function loadSearchData(userId: string) {
   try {
     const [pagesData, todosData, eventsData, diagramsData, foldersData] =
       await Promise.all([
+        // Pages - fixed in_trash default value
         db
           .select()
           .from(pages)
@@ -107,6 +128,7 @@ async function loadSearchData(userId: string) {
             return [] as PageItem[];
           }),
 
+        // Todos - no in_trash field, using all todos
         db
           .select()
           .from(todos)
@@ -118,6 +140,7 @@ async function loadSearchData(userId: string) {
             return [] as TodoItem[];
           }),
 
+        // Calendar Events - fixed in_trash default value
         db
           .select()
           .from(calendarEvents)
@@ -134,6 +157,7 @@ async function loadSearchData(userId: string) {
             return [] as EventItem[];
           }),
 
+        // Diagrams - fixed in_trash default value
         db
           .select()
           .from(diagrams)
@@ -147,6 +171,7 @@ async function loadSearchData(userId: string) {
             return [] as DiagramItem[];
           }),
 
+        // Folders - fixed in_trash default value
         db
           .select()
           .from(folders)
@@ -192,9 +217,12 @@ function getMetadataForItem(
 
   switch (type) {
     case "page":
+      const pageItem = item as PageItem;
       return {
         ...baseMetadata,
-        is_folder: (item as PageItem).is_folder,
+        is_folder: pageItem.is_folder,
+        parent_id: pageItem.parent_id,
+        coverImage: pageItem.coverImage,
       };
     case "todo":
       const todoItem = item as TodoItem;
@@ -203,6 +231,8 @@ function getMetadataForItem(
         completed: todoItem.completed,
         priority: todoItem.priority,
         due_date: todoItem.due_date,
+        status: todoItem.status,
+        tags: todoItem.tags,
       };
     case "event":
       const eventItem = item as EventItem;
@@ -211,59 +241,61 @@ function getMetadataForItem(
         start_time: eventItem.start_time,
         end_time: eventItem.end_time,
         all_day: eventItem.all_day,
+        color: eventItem.color,
+      };
+    case "diagram":
+      const diagramItem = item as DiagramItem;
+      return {
+        ...baseMetadata,
+        deleted_at: diagramItem.deleted_at,
       };
     default:
       return baseMetadata;
   }
 }
 
-function createSearchResult<T>(item: T, type: SearchType, score?: number): any {
-  const baseItem = item as {
-    id: string;
-    title: string;
-    description?: string | null;
-    icon?: string | null;
-  };
-
+function createSearchResult<T extends { id: string; title: string; description?: string | null; icon?: string | null }>(
+  item: T,
+  type: SearchType,
+  score?: number,
+): SearchResult {
   return {
-    id: baseItem.id,
+    id: item.id,
     type,
-    title:
-      baseItem.title ||
-      `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-    description: baseItem.description || undefined,
-    icon: baseItem.icon || undefined,
-    url: urlMap[type]({ id: baseItem.id }),
+    title: item.title || `Untitled ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+    description: item.description || undefined,
+    icon: item.icon || undefined,
+    url: urlMap[type]({ id: item.id }),
     score,
-    metadata: getMetadataForItem(type, item as any),
+    metadata: getMetadataForItem(type, item as unknown as PageItem | TodoItem | EventItem | DiagramItem | FolderItem),
   };
 }
 
 function searchInCollection<T>(
   data: T[],
   query: string,
-  type: string,
+  type: SearchCollectionType,
   limit: number,
-): any[] {
+): SearchResult[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
   }
 
   try {
     const options = fuseOptions[type];
-    if (!options) {
-      return simpleSearch(data, query, type as SearchType, limit);
-    }
-
     const fuse = new Fuse(data, options);
     const searchResults = fuse.search(query, { limit });
 
-    return searchResults.map((result): any => {
-      return createSearchResult(result.item, type as SearchType, result.score);
+    // Convert collection type to singular search type
+    const searchType = type.slice(0, -1) as SearchType;
+    
+    return searchResults.map((result): SearchResult => {
+      return createSearchResult(result.item, searchType, result.score);
     });
   } catch (error) {
     console.error(`❌ Error searching in ${type}:`, error);
-    return simpleSearch(data, query, type as SearchType, limit);
+    const searchType = type.slice(0, -1) as SearchType;
+    return simpleSearch(data, query, searchType, limit);
   }
 }
 
@@ -272,14 +304,14 @@ function simpleSearch<T>(
   query: string,
   type: SearchType,
   limit: number,
-): any[] {
+): SearchResult[] {
   if (!data || data.length === 0 || !query.trim()) {
     return [];
   }
 
   const lowerQuery = query.toLowerCase();
 
-  return data
+  const filteredResults = data
     .filter((item) => {
       const baseItem = item as { title?: string; description?: string | null };
       return (
@@ -287,37 +319,43 @@ function simpleSearch<T>(
         baseItem.description?.toLowerCase().includes(lowerQuery)
       );
     })
-    .slice(0, limit)
-    .map((item) => createSearchResult(item, type));
+    .slice(0, limit);
+
+  return filteredResults.map((item) => createSearchResult(
+    item as { id: string; title: string; description?: string | null; icon?: string | null },
+    type
+  ));
 }
 
 export const searchAction = actionClient
   .inputSchema(searchSchema)
-  .action(async ({ parsedInput: { query, limit, types } }) => {
+  .action(async ({ parsedInput: { query, limit, types } }): Promise<SearchResponse> => {
     try {
       if (query.trim().length < 1) {
+        const emptyResults: SearchResultsData = {
+          results: [],
+          total: 0,
+          query,
+        };
         return {
           success: true,
-          data: {
-            results: [],
-            total: 0,
-            query,
-          },
+          data: emptyResults,
         };
       }
 
       const user = await fetchUser();
       const searchData = await loadSearchData(user.id);
 
-      const results: any[] = [];
+      const results: SearchResult[] = [];
 
       for (const type of types) {
-        const data = searchData[type as keyof any];
+        const collectionType = toCollectionType(type);
+        const data = searchData[collectionType];
         if (data && data.length > 0) {
           const typeResults = searchInCollection(
             data,
             query,
-            type,
+            collectionType,
             Math.ceil(limit / types.length),
           );
           results.push(...typeResults);
@@ -329,48 +367,52 @@ export const searchAction = actionClient
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, limit);
 
+      const responseData: SearchResultsData = {
+        results: sortedResults,
+        total: sortedResults.length,
+        query,
+      };
+
       return {
         success: true,
-        data: {
-          results: sortedResults,
-          total: sortedResults.length,
-          query,
-        },
+        data: responseData,
       };
     } catch (error) {
       console.error("❌ Search action error:", error);
+      const errorData: SearchResultsData = {
+        results: [],
+        total: 0,
+        query,
+      };
       return {
         success: false,
         error: getErrorMessage(error),
-        data: {
-          results: [],
-          total: 0,
-          query,
-        },
+        data: errorData,
       };
     }
   });
 
 export const quickSearchAction = actionClient
   .inputSchema(quickSearchSchema)
-  .action(async ({ parsedInput: { query } }) => {
+  .action(async ({ parsedInput: { query } }): Promise<QuickSearchResponse> => {
     try {
       if (query.trim().length < 1) {
+        const emptyResults: SearchResultsData = {
+          results: [],
+          total: 0,
+          query,
+        };
         return {
           success: true,
-          data: {
-            results: [],
-            total: 0,
-            query,
-          },
+          data: emptyResults,
         };
       }
 
       const user = await fetchUser();
       const searchData = await loadSearchData(user.id);
 
-      const quickTypes = ["pages", "todos", "events"] as const;
-      const results: any[] = [];
+      const quickTypes: QuickSearchType[] = ["pages", "todos", "events"];
+      const results: SearchResult[] = [];
 
       for (const type of quickTypes) {
         const data = searchData[type];
@@ -385,29 +427,32 @@ export const quickSearchAction = actionClient
         .sort((a, b) => (a.score || 1) - (b.score || 1))
         .slice(0, 5);
 
+      const responseData: SearchResultsData = {
+        results: sortedResults,
+        total: sortedResults.length,
+        query,
+      };
+
       return {
         success: true,
-        data: {
-          results: sortedResults,
-          total: sortedResults.length,
-          query,
-        },
+        data: responseData,
       };
     } catch (error) {
       console.error("❌ Quick search error:", error);
+      const errorData: SearchResultsData = {
+        results: [],
+        total: 0,
+        query,
+      };
       return {
         success: false,
         error: getErrorMessage(error),
-        data: {
-          results: [],
-          total: 0,
-          query,
-        },
+        data: errorData,
       };
     }
   });
 
-export async function invalidateSearchCache() {
+export async function invalidateSearchCache(): Promise<void> {
   cachedSearchData = null;
   lastCacheUpdate = 0;
 }
