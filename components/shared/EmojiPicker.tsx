@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Smile } from "lucide-react";
 import dynamic from "next/dynamic";
+import { Spinner } from "../ui/spinner";
 
 const EmojiPicker = dynamic(
   async () => {
@@ -17,7 +18,9 @@ const EmojiPicker = dynamic(
   },
   { 
     ssr: false,
-    loading: () => <div className="w-[300px] h-[350px] flex items-center justify-center">Loading emojis...</div>
+    loading: () => <div className="w-[300px] h-[350px] flex items-center justify-center">
+      <Spinner />
+    </div>
   }
 );
 
