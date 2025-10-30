@@ -19,12 +19,27 @@ export const updateCalendarEventSchema = insertCalendarEventSchema
     created_at: true,
   });
 
+// Alebo ak potrebuješ ISO formát, pridaj transformáciu:
 export const createCalendarEventInputSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),
-  start_time: z.string().datetime("Invalid start time"),
-  end_time: z.string().datetime("Invalid end time"),
-  all_day: z.boolean().optional().default(false),
+  start_time: z.string().min(1, "Start time is required")
+    .transform(val => {
+      try {
+        return new Date(val).toISOString();
+      } catch {
+        return val;
+      }
+    }),
+  end_time: z.string().min(1, "End time is required")
+    .transform(val => {
+      try {
+        return new Date(val).toISOString();
+      } catch {
+        return val;
+      }
+    }),
+  all_day: z.boolean().default(false),
   color: z.string().optional().nullable(),
 });
 
