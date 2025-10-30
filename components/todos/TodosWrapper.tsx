@@ -805,7 +805,7 @@ function TodoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl rounded-2xl">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             {editingTodo ? "Edit Task" : "Create New Task"}
           </DialogTitle>
           <DialogDescription>
@@ -1101,7 +1101,7 @@ function TodoSheet({ todo, onClose, onEdit, isPending }: TodoSheetProps) {
         <SheetHeader className="pb-4 border-b">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <SheetTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 {todo.title}
               </SheetTitle>
               <SheetDescription className="mt-2 text-base">

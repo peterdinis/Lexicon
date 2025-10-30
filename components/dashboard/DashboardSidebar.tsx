@@ -366,7 +366,7 @@ export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
   return (
     <>
       <aside
-        className={`hidden border-r bg-muted/30 transition-all duration-300 md:flex flex-col ${
+        className={`hidden bg-background border-r transition-all duration-300 md:flex flex-col ${
           desktopCollapsed ? "w-0 overflow-hidden" : "w-64"
         }`}
       >
