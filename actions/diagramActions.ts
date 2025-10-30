@@ -16,8 +16,8 @@ import {
   createDiagramInputSchema,
   diagramIdSchema,
   updateDiagramInputSchema,
-  updateDiagramSchema,
 } from "./schemas/diagramsShcemas";
+import z from "zod";
 
 // CREATE
 export const createDiagramAction = actionClient
@@ -57,15 +57,17 @@ export const getDiagramAction = actionClient
     }
   });
 
-// UPDATE
 export const updateDiagramAction = actionClient
-  .inputSchema(updateDiagramInputSchema)
-  .action(async ({ parsedInput }) => {
+  .inputSchema(z.object({
+    id: z.string().uuid("Invalid diagram ID"),
+    data: updateDiagramInputSchema
+  }))
+  .action(async ({ parsedInput: { id, data } }) => {
     try {
-      const { nodes, edges, viewport, ...rest } = parsedInput;
+      const { nodes, edges, viewport, ...rest } = data;
 
       // Parse JSON fields if they exist
-      const parsedData: any = {
+      const parsedData = {
         ...rest,
         nodes: nodes ? JSON.parse(nodes) : undefined,
         edges: edges ? JSON.parse(edges) : undefined,

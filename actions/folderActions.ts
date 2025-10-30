@@ -6,18 +6,13 @@ import {
   createFolderHandler,
   getFolderDetailHandler,
   getFoldersHandler,
-} from "./handlers/folderHandlers";
-import {
-  createFolderSchema,
-  deleteFolderSchema,
-  updateFolderSchema,
-} from "./schemas/folderSchemas";
-import { revalidatePath } from "next/cache";
-import {
-  deleteFolderHandler,
   updateFolderHandler,
-} from "./handlers/todosHandler";
+  deleteFolderHandler,
+} from "./handlers/folderHandlers";
+import { revalidatePath } from "next/cache";
 import z from "zod";
+import { updateFolderInputSchema, updateFolderSchema } from "./schemas/folderSchemas";
+import { createFolderSchema, deleteFolderSchema } from "./schemas/todosSchemas";
 
 export const createFolderAction = actionClient
   .inputSchema(createFolderSchema)
@@ -43,10 +38,12 @@ export const getFoldersAction = actionClient.action(async () => {
 });
 
 export const updateFolderAction = actionClient
-  .inputSchema(updateFolderSchema)
+  .inputSchema(updateFolderInputSchema.extend({
+    id: z.string().uuid("Invalid folder ID"),
+  }))
   .action(async ({ parsedInput: { id, title } }) => {
     try {
-      const result = await updateFolderHandler(id, title);
+      const result = await updateFolderHandler(id, { title });
       revalidatePath("/dashboard");
       revalidatePath(`/folder/${id}`);
       revalidatePath("/");
@@ -55,7 +52,6 @@ export const updateFolderAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
-
 // DELETE FOLDER ACTION
 export const deleteFolderAction = actionClient
   .inputSchema(deleteFolderSchema)

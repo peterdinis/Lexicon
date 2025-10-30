@@ -4,23 +4,6 @@ import { getSupabaseServerClient } from "@/supabase/server";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
 
-// Custom types for page operations
-interface CreatePageData {
-  title?: string;
-  description?: string;
-  parent_id?: string | null;
-  is_folder?: boolean;
-}
-
-interface UpdatePageData {
-  title?: string;
-  description?: string;
-  icon?: string;
-  coverImage?: string | null;
-  parent_id?: string | null;
-  updated_at: Date;
-}
-
 // ----------------------
 // Get Single Page
 // ----------------------
@@ -41,7 +24,7 @@ export async function getPageHandler(id: string) {
       and(
         eq(pages.id, id),
         eq(pages.user_id, user.id),
-        eq(pages.in_trash, false), // Exclude trashed pages
+        eq(pages.in_trash, false),
       ),
     );
 
@@ -76,9 +59,9 @@ export async function createPageHandler(
       description,
       parent_id,
       is_folder,
-      in_trash: false, // Add missing required field
-      created_at: new Date(), // Use Date object
-      updated_at: new Date(), // Use Date object
+      in_trash: false,
+      created_at: new Date(),
+      updated_at: new Date(),
     })
     .returning();
 
@@ -108,18 +91,23 @@ export async function updatePageHandler(
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  const updateData: UpdatePageData = {
-    updated_at: new Date(), // Use Date object
+  const updateData: {
+    updated_at: Date;
+    title?: string;
+    description?: string;
+    icon?: string;
+    coverImage?: string | null;
+    parent_id?: string | null;
+  } = {
+    updated_at: new Date(),
   };
 
-  // Only include fields that are provided
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
   if (data.icon !== undefined) updateData.icon = data.icon;
   if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
   if (data.parent_id !== undefined) updateData.parent_id = data.parent_id;
 
-  // Check if there's anything to update (besides updated_at)
   const fieldsToUpdate = Object.keys(updateData).filter(key => key !== 'updated_at');
   if (fieldsToUpdate.length === 0) {
     throw new Error("No valid fields to update");
@@ -154,7 +142,7 @@ export async function getAllPagesHandler() {
     .where(
       and(
         eq(pages.user_id, user.id),
-        eq(pages.in_trash, false), // Exclude trashed pages
+        eq(pages.in_trash, false),
       ),
     )
     .orderBy(asc(pages.created_at));
@@ -286,7 +274,7 @@ export async function movePageHandler(
     .update(pages)
     .set({
       parent_id: parent_id,
-      updated_at: new Date(), // Use Date object
+      updated_at: new Date(),
     })
     .where(and(eq(pages.id, id), eq(pages.user_id, user.id)))
     .returning();
@@ -330,14 +318,12 @@ export async function searchPagesHandler(query: string) {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  // Simple search using ILIKE for case-insensitive matching
   const searchResults = await db
     .select()
     .from(pages)
     .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
     .orderBy(asc(pages.created_at));
 
-  // Filter in JavaScript for simple search (for more complex search, use PostgreSQL full-text search)
   const filteredResults = searchResults.filter(
     (page) =>
       page.title.toLowerCase().includes(query.toLowerCase()) ||

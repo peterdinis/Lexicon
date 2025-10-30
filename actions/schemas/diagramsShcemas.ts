@@ -63,9 +63,33 @@ export const updateDiagramInputSchema = z.object({
     .max(255, "Title too long")
     .optional(),
   description: z.string().max(1000, "Description too long").optional(),
-  nodes: z.array(nodeSchema).optional(),
-  edges: z.array(edgeSchema).optional(),
-  viewport: viewportSchema.optional(),
+  nodes: z.string().optional().transform((str, ctx) => {
+    if (!str) return undefined;
+    try {
+      return JSON.parse(str);
+    } catch {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid nodes JSON" });
+      return z.NEVER;
+    }
+  }),
+  edges: z.string().optional().transform((str, ctx) => {
+    if (!str) return undefined;
+    try {
+      return JSON.parse(str);
+    } catch {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid edges JSON" });
+      return z.NEVER;
+    }
+  }),
+  viewport: z.string().optional().transform((str, ctx) => {
+    if (!str) return undefined;
+    try {
+      return JSON.parse(str);
+    } catch {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid viewport JSON" });
+      return z.NEVER;
+    }
+  }),
 });
 
 export const diagramIdSchema = z.object({
