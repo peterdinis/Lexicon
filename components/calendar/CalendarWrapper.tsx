@@ -166,6 +166,26 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     {},
   );
 
+  const formatDateTimeForISO = useCallback((dateString: string) => {
+  try {
+    // Odstráň časovú zónu ak existuje (pre datetime-local input)
+    const cleanDateString = dateString.replace(/\.\d{3}Z$/, '');
+    const date = new Date(cleanDateString);
+    
+    // Over platnosť dátumu
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    
+    // Vráť v správnom ISO formáte
+    return date.toISOString();
+  } catch {
+    // Ak konverzia zlyhá, vráť pôvodný reťazec
+    console.warn('Date conversion failed, using original string:', dateString);
+    return dateString;
+  }
+}, []);
+
   // Optimistic updates pre eventy
   const [optimisticEvents, addOptimisticEvent] = useOptimistic<
     OptimisticEvent[],
@@ -350,6 +370,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
       const eventData: CreateCalendarEventData = {
         ...newEvent,
+        start_time: formatDateTimeForISO(newEvent.start_time),
+        end_time: formatDateTimeForISO(newEvent.end_time),
         description: newEvent.description || null,
         color: newEvent.color || null,
       };
@@ -540,9 +562,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             {currentAndUpcomingEvents.map((event) => (
               <div
                 key={event.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  event.pending ? "opacity-60" : ""
-                }`}
+                className={`flex items-center justify-between p-3 rounded-lg border ${event.pending ? "opacity-60" : ""
+                  }`}
                 style={{
                   borderLeft: `4px solid ${event.color || "#3b82f6"}`,
                 }}
@@ -913,20 +934,18 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           return (
             <div
               key={index}
-              className={`min-h-[100px] rounded-lg border p-2 ${
-                isCurrentMonth
+              className={`min-h-[100px] rounded-lg border p-2 ${isCurrentMonth
                   ? "bg-background hover:bg-muted/50"
                   : "bg-muted/30 text-muted-foreground"
-              } ${isToday ? "border-2 border-primary" : "border-border"}`}
+                } ${isToday ? "border-2 border-primary" : "border-border"}`}
             >
               <div
-                className={`mb-1 text-sm ${
-                  isToday
+                className={`mb-1 text-sm ${isToday
                     ? "font-bold text-primary"
                     : isCurrentMonth
                       ? "text-foreground"
                       : "text-muted-foreground"
-                }`}
+                  }`}
               >
                 {format(day, "d")}
               </div>
@@ -934,9 +953,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${
-                      event.pending ? "opacity-60" : ""
-                    }`}
+                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${event.pending ? "opacity-60" : ""
+                      }`}
                     style={{
                       backgroundColor: `${event.color || "#3b82f6"}20`,
                       borderLeft: `3px solid ${event.color || "#3b82f6"}`,

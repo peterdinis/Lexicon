@@ -1,4 +1,4 @@
-import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
+import { getAllPagesHandler } from "@/actions/pagesActions";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { TrashWrapper } from "@/components/trash/TrashWrapper";

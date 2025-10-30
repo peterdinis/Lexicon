@@ -66,7 +66,6 @@ export const todos = pgTable("todos", {
   due_date: timestamp("due_date"),
   status: text("status").default("pending"),
   notes: text("notes"),
-  tags: text("tags"),
   created_at: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
   updated_at: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });

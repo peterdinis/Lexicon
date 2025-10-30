@@ -89,14 +89,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
 
-// Definice schématu pokud chybí
+// Zjednodušené typy
+type TodoStatus = "not_started" | "in_progress" | "done";
+type TodoPriority = "low" | "medium" | "high";
+
+// Definice schématu
 const createTodoSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   due_date: z.string().optional(),
   status: z.enum(["not_started", "in_progress", "done"]).optional(),
-  tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
 
@@ -105,12 +108,12 @@ export type Todo = {
   user_id: string;
   title: string;
   description: string | null;
-  completed: number | null;
-  priority: string | null;
+  completed: boolean | null;
+  priority: TodoPriority | null;
   due_date: string | null;
   created_at: string;
   updated_at: string;
-  status: string;
+  status: TodoStatus;
   tags?: string[];
   notes?: string;
 };
@@ -126,7 +129,12 @@ type OptimisticAction =
   | { type: "update"; id: string; updates: Partial<Todo> }
   | { type: "delete"; id: string }
   | { type: "reorder"; todos: Todo[] }
-  | { type: "toggle"; id: string; completed: number; status: string };
+  | {
+      type: "toggle";
+      id: string;
+      completed: boolean | null;
+      status: TodoStatus;
+    };
 
 // Constants
 const PRIORITY_CONFIG = {
@@ -190,18 +198,21 @@ const getStatusConfig = (status: string | null) => {
   );
 };
 
-const parseTags = (tags: string | string[] | null | undefined): string[] => {
-  if (!tags) return [];
-  if (Array.isArray(tags)) return tags;
-  try {
-    return JSON.parse(tags);
-  } catch {
-    return [];
-  }
+// Helper funkcie pre boolean konverzie
+const fromBoolean = (value: boolean | null): boolean => {
+  return value === true;
 };
 
 // Form Types
-type TodoFormData = z.infer<typeof createTodoSchema>;
+type TodoFormData = {
+  title?: string;
+  description?: string;
+  priority?: TodoPriority;
+  due_date?: string;
+  status?: TodoStatus;
+  tags?: string[];
+  notes?: string;
+};
 
 // Sub-components
 interface EmptyStateProps {
@@ -265,7 +276,7 @@ function SortableTodoItemBase({
   const PriorityIcon = priorityConfig.icon;
   const StatusIcon = statusConfig.icon;
 
-  const isCompleted = (todo.completed ?? 0) === 1;
+  const isCompleted = fromBoolean(todo.completed);
 
   if (isBoard) {
     return (
@@ -537,7 +548,7 @@ const BoardTodoItem = (props: TodoItemProps) => (
 );
 
 interface BoardColumnProps {
-  status: "not_started" | "in_progress" | "done";
+  status: TodoStatus;
   todos: OptimisticTodo[];
   onToggle: (todo: OptimisticTodo) => void;
   onDelete: (id: string) => void;
@@ -611,7 +622,7 @@ function TableRow({
   onEdit,
   isPending,
 }: TableRowProps) {
-  const isCompleted = (todo.completed ?? 0) === 1;
+  const isCompleted = fromBoolean(todo.completed);
 
   return (
     <tr
@@ -794,7 +805,7 @@ function TodoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl rounded-2xl">
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             {editingTodo ? "Edit Task" : "Create New Task"}
           </DialogTitle>
           <DialogDescription>
@@ -872,8 +883,8 @@ function TodoDialog({
                     Priority
                   </Label>
                   <Select
-                    value={form.watch("priority")}
-                    onValueChange={(v: "low" | "medium" | "high") =>
+                    value={form.watch("priority") || "medium"}
+                    onValueChange={(v: TodoPriority) =>
                       form.setValue("priority", v)
                     }
                     disabled={isPending}
@@ -913,10 +924,10 @@ function TodoDialog({
                     Status
                   </Label>
                   <Select
-                    value={form.watch("status")}
-                    onValueChange={(
-                      v: "not_started" | "in_progress" | "done",
-                    ) => form.setValue("status", v)}
+                    value={form.watch("status") || "not_started"}
+                    onValueChange={(v: TodoStatus) =>
+                      form.setValue("status", v)
+                    }
                     disabled={isPending}
                   >
                     <SelectTrigger className="rounded-lg">
@@ -1082,7 +1093,7 @@ function TodoSheet({ todo, onClose, onEdit, isPending }: TodoSheetProps) {
 
   const statusConfig = getStatusConfig(todo.status);
   const priorityConfig = getPriorityConfig(todo.priority);
-  const isCompleted = (todo.completed ?? 0) === 1;
+  const isCompleted = fromBoolean(todo.completed);
 
   return (
     <Sheet open={!!todo} onOpenChange={onClose}>
@@ -1090,7 +1101,7 @@ function TodoSheet({ todo, onClose, onEdit, isPending }: TodoSheetProps) {
         <SheetHeader className="pb-4 border-b">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <SheetTitle className="text-2xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 {todo.title}
               </SheetTitle>
               <SheetDescription className="mt-2 text-base">
@@ -1324,7 +1335,7 @@ function TodoSheet({ todo, onClose, onEdit, isPending }: TodoSheetProps) {
 export default function TodoWrapper() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
@@ -1336,12 +1347,10 @@ export default function TodoWrapper() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("basic");
 
-  const [optimisticTodos, setOptimisticTodos] = useOptimistic<
-    OptimisticTodo[],
-    OptimisticAction
-  >(
+  // Opravený useOptimistic hook
+  const [optimisticTodos, setOptimisticTodos] = useOptimistic(
     todos as OptimisticTodo[],
-    (state: OptimisticTodo[], action: OptimisticAction): OptimisticTodo[] => {
+    (state: OptimisticTodo[], action: OptimisticAction) => {
       switch (action.type) {
         case "add":
           return [{ ...action.todo, pending: true }, ...state];
@@ -1374,14 +1383,14 @@ export default function TodoWrapper() {
     },
   );
 
+  // Opravený useForm hook
   const form = useForm<TodoFormData>({
-    resolver: zodResolver(createTodoSchema),
+    resolver: zodResolver(createTodoSchema) as Resolver<TodoFormData>,
     defaultValues: {
       title: "",
       description: "",
       priority: "medium",
       status: "not_started",
-      tags: [],
       notes: "",
     },
   });
@@ -1400,17 +1409,7 @@ export default function TodoWrapper() {
         setLoading(true);
         const result = await getTodosAction();
         if (result.success && result.data) {
-          setTodos(
-            result.data.map((todo) => ({
-              ...todo,
-              created_at: todo.created_at ?? new Date().toISOString(),
-              updated_at: todo.updated_at ?? new Date().toISOString(),
-              status: todo.status ?? "not_started",
-              tags: parseTags(todo.tags),
-              completed: todo.completed ?? 0,
-              notes: todo.notes ?? "",
-            })),
-          );
+          setTodos(result.data as Todo[]);
         }
       } catch (error) {
         console.error("Failed to load todos:", error);
@@ -1421,15 +1420,6 @@ export default function TodoWrapper() {
 
     loadTodos();
   }, []);
-
-  // Memoized computations
-  const allTags = useMemo(() => {
-    const tags = new Set<string>();
-    todos.forEach((todo) => {
-      todo.tags?.forEach((tag) => tags.add(tag));
-    });
-    return Array.from(tags);
-  }, [todos]);
 
   const filteredTodos = useMemo(() => {
     return optimisticTodos.filter((todo) => {
@@ -1448,7 +1438,7 @@ export default function TodoWrapper() {
       ),
       in_progress: filteredTodos.filter((t) => t.status === "in_progress"),
       done: filteredTodos.filter(
-        (t) => t.status === "done" || (t.completed ?? 0) === 1,
+        (t) => t.status === "done" || fromBoolean(t.completed),
       ),
     };
   }, [filteredTodos]);
@@ -1468,7 +1458,7 @@ export default function TodoWrapper() {
       const activeTodo = optimisticTodos.find((t) => t.id === active.id);
       if (!activeTodo) return;
 
-      let targetStatus = activeTodo.status || "not_started";
+      let targetStatus: TodoStatus = activeTodo.status || "not_started";
 
       const overTodo = optimisticTodos.find((t) => t.id === over.id);
       if (overTodo) {
@@ -1486,18 +1476,20 @@ export default function TodoWrapper() {
 
       if (activeTodo.status !== targetStatus) {
         startTransition(async () => {
+          const newCompleted = targetStatus === "done";
+
           setOptimisticTodos({
             type: "update",
             id: activeTodo.id,
             updates: {
               status: targetStatus,
-              completed: targetStatus === "done" ? 1 : 0,
+              completed: newCompleted,
             },
           });
 
           const result = await updateTodoAction(activeTodo.id, {
             status: targetStatus,
-            completed: targetStatus === "done" ? 1 : 0,
+            completed: newCompleted,
           });
 
           if (result.success) {
@@ -1507,7 +1499,7 @@ export default function TodoWrapper() {
                   ? {
                       ...todo,
                       status: targetStatus,
-                      completed: targetStatus === "done" ? 1 : 0,
+                      completed: newCompleted,
                     }
                   : todo,
               ),
@@ -1548,6 +1540,8 @@ export default function TodoWrapper() {
   );
 
   const handleUpdateTodo = async (id: string, data: TodoFormData) => {
+    const completed = data.status === "done";
+
     setOptimisticTodos({
       type: "update",
       id,
@@ -1557,19 +1551,19 @@ export default function TodoWrapper() {
         due_date: data.due_date || null,
         priority: data.priority,
         status: data.status || "not_started",
-        tags: data.tags || [],
         notes: data.notes || "",
+        completed,
       },
     });
 
     const updatedData = {
       title: data.title!,
-      description: data.description || null,
+      description: data.description ?? undefined,
       due_date: data.due_date || null,
       priority: data.priority,
       status: data.status || "not_started",
-      tags: JSON.stringify(data.tags || []),
       notes: data.notes || "",
+      completed,
     };
 
     const result = await updateTodoAction(id, updatedData);
@@ -1581,8 +1575,8 @@ export default function TodoWrapper() {
             ? {
                 ...todo,
                 ...updatedData,
-                tags: data.tags || [],
                 updated_at: new Date().toISOString(),
+                completed,
               }
             : todo,
         ),
@@ -1594,17 +1588,18 @@ export default function TodoWrapper() {
 
   const handleCreateTodo = async (data: TodoFormData) => {
     const tempId = `temp-${Date.now()}`;
+    const completed = data.status === "done";
+
     const newTodo: Todo = {
       id: tempId,
       user_id: "",
       title: data.title!,
       description: data.description || null,
       due_date: data.due_date || null,
-      priority: data.priority,
+      priority: data.priority as unknown as TodoPriority,
       status: data.status || "not_started",
-      tags: data.tags || [],
       notes: data.notes || "",
-      completed: 0,
+      completed,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -1612,20 +1607,18 @@ export default function TodoWrapper() {
     setOptimisticTodos({ type: "add", todo: newTodo });
 
     const createData = {
-      ...data,
-      tags: JSON.stringify(data.tags || []),
-    };
+      title: data.title!,
+      description: data.description,
+      priority: data.priority,
+      due_date: data.due_date,
+      status: data.status,
+      notes: data.notes,
+      completed,
+    } as any;
 
     const result = await createTodoAction(createData);
     if (result.success && result.data) {
-      const finalTodo: Todo = {
-        ...result.data,
-        description: result.data.description ?? null,
-        due_date: result.data.due_date ?? null,
-        status: data.status ?? "not_started",
-        tags: data.tags ?? [],
-        notes: data.notes ?? "",
-      };
+      const finalTodo: Todo = result.data as Todo;
       setTodos((prev) => [finalTodo, ...prev]);
       resetFormAndClose();
       router.refresh();
@@ -1659,8 +1652,8 @@ export default function TodoWrapper() {
   const handleToggleComplete = useCallback(
     async (todo: OptimisticTodo) => {
       startTransition(async () => {
-        const newCompleted = (todo.completed ?? 0) === 1 ? 0 : 1;
-        const newStatus = newCompleted === 1 ? "done" : "not_started";
+        const newCompleted = !fromBoolean(todo.completed);
+        const newStatus: TodoStatus = newCompleted ? "done" : "not_started";
 
         setOptimisticTodos({
           type: "toggle",
@@ -1699,12 +1692,9 @@ export default function TodoWrapper() {
       form.reset({
         title: todo.title,
         description: todo.description ?? "",
-        priority: (todo.priority as "low" | "medium" | "high") ?? "medium",
+        priority: todo.priority ?? "medium",
         due_date: todo.due_date ?? "",
-        status:
-          (todo.status as "not_started" | "in_progress" | "done") ??
-          "not_started",
-        tags: todo.tags ?? [],
+        status: todo.status ?? "not_started",
         notes: todo.notes ?? "",
       });
       setDialogOpen(true);
@@ -1740,7 +1730,6 @@ export default function TodoWrapper() {
       priority: "medium",
       due_date: "",
       status: "not_started",
-      tags: [],
       notes: "",
     });
     setDialogOpen(true);
@@ -1847,27 +1836,6 @@ export default function TodoWrapper() {
               </SelectContent>
             </Select>
 
-            {allTags.length > 0 && (
-              <Select
-                value={filterTag}
-                onValueChange={setFilterTag}
-                disabled={isPending}
-              >
-                <SelectTrigger className="w-[140px] rounded-xl">
-                  <TagIcon className="mr-2 h-4 w-4" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tags</SelectItem>
-                  {allTags.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
             <Button
               onClick={openCreateDialog}
               disabled={isPending}
@@ -1953,7 +1921,7 @@ export default function TodoWrapper() {
               <div className="rounded-xl border bg-card p-3 shadow-lg border-primary opacity-80 rotate-1">
                 <div className="flex items-start gap-2">
                   <div className="mt-0.5 shrink-0">
-                    {(activeTodo.completed ?? 0) === 1 ? (
+                    {fromBoolean(activeTodo.completed) ? (
                       <Check className="h-4 w-4 text-primary" />
                     ) : (
                       <Circle className="h-4 w-4 text-muted-foreground" />

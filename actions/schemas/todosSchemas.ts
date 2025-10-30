@@ -21,7 +21,6 @@ export const createTodoSchema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional().default("medium"),
   due_date: z.string().datetime().nullable().optional(),
   status: z.string().optional().default("not_started"),
-  tags: z.array(z.string()).optional().default([]), // Frontend sends array
   notes: z.string().optional().default(""),
 });
 

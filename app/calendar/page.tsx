@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation";
-import { getAllPagesHandler } from "@/actions/handlers/pageHandlers";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { CalendarView } from "@/components/calendar/CalendarWrapper";
 import { CalendarEvent, Page } from "@/types/applicationTypes";
 import { getAllCalendarEventsAction } from "@/actions/calendarActions";
+import { getAllPagesHandler } from "@/actions/pagesActions";
 
 export default async function CalendarPage() {
   let pages:

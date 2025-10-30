@@ -71,7 +71,7 @@ export default async function DashboardPage() {
       <div className="flex flex-1 flex-col min-w-0">
         <DashboardTopBar />
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-background">
           <AnimatedPageWrapper>
             <DashboardClient pages={pages} folders={folders} />
           </AnimatedPageWrapper>
