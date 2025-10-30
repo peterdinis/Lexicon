@@ -13,7 +13,11 @@ export const insertFolderSchema = createInsertSchema(folders, {
 
 export const createTodoSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
-  description: z.string().max(1000, "Description too long").optional().default(""),
+  description: z
+    .string()
+    .max(1000, "Description too long")
+    .optional()
+    .default(""),
   priority: z.enum(["low", "medium", "high"]).optional().default("medium"),
   due_date: z.string().datetime().nullable().optional(),
   status: z.string().optional().default("not_started"),
@@ -29,7 +33,11 @@ export const createFolderSchema = z.object({
 
 export const updateFolderInputSchema = z.object({
   id: z.string().uuid("Invalid folder ID"),
-  title: z.string().min(1, "Title is required").max(255, "Title too long").optional(),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(255, "Title too long")
+    .optional(),
   parent_id: z.string().uuid("Invalid parent ID").nullable().optional(),
 });
 

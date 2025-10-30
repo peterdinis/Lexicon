@@ -50,7 +50,12 @@ export interface FolderItem extends BaseItem {
 
 // Search types
 export type SearchType = "page" | "todo" | "event" | "diagram" | "folder";
-export type SearchCollectionType = "pages" | "todos" | "events" | "diagrams" | "folders";
+export type SearchCollectionType =
+  | "pages"
+  | "todos"
+  | "events"
+  | "diagrams"
+  | "folders";
 export type QuickSearchType = "pages" | "todos" | "events";
 
 // Search result type

@@ -9,9 +9,9 @@ import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 // Helper function to safely extract and transform data
 function transformPagesData(data: any) {
   if (!data) return [];
-  
+
   if (Array.isArray(data)) {
-    return data.map(item => ({
+    return data.map((item) => ({
       id: item.id,
       user_id: item.user_id,
       title: item.title,
@@ -22,27 +22,27 @@ function transformPagesData(data: any) {
       is_folder: item.is_folder,
       in_trash: item.in_trash,
       created_at: item.created_at,
-      updated_at: item.updated_at
+      updated_at: item.updated_at,
     }));
   }
-  
+
   return [];
 }
 
 function transformFoldersData(data: any) {
   if (!data) return [];
-  
+
   if (Array.isArray(data)) {
-    return data.map(item => ({
+    return data.map((item) => ({
       id: item.id,
       user_id: item.user_id,
       title: item.title,
       in_trash: item.in_trash,
       created_at: item.created_at,
-      updated_at: item.updated_at
+      updated_at: item.updated_at,
     }));
   }
-  
+
   return [];
 }
 
@@ -59,7 +59,6 @@ export default async function DashboardPage() {
     // Transform data to match our types
     pages = transformPagesData(pagesResponse);
     folders = transformFoldersData(foldersResponse);
-
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");

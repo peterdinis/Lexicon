@@ -79,12 +79,7 @@ export async function getTodoHandler(id: string) {
   const [todo] = await db
     .select()
     .from(todos)
-    .where(
-      and(
-        eq(todos.id, id),
-        eq(todos.user_id, user.id),
-      ),
-    );
+    .where(and(eq(todos.id, id), eq(todos.user_id, user.id)));
 
   if (!todo) throw new Error("Todo not found");
   return todo;
@@ -133,7 +128,9 @@ export async function getTodosByStatusHandler(status: string) {
 // UPDATE TODO
 export async function updateTodoHandler(
   id: string,
-  updates: Omit<UpdateTodoData, 'updated_at'> & { due_date?: Date | string | null }
+  updates: Omit<UpdateTodoData, "updated_at"> & {
+    due_date?: Date | string | null;
+  },
 ) {
   const supabase = await getSupabaseServerClient();
   const {
@@ -150,7 +147,8 @@ export async function updateTodoHandler(
 
   // Only include fields that are provided
   if (updates.title !== undefined) updateData.title = updates.title;
-  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.description !== undefined)
+    updateData.description = updates.description;
   if (updates.priority !== undefined) updateData.priority = updates.priority;
   if (updates.status !== undefined) updateData.status = updates.status;
   if (updates.completed !== undefined) updateData.completed = updates.completed;
@@ -164,12 +162,7 @@ export async function updateTodoHandler(
   const [updatedTodo] = await db
     .update(todos)
     .set(updateData)
-    .where(
-      and(
-        eq(todos.id, id),
-        eq(todos.user_id, user.id),
-      ),
-    )
+    .where(and(eq(todos.id, id), eq(todos.user_id, user.id)))
     .returning();
 
   if (!updatedTodo) throw new Error("Todo not found or unauthorized");
@@ -189,12 +182,7 @@ export async function deleteTodoHandler(id: string) {
 
   const [deletedTodo] = await db
     .delete(todos)
-    .where(
-      and(
-        eq(todos.id, id),
-        eq(todos.user_id, user.id),
-      ),
-    )
+    .where(and(eq(todos.id, id), eq(todos.user_id, user.id)))
     .returning();
 
   if (!deletedTodo) throw new Error("Todo not found or unauthorized");

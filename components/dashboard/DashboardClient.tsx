@@ -229,7 +229,10 @@ const PageActions = ({ page }: { page: Page }) => {
           Move
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={openMoveToTrashDialog} className="text-amber-600">
+        <DropdownMenuItem
+          onClick={openMoveToTrashDialog}
+          className="text-amber-600"
+        >
           <Trash className="h-4 w-4 mr-2" />
           Move to Trash
         </DropdownMenuItem>
@@ -277,7 +280,10 @@ const FolderActions = ({ folder }: { folder: FolderType }) => {
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={openMoveToTrashDialog} className="text-amber-600">
+          <DropdownMenuItem
+            onClick={openMoveToTrashDialog}
+            className="text-amber-600"
+          >
             <Trash className="h-4 w-4 mr-2" />
             Move to Trash
           </DropdownMenuItem>
@@ -371,20 +377,23 @@ export default function DashboardClient({
   }, []);
 
   // Otvorenie dialogu pre detail priečinka
-  const openFolderDetailDialog = useCallback(async (folderId: string) => {
-    setFolderDetailDialog({
-      open: true,
-      folderId,
-      data: null,
-      loading: true,
-    });
-    await loadFolderDetail(folderId);
-  }, [loadFolderDetail]);
+  const openFolderDetailDialog = useCallback(
+    async (folderId: string) => {
+      setFolderDetailDialog({
+        open: true,
+        folderId,
+        data: null,
+        loading: true,
+      });
+      await loadFolderDetail(folderId);
+    },
+    [loadFolderDetail],
+  );
 
   // Funkcia pre presun do koša
   const handleMoveToTrash = useCallback(async () => {
     if (!moveToTrashDialog) return;
-    
+
     setLoading(true);
     try {
       const result = await moveToTrashAction({
@@ -405,7 +414,7 @@ export default function DashboardClient({
 
   const handleEdit = useCallback(async () => {
     if (!editDialog) return;
-    
+
     setLoading(true);
     try {
       if (editDialog.type === "page") {
@@ -413,7 +422,7 @@ export default function DashboardClient({
           title: editTitle,
           description: editDescription,
         });
-       if (!result) throw new Error("Something went wrong");
+        if (!result) throw new Error("Something went wrong");
       } else {
         const result = await updateFolderAction({
           id: editDialog.id,
@@ -433,7 +442,7 @@ export default function DashboardClient({
 
   const handleMove = useCallback(async () => {
     if (!moveDialog) return;
-    
+
     setLoading(true);
     try {
       const result = await movePageHandler(moveDialog.pageId, selectedFolderId);
@@ -449,33 +458,34 @@ export default function DashboardClient({
   }, [moveDialog, selectedFolderId]);
 
   // Funkcie pre otváranie dialógov
-  const openMoveToTrashDialog = useCallback((
-    type: "page" | "folder",
-    id: string,
-    title: string,
-  ) => {
-    setMoveToTrashDialog({ open: true, type, id, title });
-  }, []);
+  const openMoveToTrashDialog = useCallback(
+    (type: "page" | "folder", id: string, title: string) => {
+      setMoveToTrashDialog({ open: true, type, id, title });
+    },
+    [],
+  );
 
-  const openEditDialog = useCallback((
-    type: "page" | "folder",
-    id: string,
-    title: string,
-    description?: string,
-  ) => {
-    setEditDialog({ open: true, type, id, title, description });
-    setEditTitle(title);
-    setEditDescription(description || "");
-  }, []);
+  const openEditDialog = useCallback(
+    (
+      type: "page" | "folder",
+      id: string,
+      title: string,
+      description?: string,
+    ) => {
+      setEditDialog({ open: true, type, id, title, description });
+      setEditTitle(title);
+      setEditDescription(description || "");
+    },
+    [],
+  );
 
-  const openMoveDialog = useCallback((
-    pageId: string,
-    pageTitle: string,
-    currentFolderId?: string | null,
-  ) => {
-    setMoveDialog({ open: true, pageId, pageTitle, currentFolderId });
-    setSelectedFolderId(currentFolderId || null);
-  }, []);
+  const openMoveDialog = useCallback(
+    (pageId: string, pageTitle: string, currentFolderId?: string | null) => {
+      setMoveDialog({ open: true, pageId, pageTitle, currentFolderId });
+      setSelectedFolderId(currentFolderId || null);
+    },
+    [],
+  );
 
   // Vystavenie funkcií pre globálny prístup
   useEffect(() => {
@@ -491,7 +501,12 @@ export default function DashboardClient({
       (window as any).openFolderDetailDialog = undefined;
       (window as any).openMoveToTrashDialog = undefined;
     };
-  }, [openEditDialog, openMoveDialog, openFolderDetailDialog, openMoveToTrashDialog]);
+  }, [
+    openEditDialog,
+    openMoveDialog,
+    openFolderDetailDialog,
+    openMoveToTrashDialog,
+  ]);
 
   // Vytvorenie tabuliek pre detail priečinka
   const pagesTable = useReactTable({
@@ -559,7 +574,9 @@ export default function DashboardClient({
       {/* Dialógy */}
       <FolderDetailDialog
         dialog={folderDetailDialog}
-        onClose={() => setFolderDetailDialog(prev => ({ ...prev, open: false }))}
+        onClose={() =>
+          setFolderDetailDialog((prev) => ({ ...prev, open: false }))
+        }
         pagesTable={pagesTable}
         foldersTable={foldersTable}
       />
@@ -655,18 +672,15 @@ const PagesSection = ({
 );
 
 // Komponenty pre karty
-const FolderCard = ({ 
-  folder, 
-  onClick 
-}: { 
-  folder: FolderType; 
-  onClick: (id: string) => void 
+const FolderCard = ({
+  folder,
+  onClick,
+}: {
+  folder: FolderType;
+  onClick: (id: string) => void;
 }) => (
   <div className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
-    <div
-      onClick={() => onClick(folder.id)}
-      className="block cursor-pointer"
-    >
+    <div onClick={() => onClick(folder.id)} className="block cursor-pointer">
       <div className="flex items-center mb-2">
         <Folder className="w-5 h-5 mr-2 text-neutral-500" />
         <h3 className="font-medium text-neutral-900 dark:text-white">
@@ -710,7 +724,11 @@ const PaginationComponent = ({
         <PaginationItem>
           <PaginationPrevious
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={
+              currentPage === 1
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
           />
         </PaginationItem>
         {Array.from({ length: totalPages }, (_, i) => (
@@ -727,7 +745,11 @@ const PaginationComponent = ({
         <PaginationItem>
           <PaginationNext
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            className={
+              currentPage === totalPages
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
           />
         </PaginationItem>
       </PaginationContent>
@@ -777,11 +799,12 @@ const FolderDetailDialog = ({
             columns={folderColumns}
             isEmpty={dialog.data.subfolders.length === 0}
           />
-          {dialog.data.pages.length === 0 && dialog.data.subfolders.length === 0 && (
-            <div className="text-center py-8 text-neutral-500">
-              This folder is empty
-            </div>
-          )}
+          {dialog.data.pages.length === 0 &&
+            dialog.data.subfolders.length === 0 && (
+              <div className="text-center py-8 text-neutral-500">
+                This folder is empty
+              </div>
+            )}
         </div>
       ) : (
         <div className="text-center py-8 text-neutral-500">
@@ -797,16 +820,16 @@ const FolderDetailDialog = ({
   </Dialog>
 );
 
-const TableSection = ({ 
-  title, 
-  table, 
-  columns, 
-  isEmpty 
-}: { 
-  title: string; 
-  table: any; 
-  columns: ColumnDef<any>[]; 
-  isEmpty: boolean 
+const TableSection = ({
+  title,
+  table,
+  columns,
+  isEmpty,
+}: {
+  title: string;
+  table: any;
+  columns: ColumnDef<any>[];
+  isEmpty: boolean;
 }) => (
   <div>
     <h3 className="text-lg font-semibold mb-4">{title}</h3>
@@ -831,7 +854,10 @@ const TableSection = ({
         <TableBody>
           {!isEmpty ? (
             table.getRowModel().rows.map((row: any) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
                 {row.getVisibleCells().map((cell: any) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -868,8 +894,8 @@ const MoveToTrashDialog = ({
       <AlertDialogHeader>
         <AlertDialogTitle>Move to Trash</AlertDialogTitle>
         <AlertDialogDescription>
-          This will move the {dialog?.type} "{dialog?.title}" to trash. You can restore it later
-          from the trash.
+          This will move the {dialog?.type} "{dialog?.title}" to trash. You can
+          restore it later from the trash.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
@@ -977,10 +1003,7 @@ const MoveDialog = ({
       <div className="space-y-4">
         <div>
           <Label htmlFor="folder">Select Folder</Label>
-          <Select
-            value={selectedFolderId || ""}
-            onValueChange={onFolderChange}
-          >
+          <Select value={selectedFolderId || ""} onValueChange={onFolderChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select a folder" />
             </SelectTrigger>

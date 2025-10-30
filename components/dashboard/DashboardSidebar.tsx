@@ -80,11 +80,11 @@ export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
         "Untitled",
         "",
         parentId || null,
-        false
+        false,
       );
 
       if (!result) throw new Error("No data returned from server");
-      
+
       if (parentId) {
         await movePageHandler(result.id, parentId);
       }

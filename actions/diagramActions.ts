@@ -58,10 +58,12 @@ export const getDiagramAction = actionClient
   });
 
 export const updateDiagramAction = actionClient
-  .inputSchema(z.object({
-    id: z.string().uuid("Invalid diagram ID"),
-    data: updateDiagramInputSchema
-  }))
+  .inputSchema(
+    z.object({
+      id: z.string().uuid("Invalid diagram ID"),
+      data: updateDiagramInputSchema,
+    }),
+  )
   .action(async ({ parsedInput: { id, data } }) => {
     try {
       const { nodes, edges, viewport, ...rest } = data;

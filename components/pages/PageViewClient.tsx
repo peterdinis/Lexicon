@@ -16,15 +16,19 @@ interface PageViewClientProps {
 }
 
 // Lokálny typ pre stav komponentu
-interface LocalPage extends Omit<Page, 'cover_image'> {
+interface LocalPage extends Omit<Page, "cover_image"> {
   cover_image: string | null;
 }
 
-export default function PageViewClient({ id, page, pages }: PageViewClientProps) {
+export default function PageViewClient({
+  id,
+  page,
+  pages,
+}: PageViewClientProps) {
   const [isPending, startTransition] = useTransition();
   const [localPage, setLocalPage] = useState<LocalPage>({
     ...page,
-    cover_image: page.cover_image ?? null
+    cover_image: page.cover_image ?? null,
   });
   const [sidebarPages, setSidebarPages] = useState(pages);
 
@@ -36,7 +40,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
           try {
             await updatePageHandler(id, { title: newTitle });
             setSidebarPages((prev) =>
-              prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p))
+              prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p)),
             );
             setLocalPage((prev) => ({ ...prev, title: newTitle }));
           } catch (err) {
@@ -44,7 +48,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
           }
         });
       }, 1000),
-    [id]
+    [id],
   );
 
   const saveDescription = useMemo(
@@ -59,7 +63,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
           }
         });
       }, 1000),
-    [id]
+    [id],
   );
 
   // Event handlers
@@ -68,7 +72,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
       setLocalPage((prev) => ({ ...prev, title: value }));
       saveTitle(value);
     },
-    [saveTitle]
+    [saveTitle],
   );
 
   const handleDescriptionChange = useCallback(
@@ -76,7 +80,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
       setLocalPage((prev) => ({ ...prev, description }));
       saveDescription(description);
     },
-    [saveDescription]
+    [saveDescription],
   );
 
   const handleIconChange = useCallback(
@@ -85,13 +89,13 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
         await updatePageHandler(id, { icon });
         setLocalPage((prev) => ({ ...prev, icon }));
         setSidebarPages((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, icon } : p))
+          prev.map((p) => (p.id === id ? { ...p, icon } : p)),
         );
       } catch (err) {
         console.error("❌ Failed to update icon:", err);
       }
     },
-    [id]
+    [id],
   );
 
   const handleCoverChange = useCallback(
@@ -103,7 +107,7 @@ export default function PageViewClient({ id, page, pages }: PageViewClientProps)
         console.error("❌ Failed to update cover image:", err);
       }
     },
-    [id]
+    [id],
   );
 
   return (

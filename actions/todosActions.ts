@@ -56,7 +56,9 @@ export async function createTodoAction(
       title: validatedData.title,
       description: validatedData.description || null,
       priority: validatedData.priority,
-      due_date: validatedData.due_date ? new Date(validatedData.due_date) : null,
+      due_date: validatedData.due_date
+        ? new Date(validatedData.due_date)
+        : null,
       completed: false,
       status: validatedData.status,
       tags: validatedData.tags ? JSON.stringify(validatedData.tags) : null,

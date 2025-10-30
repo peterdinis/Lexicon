@@ -51,9 +51,9 @@ export interface TodoType extends UserEntity {
   title: string;
   description?: string;
   completed: boolean;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   due_date?: Date;
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+  status: "pending" | "in-progress" | "completed" | "cancelled";
   notes?: string;
   tags?: string;
 }
@@ -103,26 +103,26 @@ export interface PaginatedResponse<T> {
 }
 
 // Utility types for data extraction
-export type ResponseData<T> = 
-  | T 
-  | ApiResponse<T> 
-  | PaginatedResponse<T> 
+export type ResponseData<T> =
+  | T
+  | ApiResponse<T>
+  | PaginatedResponse<T>
   | { data: T };
 
 export function extractData<T>(response: ResponseData<T>): T {
   if (Array.isArray(response)) {
     return response as T;
   }
-  
-  if (typeof response === 'object' && response !== null) {
-    if ('data' in response) {
+
+  if (typeof response === "object" && response !== null) {
+    if ("data" in response) {
       return (response as any).data;
     }
-    if ('success' in response) {
+    if ("success" in response) {
       return (response as any).data;
     }
   }
-  
+
   return response as T;
 }
 
@@ -178,10 +178,10 @@ export interface Diagram {
   id: string;
   user_id: string;
   title: string;
-  description: string | null; 
+  description: string | null;
   nodes: unknown;
   edges: unknown;
-  viewport:any;
+  viewport: any;
   deleted_at?: any;
   created_at: Date | string;
   updated_at: Date | string;

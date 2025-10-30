@@ -11,7 +11,10 @@ import {
   getCalendarEventsByDateRangeHandler,
 } from "./handlers/calendarHandlers";
 import { z } from "zod";
-import { createCalendarEventInputSchema, updateCalendarEventInputSchema } from "./schemas/calendarSchemas";
+import {
+  createCalendarEventInputSchema,
+  updateCalendarEventInputSchema,
+} from "./schemas/calendarSchemas";
 
 export const createCalendarEventAction = actionClient
   .inputSchema(createCalendarEventInputSchema)

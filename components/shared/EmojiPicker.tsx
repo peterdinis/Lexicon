@@ -16,12 +16,14 @@ const EmojiPicker = dynamic(
     const mod = await import("emoji-picker-react");
     return mod.default;
   },
-  { 
+  {
     ssr: false,
-    loading: () => <div className="w-[300px] h-[350px] flex items-center justify-center">
-      <Spinner />
-    </div>
-  }
+    loading: () => (
+      <div className="w-[300px] h-[350px] flex items-center justify-center">
+        <Spinner />
+      </div>
+    ),
+  },
 );
 
 interface EmojiPickerProps {
@@ -35,9 +37,9 @@ export function EmojiPickerComponent({ value, onChange }: EmojiPickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="h-8 w-8 p-0 hover:bg-accent"
           type="button"
         >
@@ -59,7 +61,7 @@ export function EmojiPickerComponent({ value, onChange }: EmojiPickerProps) {
           searchDisabled={false}
           skinTonesDisabled={true}
           previewConfig={{
-            showPreview: false
+            showPreview: false,
           }}
         />
       </PopoverContent>

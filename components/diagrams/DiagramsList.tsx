@@ -209,11 +209,15 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
                         {getNodeCount(diagram)} nodes • {getEdgeCount(diagram)}{" "}
                         edges
                       </span>
-                      <span>Updated {formatDate(diagram.updated_at as unknown as string)}</span>
+                      <span>
+                        Updated{" "}
+                        {formatDate(diagram.updated_at as unknown as string)}
+                      </span>
                     </div>
                     {diagram.created_at !== diagram.updated_at && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        Created {formatDate(diagram.created_at as unknown as string)}
+                        Created{" "}
+                        {formatDate(diagram.created_at as unknown as string)}
                       </div>
                     )}
                   </CardContent>

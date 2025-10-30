@@ -38,9 +38,11 @@ export const getFoldersAction = actionClient.action(async () => {
 });
 
 export const updateFolderAction = actionClient
-  .inputSchema(updateFolderInputSchema.extend({
-    id: z.string().uuid("Invalid folder ID"),
-  }))
+  .inputSchema(
+    updateFolderInputSchema.extend({
+      id: z.string().uuid("Invalid folder ID"),
+    }),
+  )
   .action(async ({ parsedInput: { id, title } }) => {
     try {
       const result = await updateFolderHandler(id, { title });

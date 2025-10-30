@@ -108,7 +108,9 @@ export async function updatePageHandler(
   if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
   if (data.parent_id !== undefined) updateData.parent_id = data.parent_id;
 
-  const fieldsToUpdate = Object.keys(updateData).filter(key => key !== 'updated_at');
+  const fieldsToUpdate = Object.keys(updateData).filter(
+    (key) => key !== "updated_at",
+  );
   if (fieldsToUpdate.length === 0) {
     throw new Error("No valid fields to update");
   }
@@ -139,12 +141,7 @@ export async function getAllPagesHandler() {
   const allPages = await db
     .select()
     .from(pages)
-    .where(
-      and(
-        eq(pages.user_id, user.id),
-        eq(pages.in_trash, false),
-      ),
-    )
+    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
     .orderBy(asc(pages.created_at));
 
   return allPages || [];
@@ -166,12 +163,7 @@ export async function getPagesByParentHandler(parent_id: string | null = null) {
   const pagesList = await db
     .select()
     .from(pages)
-    .where(
-      and(
-        eq(pages.user_id, user.id),
-        eq(pages.in_trash, false),
-      )
-    )
+    .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
     .orderBy(asc(pages.created_at));
 
   return pagesList || [];
