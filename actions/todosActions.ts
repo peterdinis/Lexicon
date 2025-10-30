@@ -61,7 +61,6 @@ export async function createTodoAction(
       due_date: data.due_date
         ? new Date(data.due_date).toISOString()
         : null,
-      tags:[]
     };
     const validatedData = createTodoSchema.parse(normalizedData);
     const userId = await getUserId();
@@ -75,9 +74,8 @@ export async function createTodoAction(
       due_date: validatedData.due_date
         ? new Date(validatedData.due_date)
         : null,
-      completed: false, // Default hodnota
+      completed: false,
       status: validatedData.status,
-      tags: validatedData.tags ? JSON.stringify(validatedData.tags) : null,
       notes: validatedData.notes || null,
       created_at: new Date(),
       updated_at: new Date(),
@@ -108,7 +106,6 @@ export async function updateTodoAction(
       due_date,
       completed,
       status,
-      tags,
       notes,
     } = data;
 
@@ -123,11 +120,8 @@ export async function updateTodoAction(
     if (due_date !== undefined) {
       updateData.due_date = due_date ? new Date(due_date) : null;
     }
-    if (completed !== undefined) updateData.completed = completed; // Teraz podporuje null
+    if (completed !== undefined) updateData.completed = completed;
     if (status !== undefined) updateData.status = status;
-    if (tags !== undefined) {
-      updateData.tags = tags ? JSON.stringify(tags) : null;
-    }
     if (notes !== undefined) updateData.notes = notes;
 
     const result = await db

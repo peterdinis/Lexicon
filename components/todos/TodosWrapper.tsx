@@ -100,7 +100,6 @@ const createTodoSchema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional(),
   due_date: z.string().optional(),
   status: z.enum(["not_started", "in_progress", "done"]).optional(),
-  tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
 
@@ -197,16 +196,6 @@ const getStatusConfig = (status: string | null) => {
   return (
     STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.default
   );
-};
-
-const parseTags = (tags: string | string[] | null | undefined): string[] => {
-  if (!tags) return [];
-  if (Array.isArray(tags)) return tags;
-  try {
-    return JSON.parse(tags);
-  } catch {
-    return [];
-  }
 };
 
 // Helper funkcie pre boolean konverzie
@@ -1402,7 +1391,6 @@ export default function TodoWrapper() {
       description: "",
       priority: "medium",
       status: "not_started",
-      tags: [],
       notes: "",
     },
   });
@@ -1432,15 +1420,6 @@ export default function TodoWrapper() {
 
     loadTodos();
   }, []);
-
-  // Memoized computations
-  const allTags = useMemo(() => {
-    const tags = new Set<string>();
-    todos.forEach((todo) => {
-      todo.tags?.forEach((tag) => tags.add(tag));
-    });
-    return Array.from(tags);
-  }, [todos]);
 
   const filteredTodos = useMemo(() => {
     return optimisticTodos.filter((todo) => {
@@ -1572,7 +1551,6 @@ export default function TodoWrapper() {
         due_date: data.due_date || null,
         priority: data.priority,
         status: data.status || "not_started",
-        tags: data.tags || [],
         notes: data.notes || "",
         completed,
       },
@@ -1584,7 +1562,6 @@ export default function TodoWrapper() {
       due_date: data.due_date || null,
       priority: data.priority,
       status: data.status || "not_started",
-      tags: JSON.stringify(data.tags) as any,
       notes: data.notes || "",
       completed,
     };
@@ -1598,7 +1575,6 @@ export default function TodoWrapper() {
             ? {
                 ...todo,
                 ...updatedData,
-                tags: data.tags || [],
                 updated_at: new Date().toISOString(),
                 completed,
               }
@@ -1622,7 +1598,6 @@ export default function TodoWrapper() {
       due_date: data.due_date || null,
       priority: data.priority as unknown as TodoPriority,
       status: data.status || "not_started",
-      tags: data.tags || [],
       notes: data.notes || "",
       completed,
       created_at: new Date().toISOString(),
@@ -1637,7 +1612,6 @@ export default function TodoWrapper() {
       priority: data.priority,
       due_date: data.due_date,
       status: data.status,
-      tags: JSON.stringify(data.tags || []),
       notes: data.notes,
       completed,
     } as any;
@@ -1721,7 +1695,6 @@ export default function TodoWrapper() {
         priority: todo.priority ?? "medium",
         due_date: todo.due_date ?? "",
         status: todo.status ?? "not_started",
-        tags: todo.tags ?? [],
         notes: todo.notes ?? "",
       });
       setDialogOpen(true);
@@ -1757,7 +1730,6 @@ export default function TodoWrapper() {
       priority: "medium",
       due_date: "",
       status: "not_started",
-      tags: [],
       notes: "",
     });
     setDialogOpen(true);
@@ -1863,27 +1835,6 @@ export default function TodoWrapper() {
                 <SelectItem value="high">High</SelectItem>
               </SelectContent>
             </Select>
-
-            {allTags.length > 0 && (
-              <Select
-                value={filterTag}
-                onValueChange={setFilterTag}
-                disabled={isPending}
-              >
-                <SelectTrigger className="w-[140px] rounded-xl">
-                  <TagIcon className="mr-2 h-4 w-4" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tags</SelectItem>
-                  {allTags.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
 
             <Button
               onClick={openCreateDialog}
