@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import TransitionProvider from "@/components/providers/TransitionProvider";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -86,6 +87,14 @@ export default function RootLayout({
         >
           <TransitionProvider>
             {children}
+            <ScrollToTop
+              threshold={400}
+              smooth={true}
+              position="bottom-right"
+              showProgress={true}
+              size="lg"
+              className="mb-20"
+            />
             <Toaster />
           </TransitionProvider>
         </ThemeProvider>
