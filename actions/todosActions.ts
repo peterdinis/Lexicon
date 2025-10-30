@@ -43,7 +43,7 @@ export async function getTodosAction(): Promise<TodoResponse> {
       .select()
       .from(todos)
       .where(eq(todos.user_id, userId));
-    
+
     const transformedData = result.map(transformTodoData);
     return { success: true, data: transformedData };
   } catch (error) {
@@ -78,7 +78,7 @@ export async function createTodoAction(
 
     const [result] = await db.insert(todos).values(newTodo).returning();
     const transformedData = transformTodoData(result);
-    
+
     revalidatePath("/todos");
     return { success: true, data: transformedData };
   } catch (error) {

@@ -1,8 +1,8 @@
-"use server"
+"use server";
 
 import { db } from "@/drizzle/db";
 import { pages } from "@/drizzle/schema";
-import {  validateUser } from "@/supabase/get-user-id";
+import { validateUser } from "@/supabase/get-user-id";
 import { randomUUID } from "crypto";
 import { eq, asc, and, like, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
