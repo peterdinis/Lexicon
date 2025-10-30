@@ -65,7 +65,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePageAction } from "@/actions/pagesActions";
+import { updatePageHandler } from "@/actions/pagesActions";
 
 // Lazy load languages
 const loadLanguage = async (lang: string) => {
@@ -268,7 +268,7 @@ export function TiptapEditor({
       setIsInCodeBlock(isCodeBlockActive);
 
       if (isCodeBlockActive) {
-        const { node } = editor.state.selection.$from;
+        const node = editor.state.selection.$from.node();
         if (node?.attrs) {
           const language = node.attrs.language || "text";
           setSelectedLanguage(language);
@@ -280,7 +280,7 @@ export function TiptapEditor({
       setIsInCodeBlock(isCodeBlockActive);
 
       if (isCodeBlockActive) {
-        const { node } = editor.state.selection.$from;
+        const node = editor.state.selection.$from.node();
         if (node?.attrs) {
           const language = node.attrs.language || "text";
           setSelectedLanguage(language);
@@ -351,7 +351,7 @@ export function TiptapEditor({
       startTransition(async () => {
         try {
           onUpdate?.(currentContent);
-          await updatePageAction({ id: pageId, description: currentContent });
+          await updatePageHandler(pageId, { description: currentContent });
           setLastSaved(new Date());
           setHasUnsavedChanges(false);
         } catch (err) {

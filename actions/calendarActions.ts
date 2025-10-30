@@ -12,12 +12,12 @@ import {
 } from "./handlers/calendarHandlers";
 import { z } from "zod";
 import {
-  CreateCalendarEventSchema,
-  UpdateCalendarEventSchema,
+  createCalendarEventInputSchema,
+  updateCalendarEventInputSchema,
 } from "./schemas/calendarSchemas";
 
 export const createCalendarEventAction = actionClient
-  .inputSchema(CreateCalendarEventSchema)
+  .inputSchema(createCalendarEventInputSchema)
   .action(async ({ parsedInput }) => {
     try {
       return await createCalendarEventHandler(parsedInput);
@@ -44,7 +44,7 @@ export const getCalendarEventAction = actionClient
 // UPDATE
 export const updateCalendarEventAction = actionClient
   .inputSchema(
-    UpdateCalendarEventSchema.extend({
+    updateCalendarEventInputSchema.extend({
       id: z.string().min(1, "ID is required"),
     }),
   )

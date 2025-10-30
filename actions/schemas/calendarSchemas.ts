@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-zod";
 import { calendarEvents } from "@/drizzle/schema";
 
 export const insertCalendarEventSchema = createInsertSchema(calendarEvents, {
@@ -19,7 +19,6 @@ export const updateCalendarEventSchema = insertCalendarEventSchema
     created_at: true,
   });
 
-// Validation schemas for handlers
 export const createCalendarEventInputSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),

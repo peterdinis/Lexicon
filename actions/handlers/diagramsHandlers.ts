@@ -102,14 +102,27 @@ export async function createDiagramHandler(
 
 export async function updateDiagramHandler(
   id: string,
-  data: UpdateDiagramInput,
+  data: {
+    title?: string;
+    description?: string | null;
+    nodes?: DiagramNode[];
+    edges?: DiagramEdge[];
+    viewport?: DiagramViewport;
+  },
 ) {
   // Validate inputs
   const { id: validatedId } = diagramIdSchema.parse({ id });
   const validatedData = updateDiagramInputSchema.parse(data);
   const userId = await getUserId();
 
-  const updateData: DiagramUpdateData = {
+  const updateData: {
+    updated_at: Date;
+    title?: string;
+    description?: string | null;
+    nodes?: DiagramNode[];
+    edges?: DiagramEdge[];
+    viewport?: DiagramViewport;
+  } = {
     updated_at: new Date(),
   };
 

@@ -25,7 +25,7 @@ interface DiagramListProps {
 }
 
 export function DiagramList({ initialDiagrams }: DiagramListProps) {
-  const [diagrams, setDiagrams] = useState<any[]>(initialDiagrams);
+  const [diagrams, setDiagrams] = useState<Diagram[]>(initialDiagrams);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -209,11 +209,15 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
                         {getNodeCount(diagram)} nodes • {getEdgeCount(diagram)}{" "}
                         edges
                       </span>
-                      <span>Updated {formatDate(diagram.updated_at)}</span>
+                      <span>
+                        Updated{" "}
+                        {formatDate(diagram.updated_at as unknown as string)}
+                      </span>
                     </div>
                     {diagram.created_at !== diagram.updated_at && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        Created {formatDate(diagram.created_at)}
+                        Created{" "}
+                        {formatDate(diagram.created_at as unknown as string)}
                       </div>
                     )}
                   </CardContent>

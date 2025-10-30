@@ -16,10 +16,9 @@ const TransitionProvider: FC<TransitionProviderProps> = ({ children }) => {
     const handleStart = () => setIsLoading(true);
     const handleComplete = () => setIsLoading(false);
 
-    // Pridáme event listenery pre router events
     window.addEventListener("beforeunload", handleStart);
 
-    const timer = setTimeout(handleComplete, 500); // Fallback timeout
+    const timer = setTimeout(handleComplete, 500);
 
     return () => {
       window.removeEventListener("beforeunload", handleStart);

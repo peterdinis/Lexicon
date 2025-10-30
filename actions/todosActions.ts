@@ -4,9 +4,9 @@ import { db } from "@/drizzle/db";
 import { todos } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { CreateTodoSchema } from "./schemas/todosSchemas";
 import { Todo } from "@/types/applicationTypes";
 import { getUserId } from "@/supabase/get-user-id";
+import { CreateTodoInput, createTodoSchema } from "./schemas/todosSchemas";
 
 // Custom types for update operations
 interface TodoUpdateData {
@@ -42,30 +42,34 @@ export async function getTodosAction(): Promise<TodoResponse> {
 }
 
 export async function createTodoAction(
-  data: CreateTodoSchema,
+  data: CreateTodoInput,
 ): Promise<TodoResponse> {
   try {
+    // Validate input
+    const validatedData = createTodoSchema.parse(data);
     const userId = await getUserId();
 
     // Create properly typed todo object that matches the schema
     const newTodo = {
       id: crypto.randomUUID(),
       user_id: userId,
-      title: data.title,
-      description: data.description || null,
-      priority: data.priority || "medium",
-      due_date: data.due_date ? new Date(data.due_date) : null,
+      title: validatedData.title,
+      description: validatedData.description || null,
+      priority: validatedData.priority,
+      due_date: validatedData.due_date
+        ? new Date(validatedData.due_date)
+        : null,
       completed: false,
-      status: "not_started" as const,
-      tags: data.tags ? JSON.stringify(data.tags) : null, // Convert array to JSON string
-      notes: data.notes || null,
+      status: validatedData.status,
+      tags: validatedData.tags ? JSON.stringify(validatedData.tags) : null,
+      notes: validatedData.notes || null,
       created_at: new Date(),
       updated_at: new Date(),
     };
 
-    await db.insert(todos).values(newTodo);
+    const [result] = await db.insert(todos).values(newTodo).returning();
     revalidatePath("/todos");
-    return { success: true, data: newTodo };
+    return { success: true, data: result };
   } catch (error) {
     console.error("Failed to create todo:", error);
     return { success: false, error: "Failed to create todo" };

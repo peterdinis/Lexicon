@@ -52,7 +52,10 @@ export const moveToTrashAction = actionClient
   });
 
 // Restore item from trash
-export async function restoreFromTrashAction(id: string, table: "pages" | "folders") {
+export async function restoreFromTrashAction(
+  id: string,
+  table: "pages" | "folders",
+) {
   if (!id || !table) {
     return { success: false, error: "Missing ID or table name" };
   }
@@ -70,7 +73,10 @@ export async function restoreFromTrashAction(id: string, table: "pages" | "folde
 }
 
 // Permanently delete item from trash
-export async function permanentlyDeleteAction(id: string, table: "pages" | "folders") {
+export async function permanentlyDeleteAction(
+  id: string,
+  table: "pages" | "folders",
+) {
   if (!id || !table) {
     return { success: false, error: "Missing ID or table name" };
   }

@@ -49,7 +49,7 @@ export function TrashWrapper({}: TrashWrapperProps) {
       try {
         setIsLoading(true);
         const result = await getAllTrashedItemsAction();
-        
+
         // SafeActionResult vracia data v result.data
         if (result?.data?.data) {
           const trashData = result.data.data as unknown as TrashItems;
@@ -80,9 +80,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
       }
 
       if (table === "pages") {
-        setPages(prev => prev.filter((p) => p.id !== id));
+        setPages((prev) => prev.filter((p) => p.id !== id));
       } else {
-        setFolders(prev => prev.filter((f) => f.id !== id));
+        setFolders((prev) => prev.filter((f) => f.id !== id));
       }
       router.refresh();
     } catch (error) {
@@ -110,9 +110,9 @@ export function TrashWrapper({}: TrashWrapperProps) {
       }
 
       if (table === "pages") {
-        setPages(prev => prev.filter((p) => p.id !== id));
+        setPages((prev) => prev.filter((p) => p.id !== id));
       } else {
-        setFolders(prev => prev.filter((f) => f.id !== id));
+        setFolders((prev) => prev.filter((f) => f.id !== id));
       }
     } catch (error) {
       console.error("Error deleting item:", error);

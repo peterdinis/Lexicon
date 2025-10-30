@@ -14,7 +14,6 @@ import {
   dateRangeInputSchema,
 } from "../schemas/calendarSchemas";
 
-// Custom type for update operations
 interface CalendarEventUpdateData {
   title?: string;
   description?: string | null;

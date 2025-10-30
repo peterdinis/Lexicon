@@ -55,7 +55,6 @@ export function CoverImageSelector({
     useState<ImageCategory>("nature");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Filtrované obrázky podľa vyhľadávania
   const filteredImages = searchQuery
     ? ALL_IMAGES.filter((url) =>
         url.toLowerCase().includes(searchQuery.toLowerCase()),

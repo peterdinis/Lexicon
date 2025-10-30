@@ -1,73 +1,93 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback, useMemo } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { PageHeader } from "@/components/pages/PageHeader";
 import { TiptapEditor } from "@/components/editor/TipTapEditor";
-import { updatePageAction } from "@/actions/pagesActions";
 import { debounce } from "@/lib/debounce";
 import { Page } from "@/types/applicationTypes";
+import { updatePageHandler } from "@/actions/pagesActions";
+
+interface PageViewClientProps {
+  id: string;
+  page: Page;
+  pages: Page[];
+}
+
+// Lokálny typ pre stav komponentu
+interface LocalPage extends Omit<Page, "cover_image"> {
+  cover_image: string | null;
+}
 
 export default function PageViewClient({
   id,
   page,
   pages,
-}: {
-  id: string;
-  page: Page;
-  pages: any[];
-}) {
-  const [title, setTitle] = useState(page.title || "");
+}: PageViewClientProps) {
   const [isPending, startTransition] = useTransition();
+  const [localPage, setLocalPage] = useState<LocalPage>({
+    ...page,
+    cover_image: page.cover_image ?? null,
+  });
   const [sidebarPages, setSidebarPages] = useState(pages);
-  const [currentPage, setCurrentPage] = useState(page);
 
-  const saveTitle = useCallback(
-    debounce((newTitle: string) => {
-      startTransition(async () => {
-        try {
-          await updatePageAction({ id, title: newTitle });
-          setSidebarPages((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p)),
-          );
-          setCurrentPage((prev: any) => ({ ...prev, title: newTitle }));
-        } catch (err) {
-          console.error("❌ Failed to update title:", err);
-        }
-      });
-    }, 1000),
+  // Memoized debounced save functions
+  const saveTitle = useMemo(
+    () =>
+      debounce(async (newTitle: string) => {
+        startTransition(async () => {
+          try {
+            await updatePageHandler(id, { title: newTitle });
+            setSidebarPages((prev) =>
+              prev.map((p) => (p.id === id ? { ...p, title: newTitle } : p)),
+            );
+            setLocalPage((prev) => ({ ...prev, title: newTitle }));
+          } catch (err) {
+            console.error("❌ Failed to update title:", err);
+          }
+        });
+      }, 1000),
     [id],
   );
 
-  const handleTitleChange = (value: string) => {
-    setTitle(value);
-    saveTitle(value);
-  };
-
-  const saveDescription = useCallback(
-    debounce((description: string) => {
-      startTransition(async () => {
-        try {
-          await updatePageAction({ id, description });
-          setCurrentPage((prev: any) => ({ ...prev, description }));
-        } catch (err) {
-          console.error("❌ Failed to update description:", err);
-        }
-      });
-    }, 1000),
+  const saveDescription = useMemo(
+    () =>
+      debounce(async (description: string) => {
+        startTransition(async () => {
+          try {
+            await updatePageHandler(id, { description });
+            setLocalPage((prev) => ({ ...prev, description }));
+          } catch (err) {
+            console.error("❌ Failed to update description:", err);
+          }
+        });
+      }, 1000),
     [id],
   );
 
-  const handleDescriptionChange = (description: string) => {
-    saveDescription(description);
-  };
+  // Event handlers
+  const handleTitleChange = useCallback(
+    (value: string) => {
+      setLocalPage((prev) => ({ ...prev, title: value }));
+      saveTitle(value);
+    },
+    [saveTitle],
+  );
+
+  const handleDescriptionChange = useCallback(
+    (description: string) => {
+      setLocalPage((prev) => ({ ...prev, description }));
+      saveDescription(description);
+    },
+    [saveDescription],
+  );
 
   const handleIconChange = useCallback(
     async (icon: string) => {
       try {
-        await updatePageAction({ id, icon });
-        setCurrentPage((prev: any) => ({ ...prev, icon }));
+        await updatePageHandler(id, { icon });
+        setLocalPage((prev) => ({ ...prev, icon }));
         setSidebarPages((prev) =>
           prev.map((p) => (p.id === id ? { ...p, icon } : p)),
         );
@@ -81,8 +101,8 @@ export default function PageViewClient({
   const handleCoverChange = useCallback(
     async (coverImage: string | null) => {
       try {
-        await updatePageAction({ id, coverImage });
-        setCurrentPage((prev: any) => ({ ...prev, cover_image: coverImage }));
+        await updatePageHandler(id, { coverImage });
+        setLocalPage((prev) => ({ ...prev, cover_image: coverImage }));
       } catch (err) {
         console.error("❌ Failed to update cover image:", err);
       }
@@ -98,9 +118,9 @@ export default function PageViewClient({
         <div className="flex flex-1 flex-col overflow-hidden">
           <PageHeader
             pageId={id}
-            title={title}
-            icon={currentPage.icon}
-            coverImage={currentPage.cover_image}
+            title={localPage.title}
+            icon={localPage.icon}
+            coverImage={localPage.cover_image}
             onTitleChange={handleTitleChange}
             onIconChange={handleIconChange}
             onCoverChange={handleCoverChange}
@@ -109,7 +129,7 @@ export default function PageViewClient({
           <main className="flex-1 overflow-y-auto p-4">
             <TiptapEditor
               pageId={id}
-              initialContent={currentPage.description || ""}
+              initialContent={localPage.description || ""}
               onUpdate={handleDescriptionChange}
             />
           </main>

@@ -101,21 +101,21 @@ interface UpdateEventData {
 // Helper function to convert any event data to CalendarEvent
 function convertToCalendarEvent(event: unknown): CalendarEvent {
   const e = event as Record<string, unknown>;
-  
+
   // Helper function to safely convert to Date or string
   const convertToDateOrString = (dateValue: unknown): string | Date => {
     if (!dateValue) return new Date();
-    
-    if (typeof dateValue === 'string') {
+
+    if (typeof dateValue === "string") {
       return dateValue;
     }
-    
+
     if (dateValue instanceof Date) {
       return dateValue.toISOString();
     }
-    
+
     // If it's an object but not a Date, try to convert to string
-    if (typeof dateValue === 'object' && dateValue !== null) {
+    if (typeof dateValue === "object" && dateValue !== null) {
       try {
         const dateStr = String(dateValue);
         return dateStr;
@@ -123,13 +123,13 @@ function convertToCalendarEvent(event: unknown): CalendarEvent {
         return new Date().toISOString();
       }
     }
-    
+
     return new Date().toISOString();
   };
 
   return {
-    id: String(e.id || ''),
-    title: String(e.title || ''),
+    id: String(e.id || ""),
+    title: String(e.title || ""),
     description: e.description ? String(e.description) : null,
     start_time: convertToDateOrString(e.start_time) as unknown as string,
     end_time: convertToDateOrString(e.end_time) as unknown as string,
@@ -150,7 +150,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [newEvent, setNewEvent] = useState<CreateCalendarEventData>({
     title: "",
@@ -160,7 +162,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     all_day: false,
     color: "#3b82f6",
   });
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
 
   // Optimistic updates pre eventy
   const [optimisticEvents, addOptimisticEvent] = useOptimistic<
@@ -212,7 +216,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       const result = await getCalendarEventsByDateRangeAction(dateRange);
 
       if (result?.data) {
-        const convertedEvents: CalendarEvent[] = result.data.map(convertToCalendarEvent);
+        const convertedEvents: CalendarEvent[] = result.data.map(
+          convertToCalendarEvent,
+        );
         setEvents(convertedEvents);
       }
     } catch (error) {
@@ -231,7 +237,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     (day: Date) => {
       return optimisticEvents.filter((event) => {
         if (!event.start_time) return false;
-        
+
         try {
           const eventDate = parseISO(event.start_time);
           return isSameDay(eventDate, day);
@@ -476,14 +482,18 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       .filter((event) => {
         try {
           const eventDate = parseISO(event.start_time);
-          return isAfter(eventDate, startOfDay(now)) || isSameDay(eventDate, now);
+          return (
+            isAfter(eventDate, startOfDay(now)) || isSameDay(eventDate, now)
+          );
         } catch {
           return false;
         }
       })
       .sort((a, b) => {
         try {
-          return parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime();
+          return (
+            parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime()
+          );
         } catch {
           return 0;
         }
@@ -769,7 +779,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                     type="datetime-local"
                     value={(() => {
                       try {
-                        return formatDateTimeForInput(parseISO(selectedEvent.start_time));
+                        return formatDateTimeForInput(
+                          parseISO(selectedEvent.start_time),
+                        );
                       } catch {
                         return formatDateTimeForInput(new Date());
                       }
@@ -802,7 +814,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                     type="datetime-local"
                     value={(() => {
                       try {
-                        return formatDateTimeForInput(parseISO(selectedEvent.end_time));
+                        return formatDateTimeForInput(
+                          parseISO(selectedEvent.end_time),
+                        );
                       } catch {
                         return formatDateTimeForInput(new Date());
                       }
@@ -947,7 +961,8 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                           return "Invalid time";
                         }
                       })()}
-                      {event.end_time && event.start_time &&
+                      {event.end_time &&
+                        event.start_time &&
                         ` - ${(() => {
                           try {
                             return format(parseISO(event.end_time), "HH:mm");

@@ -13,14 +13,15 @@ import {
   getTrashedDiagramsHandler,
 } from "./handlers/diagramsHandlers";
 import {
-  createDiagramSchema,
+  createDiagramInputSchema,
   diagramIdSchema,
-  updateDiagramSchema,
+  updateDiagramInputSchema,
 } from "./schemas/diagramsShcemas";
+import z from "zod";
 
 // CREATE
 export const createDiagramAction = actionClient
-  .inputSchema(createDiagramSchema)
+  .inputSchema(createDiagramInputSchema)
   .action(
     async ({
       parsedInput: {
@@ -56,15 +57,19 @@ export const getDiagramAction = actionClient
     }
   });
 
-// UPDATE
 export const updateDiagramAction = actionClient
-  .inputSchema(updateDiagramSchema)
-  .action(async ({ parsedInput }) => {
+  .inputSchema(
+    z.object({
+      id: z.string().uuid("Invalid diagram ID"),
+      data: updateDiagramInputSchema,
+    }),
+  )
+  .action(async ({ parsedInput: { id, data } }) => {
     try {
-      const { id, nodes, edges, viewport, ...rest } = parsedInput;
+      const { nodes, edges, viewport, ...rest } = data;
 
       // Parse JSON fields if they exist
-      const parsedData: any = {
+      const parsedData = {
         ...rest,
         nodes: nodes ? JSON.parse(nodes) : undefined,
         edges: edges ? JSON.parse(edges) : undefined,
