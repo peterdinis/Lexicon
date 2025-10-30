@@ -29,9 +29,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Page } from "@/types/applicationTypes";
 import {
-  createPageAction,
-  getAllPagesAction,
-  movePageAction,
+  createPageHandler,
+  getAllPagesHandler,
+  movePageHandler,
 } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
 
@@ -42,7 +42,7 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
   const [, setPages] = useState<Page[]>(
-    initialPages.filter((p) => p.in_trash === 0),
+    initialPages.filter((p) => p.in_trash === false),
   );
   const [loading, setLoading] = useState(false);
   const [, setLoadingPages] = useState(false);
@@ -60,11 +60,9 @@ export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
   const loadAllData = useCallback(async () => {
     setLoadingPages(true);
     try {
-      const pagesResult = (await getAllPagesAction()) as any;
-      if (pagesResult?.data) {
-        const allPages = pagesResult.data.filter((p: Page) => p.in_trash === 0);
-        setPages(allPages);
-      }
+      const pagesResult = await getAllPagesHandler();
+      const allPages = pagesResult.filter((p) => p.in_trash === false);
+      setPages(allPages);
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : "Failed to load pages",
@@ -78,22 +76,22 @@ export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
     setLoading(true);
 
     try {
-      const result = await createPageAction({
-        title: "Untitled",
-        description: "",
-      });
+      const result = await createPageHandler(
+        "Untitled",
+        "",
+        parentId || null,
+        false
+      );
 
-      if (!result?.data) throw new Error("No data returned from server");
+      if (!result) throw new Error("No data returned from server");
+      
       if (parentId) {
-        await movePageAction({
-          id: result.data.id,
-          parent_id: parentId,
-        });
+        await movePageHandler(result.id, parentId);
       }
 
       await loadAllData();
 
-      router.push(`/page/${result.data.id}`);
+      router.push(`/page/${result.id}`);
       setMobileOpen(false);
     } catch (error) {
       console.error("Error creating page:", error);

@@ -6,65 +6,60 @@ import { getFoldersAction } from "@/actions/folderActions";
 import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 
-type PageType = any;
-type FolderType = any;
+// Helper function to safely extract and transform data
+function transformPagesData(data: any) {
+  if (!data) return [];
+  
+  if (Array.isArray(data)) {
+    return data.map(item => ({
+      id: item.id,
+      user_id: item.user_id,
+      title: item.title,
+      description: item.description,
+      icon: item.icon,
+      cover_image: item.coverImage, // Map coverImage to cover_image
+      parent_id: item.parent_id,
+      is_folder: item.is_folder,
+      in_trash: item.in_trash,
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
+  }
+  
+  return [];
+}
+
+function transformFoldersData(data: any) {
+  if (!data) return [];
+  
+  if (Array.isArray(data)) {
+    return data.map(item => ({
+      id: item.id,
+      user_id: item.user_id,
+      title: item.title,
+      in_trash: item.in_trash,
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
+  }
+  
+  return [];
+}
 
 export default async function DashboardPage() {
-  let pages: PageType[] = [];
-  let folders: FolderType[] = [];
+  let pages: any[] = [];
+  let folders: any[] = [];
 
   try {
-    const pagesPromise = getAllPagesHandler() as Promise<
-      PageType[] | { data: PageType[] } | { success: boolean; data: PageType[] }
-    >;
-    const foldersPromise = getFoldersAction() as Promise<
-      | FolderType[]
-      | { data: FolderType[] }
-      | { success: boolean; data: FolderType[] }
-    >;
-
     const [pagesResponse, foldersResponse] = await Promise.all([
-      pagesPromise,
-      foldersPromise,
+      getAllPagesHandler(),
+      getFoldersAction(),
     ]);
 
-    // Extrahovanie pages dát
-    if (Array.isArray(pagesResponse)) {
-      pages = pagesResponse;
-    } else if (
-      pagesResponse &&
-      typeof pagesResponse === "object" &&
-      "data" in pagesResponse
-    ) {
-      pages = Array.isArray(pagesResponse.data) ? pagesResponse.data : [];
-    } else if (
-      pagesResponse &&
-      typeof pagesResponse === "object" &&
-      "success" in pagesResponse
-    ) {
-      pages = Array.isArray((pagesResponse as any).data)
-        ? (pagesResponse as any).data
-        : [];
-    }
+    // Transform data to match our types
+    pages = transformPagesData(pagesResponse);
+    folders = transformFoldersData(foldersResponse);
 
-    // Extrahovanie folders dát
-    if (Array.isArray(foldersResponse)) {
-      folders = foldersResponse;
-    } else if (
-      foldersResponse &&
-      typeof foldersResponse === "object" &&
-      "data" in foldersResponse
-    ) {
-      folders = Array.isArray(foldersResponse.data) ? foldersResponse.data : [];
-    } else if (
-      foldersResponse &&
-      typeof foldersResponse === "object" &&
-      "success" in foldersResponse
-    ) {
-      folders = Array.isArray((foldersResponse as any).data)
-        ? (foldersResponse as any).data
-        : [];
-    }
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");

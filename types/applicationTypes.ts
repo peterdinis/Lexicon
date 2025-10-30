@@ -7,6 +7,125 @@ import {
   folders,
 } from "@/drizzle/schema";
 
+// types/databaseTypes.ts
+
+// Base types
+export interface BaseEntity {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UserEntity extends BaseEntity {
+  user_id: string;
+}
+
+// Pages
+export interface PageType extends UserEntity {
+  title: string;
+  description: string;
+  icon: string;
+  cover_image?: string;
+  parent_id?: string;
+  is_folder: boolean;
+  in_trash: boolean;
+}
+
+// Blocks
+export interface BlockType extends BaseEntity {
+  page_id: string;
+  type: string;
+  content: Record<string, any>;
+  position: number;
+  in_trash: boolean;
+}
+
+// Folders
+export interface FolderType extends UserEntity {
+  title: string;
+  in_trash: boolean;
+}
+
+// Todos
+export interface TodoType extends UserEntity {
+  title: string;
+  description?: string;
+  completed: boolean;
+  priority: 'low' | 'medium' | 'high';
+  due_date?: Date;
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+  notes?: string;
+  tags?: string;
+}
+
+// Calendar Events
+export interface CalendarEventType extends UserEntity {
+  title: string;
+  description?: string;
+  start_time: Date;
+  end_time: Date;
+  all_day: boolean;
+  color?: string;
+  in_trash: boolean;
+}
+
+// Diagrams
+export interface DiagramType extends UserEntity {
+  title: string;
+  description?: string;
+  nodes: any[];
+  edges: any[];
+  viewport: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
+  deleted_at?: Date;
+  in_trash: boolean;
+}
+
+// Response types
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// Utility types for data extraction
+export type ResponseData<T> = 
+  | T 
+  | ApiResponse<T> 
+  | PaginatedResponse<T> 
+  | { data: T };
+
+export function extractData<T>(response: ResponseData<T>): T {
+  if (Array.isArray(response)) {
+    return response as T;
+  }
+  
+  if (typeof response === 'object' && response !== null) {
+    if ('data' in response) {
+      return (response as any).data;
+    }
+    if ('success' in response) {
+      return (response as any).data;
+    }
+  }
+  
+  return response as T;
+}
+
 export interface Page {
   children?(children: ReactNode, arg1: number): unknown;
   id: string;
@@ -17,11 +136,11 @@ export interface Page {
   icon?: any;
   cover_image?: string;
   parent_id?: string | null;
-  is_folder?: number;
+  is_folder?: boolean;
   deleted_at?: string | null;
   created_at: any;
-  updated_at: string;
-  in_trash?: number;
+  updated_at: any;
+  in_trash?: boolean;
 }
 
 export interface Todo {
