@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { debounce } from "@/lib/debounce";
-import { updatePageAction } from "@/actions/pagesActions";
+import { updatePageHandler } from "@/actions/pagesActions";
 import Image from "next/image";
 import { CoverImageSelector } from "../images/CoverImageSelector";
 import { EmojiPickerComponent } from "../shared/EmojiPicker";
@@ -50,8 +50,7 @@ export function PageHeader({
   const handleCoverChange = useCallback(
     async (newCover: string) => {
       try {
-        await updatePageAction({
-          id: pageId,
+        await updatePageHandler(pageId, {
           coverImage: newCover,
         });
         onCoverChange?.(newCover);
@@ -65,8 +64,7 @@ export function PageHeader({
   const handleIconChange = useCallback(
     async (newIcon: string) => {
       try {
-        await updatePageAction({
-          id: pageId,
+        await updatePageHandler(pageId, {
           icon: newIcon,
         });
         onIconChange?.(newIcon);
@@ -79,8 +77,7 @@ export function PageHeader({
 
   const handleRemoveCover = useCallback(async () => {
     try {
-      await updatePageAction({
-        id: pageId,
+      await updatePageHandler(pageId, {
         coverImage: null,
       });
       onCoverChange?.(null);
