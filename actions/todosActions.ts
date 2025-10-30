@@ -56,7 +56,14 @@ export async function createTodoAction(
   data: CreateTodoInput,
 ): Promise<TodoResponse> {
   try {
-    const validatedData = createTodoSchema.parse(data);
+     const normalizedData = {
+      ...data,
+      due_date: data.due_date
+        ? new Date(data.due_date).toISOString()
+        : null,
+      tags:[]
+    };
+    const validatedData = createTodoSchema.parse(normalizedData);
     const userId = await getUserId();
 
     const newTodo = {
