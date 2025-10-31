@@ -60,13 +60,8 @@ import {
 import { moveToTrashAction } from "@/actions/trashActions";
 import { updatePageHandler } from "@/actions/pagesActions";
 import { movePageHandler } from "@/actions/pagesActions";
-
-// Importy pre tabuľku
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -74,9 +69,6 @@ import {
   getSortedRowModel,
   useReactTable,
   Table as ReactTable,
-  HeaderGroup,
-  Row,
-  Cell,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -117,11 +109,6 @@ interface DashboardClientProps {
   itemsPerPage?: number;
 }
 
-// Typy pre tabuľku
-type TableInstance = ReactTable<Page> | ReactTable<FolderType>;
-type TableHeaderProps = { table: TableInstance };
-type TableBodyProps = { table: TableInstance };
-
 // Globálne funkcie pre dialógy
 declare global {
   interface Window {
@@ -129,23 +116,22 @@ declare global {
       type: "page" | "folder",
       id: string,
       title: string,
-      description?: string,
+      description?: string
     ) => void;
     openMoveDialog?: (
       pageId: string,
       pageTitle: string,
-      currentFolderId?: string | null,
+      currentFolderId?: string | null
     ) => void;
     openFolderDetailDialog?: (folderId: string) => void;
     openMoveToTrashDialog?: (
       type: "page" | "folder",
       id: string,
-      title: string,
+      title: string
     ) => void;
   }
 }
 
-// Dialog state typy
 interface MoveToTrashDialogState {
   open: boolean;
   type: "page" | "folder";
@@ -175,8 +161,11 @@ interface FolderDetailDialogState {
   loading: boolean;
 }
 
-// Komponenty pre renderovanie tabuliek
-const TableHeaderComponent = ({ table }: TableHeaderProps) => (
+interface TableHeaderProps<T> {
+  table: ReactTable<T>;
+}
+
+const TableHeaderComponent = <T,>({ table }: TableHeaderProps<T>) => (
   <TableHeader>
     {table.getHeaderGroups().map((headerGroup) => (
       <TableRow key={headerGroup.id}>
@@ -184,7 +173,10 @@ const TableHeaderComponent = ({ table }: TableHeaderProps) => (
           <TableHead key={header.id}>
             {header.isPlaceholder
               ? null
-              : flexRender(header.column.columnDef.header, header.getContext())}
+              : flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
           </TableHead>
         ))}
       </TableRow>
@@ -192,11 +184,18 @@ const TableHeaderComponent = ({ table }: TableHeaderProps) => (
   </TableHeader>
 );
 
-const TableBodyComponent = ({ table }: TableBodyProps) => (
+interface TableBodyProps<T> {
+  table: ReactTable<T>;
+}
+
+const TableBodyComponent = <T,>({ table }: TableBodyProps<T>) => (
   <TableBody>
     {table.getRowModel().rows?.length ? (
       table.getRowModel().rows.map((row) => (
-        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+        <TableRow
+          key={row.id}
+          data-state={row.getIsSelected() && "selected"}
+        >
           {row.getVisibleCells().map((cell) => (
             <TableCell key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -217,7 +216,6 @@ const TableBodyComponent = ({ table }: TableBodyProps) => (
   </TableBody>
 );
 
-// Definícia stĺpcov pre tabuľku stránok
 const pageColumns: ColumnDef<Page>[] = [
   {
     accessorKey: "title",
@@ -255,7 +253,6 @@ const pageColumns: ColumnDef<Page>[] = [
   },
 ];
 
-// Definícia stĺpcov pre tabuľku priečinkov
 const folderColumns: ColumnDef<FolderType>[] = [
   {
     accessorKey: "title",
@@ -287,7 +284,6 @@ const folderColumns: ColumnDef<FolderType>[] = [
   },
 ];
 
-// Komponent pre akcie stránky
 const PageActions = ({ page }: { page: Page }) => {
   const openEditDialog = useCallback(() => {
     window.openEditDialog?.(
@@ -299,11 +295,19 @@ const PageActions = ({ page }: { page: Page }) => {
   }, [page]);
 
   const openMoveDialog = useCallback(() => {
-    window.openMoveDialog?.(page.id, page.title || "Untitled", page.parent_id);
+    window.openMoveDialog?.(
+      page.id,
+      page.title || "Untitled",
+      page.parent_id,
+    );
   }, [page]);
 
   const openMoveToTrashDialog = useCallback(() => {
-    window.openMoveToTrashDialog?.("page", page.id, page.title || "Untitled");
+    window.openMoveToTrashDialog?.(
+      "page",
+      page.id,
+      page.title || "Untitled",
+    );
   }, [page]);
 
   return (
@@ -338,7 +342,6 @@ const PageActions = ({ page }: { page: Page }) => {
   );
 };
 
-// Komponent pre akcie priečinka
 const FolderActions = ({ folder }: { folder: FolderType }) => {
   const openFolderDetailDialog = useCallback(() => {
     window.openFolderDetailDialog?.(folder.id);
@@ -398,26 +401,21 @@ export default function DashboardClient({
   const [pagesPage, setPagesPage] = useState(1);
   const [foldersPage, setFoldersPage] = useState(1);
 
-  // State pre dialógy s typmi
-  const [moveToTrashDialog, setMoveToTrashDialog] =
-    useState<MoveToTrashDialogState | null>(null);
+  const [moveToTrashDialog, setMoveToTrashDialog] = useState<MoveToTrashDialogState | null>(null);
   const [editDialog, setEditDialog] = useState<EditDialogState | null>(null);
   const [moveDialog, setMoveDialog] = useState<MoveDialogState | null>(null);
-  const [folderDetailDialog, setFolderDetailDialog] =
-    useState<FolderDetailDialogState>({
-      open: false,
-      folderId: null,
-      data: null,
-      loading: false,
-    });
+  const [folderDetailDialog, setFolderDetailDialog] = useState<FolderDetailDialogState>({
+    open: false,
+    folderId: null,
+    data: null,
+    loading: false,
+  });
 
-  // State pre formuláre
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Memoizované hodnoty pre pagináciu
   const pagesToShow = useMemo(() => {
     const start = (pagesPage - 1) * itemsPerPage;
     return pages.slice(start, start + itemsPerPage);
@@ -431,7 +429,6 @@ export default function DashboardClient({
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
 
-  // Funkcie pre načítanie dát
   const loadFolderDetail = useCallback(async (folderId: string) => {
     setFolderDetailDialog((prev) => ({ ...prev, loading: true }));
     try {
@@ -873,13 +870,13 @@ const FolderDetailDialog = ({
         </div>
       ) : dialog.data ? (
         <div className="space-y-6">
-          <TableSection
+          <TableSection<Page>
             title={`Pages (${dialog.data.pages.length})`}
             table={pagesTable}
             columns={pageColumns}
             isEmpty={dialog.data.pages.length === 0}
           />
-          <TableSection
+          <TableSection<FolderType>
             title={`Subfolders (${dialog.data.subfolders.length})`}
             table={foldersTable}
             columns={folderColumns}
@@ -923,8 +920,8 @@ const TableSection = <T,>({
     <h3 className="text-lg font-semibold mb-4">{title}</h3>
     <div className="border rounded-lg">
       <Table>
-        <TableHeaderComponent table={table} />
-        <TableBodyComponent table={table} />
+        <TableHeaderComponent<T> table={table} />
+        <TableBodyComponent<T> table={table} />
       </Table>
     </div>
   </div>
