@@ -31,10 +31,6 @@ const rawFolderSchema = z.object({
   updated_at: z.string().optional(),
 });
 
-// Typy odvodené od Zod schém
-type RawPage = z.infer<typeof rawPageSchema>;
-type RawFolder = z.infer<typeof rawFolderSchema>;
-
 // Typy pre DashboardClient (musia zodpovedať očakávaným typom)
 interface Page {
   id: string;

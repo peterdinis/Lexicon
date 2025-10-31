@@ -1,6 +1,3 @@
-// searchTypes.ts
-
-// Base item types
 export interface BaseItem {
   id: string;
   title: string;
