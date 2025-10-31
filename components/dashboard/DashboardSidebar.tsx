@@ -421,21 +421,6 @@ export function DashboardSidebar({ initialPages }: DashboardSidebarProps) {
         <SheetContent side="right" className="max-w-md">
           <div className="flex items-center justify-between border-b p-4">
             <h2 className="text-lg font-semibold">New Folder</h2>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setFolderModalOpen(false)}
-                  disabled={loading}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Close</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
           <div className="p-4 space-y-4">
             <div>
