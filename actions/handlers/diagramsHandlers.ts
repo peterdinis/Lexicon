@@ -6,40 +6,10 @@ import { eq, asc, and } from "drizzle-orm";
 import {
   createDiagramInputSchema,
   diagramIdSchema,
-  UpdateDiagramInput,
   updateDiagramInputSchema,
 } from "../schemas/diagramsShcemas";
 import { revalidatePath } from "next/cache";
-
-// Custom types for diagram data
-interface DiagramViewport {
-  x: number;
-  y: number;
-  zoom: number;
-}
-
-interface DiagramNode {
-  id: string;
-  type: string;
-  position: { x: number; y: number };
-  data: Record<string, unknown>;
-}
-
-interface DiagramEdge {
-  id: string;
-  source: string;
-  target: string;
-  type?: string;
-}
-
-interface DiagramUpdateData {
-  title?: string;
-  description?: string | null;
-  nodes?: DiagramNode[];
-  edges?: DiagramEdge[];
-  viewport?: DiagramViewport;
-  updated_at: Date;
-}
+import { DiagramNode, DiagramEdge, DiagramViewport } from "@/types/diagramsTypes";
 
 // ----------------------
 // Get Single Diagram

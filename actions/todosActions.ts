@@ -6,34 +6,8 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getUserId } from "@/supabase/get-user-id";
 import { CreateTodoInput, createTodoSchema } from "./schemas/todosSchemas";
-
-// Upravené typy pre konzistenciu
-interface TodoUpdateData {
-  title?: string;
-  description?: string | null;
-  priority?: "low" | "medium" | "high";
-  due_date?: Date | null;
-  completed?: boolean | null; // Pridané null
-  status?: string;
-  tags?: string | null;
-  notes?: string | null;
-  updated_at: Date;
-}
-
-interface TodoResponse {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-}
-
-// Helper funkcia pre konverziu dát
-const transformTodoData = (todo: { completed: boolean | null; due_date: Date | null; created_at: Date | null; updated_at: Date | null; id: string; user_id: string; title: string; description: string | null; priority: string | null; status: string | null; notes: string | null; }) => ({
-  ...todo,
-  completed: todo.completed,
-  due_date: todo.due_date ? todo.due_date.toISOString() : null,
-  created_at: todo.created_at!.toISOString(),
-  updated_at: todo.updated_at!.toISOString(),
-});
+import { TodoResponse, TodoUpdateData } from "@/types/todosTypes";
+import { transformTodoData } from "./utils/todosUtils";
 
 export async function getTodosAction(): Promise<TodoResponse> {
   try {
@@ -91,7 +65,7 @@ export async function createTodoAction(
 
 export async function updateTodoAction(
   id: string,
-  data: Partial<CreateTodoInput & { completed?: boolean | null }>, // Pridané null
+  data: Partial<CreateTodoInput & { completed?: boolean | null }>,
 ): Promise<TodoResponse> {
   try {
     const userId = await getUserId();
@@ -102,8 +76,7 @@ export async function updateTodoAction(
     const updateData: TodoUpdateData = {
       updated_at: new Date(),
     };
-
-    // Only update fields that are provided
+    
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (priority !== undefined) updateData.priority = priority;
