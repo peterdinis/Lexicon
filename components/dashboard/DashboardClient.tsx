@@ -116,18 +116,18 @@ declare global {
       type: "page" | "folder",
       id: string,
       title: string,
-      description?: string
+      description?: string,
     ) => void;
     openMoveDialog?: (
       pageId: string,
       pageTitle: string,
-      currentFolderId?: string | null
+      currentFolderId?: string | null,
     ) => void;
     openFolderDetailDialog?: (folderId: string) => void;
     openMoveToTrashDialog?: (
       type: "page" | "folder",
       id: string,
-      title: string
+      title: string,
     ) => void;
   }
 }
@@ -173,10 +173,7 @@ const TableHeaderComponent = <T,>({ table }: TableHeaderProps<T>) => (
           <TableHead key={header.id}>
             {header.isPlaceholder
               ? null
-              : flexRender(
-                  header.column.columnDef.header,
-                  header.getContext()
-                )}
+              : flexRender(header.column.columnDef.header, header.getContext())}
           </TableHead>
         ))}
       </TableRow>
@@ -192,10 +189,7 @@ const TableBodyComponent = <T,>({ table }: TableBodyProps<T>) => (
   <TableBody>
     {table.getRowModel().rows?.length ? (
       table.getRowModel().rows.map((row) => (
-        <TableRow
-          key={row.id}
-          data-state={row.getIsSelected() && "selected"}
-        >
+        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
           {row.getVisibleCells().map((cell) => (
             <TableCell key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -295,19 +289,11 @@ const PageActions = ({ page }: { page: Page }) => {
   }, [page]);
 
   const openMoveDialog = useCallback(() => {
-    window.openMoveDialog?.(
-      page.id,
-      page.title || "Untitled",
-      page.parent_id,
-    );
+    window.openMoveDialog?.(page.id, page.title || "Untitled", page.parent_id);
   }, [page]);
 
   const openMoveToTrashDialog = useCallback(() => {
-    window.openMoveToTrashDialog?.(
-      "page",
-      page.id,
-      page.title || "Untitled",
-    );
+    window.openMoveToTrashDialog?.("page", page.id, page.title || "Untitled");
   }, [page]);
 
   return (
@@ -401,15 +387,17 @@ export default function DashboardClient({
   const [pagesPage, setPagesPage] = useState(1);
   const [foldersPage, setFoldersPage] = useState(1);
 
-  const [moveToTrashDialog, setMoveToTrashDialog] = useState<MoveToTrashDialogState | null>(null);
+  const [moveToTrashDialog, setMoveToTrashDialog] =
+    useState<MoveToTrashDialogState | null>(null);
   const [editDialog, setEditDialog] = useState<EditDialogState | null>(null);
   const [moveDialog, setMoveDialog] = useState<MoveDialogState | null>(null);
-  const [folderDetailDialog, setFolderDetailDialog] = useState<FolderDetailDialogState>({
-    open: false,
-    folderId: null,
-    data: null,
-    loading: false,
-  });
+  const [folderDetailDialog, setFolderDetailDialog] =
+    useState<FolderDetailDialogState>({
+      open: false,
+      folderId: null,
+      data: null,
+      loading: false,
+    });
 
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");

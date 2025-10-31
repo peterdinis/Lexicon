@@ -8,7 +8,7 @@ import {
   useOptimistic,
   useCallback,
 } from "react";
-import { Resolver, useForm } from "react-hook-form";
+import { Resolver, useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
@@ -88,6 +88,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
+import { CreateTodoInput } from "@/actions/schemas/todosSchemas";
 
 // Zjednodušené typy
 type TodoStatus = "not_started" | "in_progress" | "done";
@@ -135,6 +136,17 @@ type OptimisticAction =
       completed: boolean | null;
       status: TodoStatus;
     };
+
+// Form Types
+interface TodoFormData {
+  title?: string;
+  description?: string;
+  priority?: TodoPriority;
+  due_date?: string;
+  status?: TodoStatus;
+  tags?: string[];
+  notes?: string;
+}
 
 // Constants
 const PRIORITY_CONFIG = {
@@ -201,17 +213,6 @@ const getStatusConfig = (status: string | null) => {
 // Helper funkcie pre boolean konverzie
 const fromBoolean = (value: boolean | null): boolean => {
   return value === true;
-};
-
-// Form Types
-type TodoFormData = {
-  title?: string;
-  description?: string;
-  priority?: TodoPriority;
-  due_date?: string;
-  status?: TodoStatus;
-  tags?: string[];
-  notes?: string;
 };
 
 // Sub-components
@@ -774,10 +775,11 @@ function TableView({
   );
 }
 
+// VYLEPŠENÉ PROPS S LEPŠÍMI TYPAMI
 interface TodoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: any;
+  form: UseFormReturn<TodoFormData>;
   editingTodo: Todo | null;
   isPending: boolean;
   activeTab: string;
@@ -801,6 +803,8 @@ function TodoDialog({
   onRemoveTag,
   onCancel,
 }: TodoDialogProps) {
+  const { register, watch, setValue, formState } = form;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl rounded-2xl">
@@ -843,15 +847,15 @@ function TodoDialog({
                     Task Title *
                   </Label>
                   <Input
-                    {...form.register("title")}
+                    {...register("title")}
                     placeholder="What needs to be done?"
                     disabled={isPending}
                     className="rounded-lg"
                   />
-                  {form.formState.errors.title && (
+                  {formState.errors.title && (
                     <p className="text-sm text-destructive mt-1 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      {form.formState.errors.title.message}
+                      {formState.errors.title.message}
                     </p>
                   )}
                 </div>
@@ -865,7 +869,7 @@ function TodoDialog({
                     Description
                   </Label>
                   <Textarea
-                    {...form.register("description")}
+                    {...register("description")}
                     placeholder="Add more details about this task..."
                     rows={3}
                     disabled={isPending}
@@ -883,10 +887,8 @@ function TodoDialog({
                     Priority
                   </Label>
                   <Select
-                    value={form.watch("priority") || "medium"}
-                    onValueChange={(v: TodoPriority) =>
-                      form.setValue("priority", v)
-                    }
+                    value={watch("priority") || "medium"}
+                    onValueChange={(v: TodoPriority) => setValue("priority", v)}
                     disabled={isPending}
                   >
                     <SelectTrigger className="rounded-lg">
@@ -924,10 +926,8 @@ function TodoDialog({
                     Status
                   </Label>
                   <Select
-                    value={form.watch("status") || "not_started"}
-                    onValueChange={(v: TodoStatus) =>
-                      form.setValue("status", v)
-                    }
+                    value={watch("status") || "not_started"}
+                    onValueChange={(v: TodoStatus) => setValue("status", v)}
                     disabled={isPending}
                   >
                     <SelectTrigger className="rounded-lg">
@@ -966,7 +966,7 @@ function TodoDialog({
                   Due Date
                 </Label>
                 <Input
-                  {...form.register("due_date")}
+                  {...register("due_date")}
                   type="date"
                   placeholder="Select date"
                   disabled={isPending}
@@ -996,9 +996,9 @@ function TodoDialog({
                     Add Tag
                   </Button>
                 </div>
-                {form.watch("tags") && form.watch("tags")!.length > 0 && (
+                {watch("tags") && watch("tags")!.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {form.watch("tags")!.map((tag: string) => (
+                    {watch("tags")!.map((tag: string) => (
                       <Badge
                         key={tag}
                         variant="secondary"
@@ -1028,7 +1028,7 @@ function TodoDialog({
                   Additional Notes
                 </Label>
                 <Textarea
-                  {...form.register("notes")}
+                  {...register("notes")}
                   placeholder="Any additional notes or comments..."
                   rows={4}
                   disabled={isPending}
@@ -1335,7 +1335,7 @@ function TodoSheet({ todo, onClose, onEdit, isPending }: TodoSheetProps) {
 export default function TodoWrapper() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [todos, setTodos] = useState<any[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
@@ -1383,7 +1383,7 @@ export default function TodoWrapper() {
     },
   );
 
-  // Opravený useForm hook
+  // VYLEPŠENÝ useForm HOOK S TYPOM
   const form = useForm<TodoFormData>({
     resolver: zodResolver(createTodoSchema) as Resolver<TodoFormData>,
     defaultValues: {
@@ -1539,34 +1539,30 @@ export default function TodoWrapper() {
     [editingTodo],
   );
 
-  const handleUpdateTodo = async (id: string, data: TodoFormData) => {
+  const convertFormDataToTodoUpdates = (data: TodoFormData): Partial<Todo> => {
     const completed = data.status === "done";
+
+    return {
+      title: data.title!,
+      description: data.description,
+      due_date: data.due_date || null,
+      priority: data.priority || null,
+      status: data.status || "not_started",
+      notes: data.notes,
+      completed,
+    };
+  };
+  
+  const handleUpdateTodo = async (id: string, data: TodoFormData) => {
+    const updates = convertFormDataToTodoUpdates(data);
 
     setOptimisticTodos({
       type: "update",
       id,
-      updates: {
-        title: data.title!,
-        description: data.description || null,
-        due_date: data.due_date || null,
-        priority: data.priority,
-        status: data.status || "not_started",
-        notes: data.notes || "",
-        completed,
-      },
+      updates,
     });
 
-    const updatedData = {
-      title: data.title!,
-      description: data.description ?? undefined,
-      due_date: data.due_date || null,
-      priority: data.priority,
-      status: data.status || "not_started",
-      notes: data.notes || "",
-      completed,
-    };
-
-    const result = await updateTodoAction(id, updatedData);
+    const result = await updateTodoAction(id, updates as any);
 
     if (result.success && result.data) {
       setTodos((prev) =>
@@ -1574,9 +1570,8 @@ export default function TodoWrapper() {
           todo.id === id
             ? {
                 ...todo,
-                ...updatedData,
+                ...updates,
                 updated_at: new Date().toISOString(),
-                completed,
               }
             : todo,
         ),
@@ -1614,7 +1609,7 @@ export default function TodoWrapper() {
       status: data.status,
       notes: data.notes,
       completed,
-    } as any;
+    } as unknown as CreateTodoInput;
 
     const result = await createTodoAction(createData);
     if (result.success && result.data) {

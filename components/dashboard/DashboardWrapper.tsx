@@ -53,7 +53,7 @@ interface FolderType {
 function transformPagesData(data: unknown): Page[] {
   try {
     const parsedData = z.array(rawPageSchema).parse(data);
-    
+
     return parsedData.map((item) => ({
       id: item.id,
       title: item.title || "Untitled", // Zajistíme, že title je vždy string
@@ -71,7 +71,7 @@ function transformPagesData(data: unknown): Page[] {
 function transformFoldersData(data: unknown): FolderType[] {
   try {
     const parsedData = z.array(rawFolderSchema).parse(data);
-    
+
     return parsedData.map((item) => ({
       id: item.id,
       title: item.title || "Unnamed Folder",

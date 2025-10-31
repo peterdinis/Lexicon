@@ -1,59 +1,3 @@
-export interface BaseItem {
-  id: string;
-  title: string;
-  description?: string | null;
-  icon?: string | null;
-  created_at: Date | null;
-  updated_at: Date | null;
-  user_id: string;
-}
-
-export interface PageItem extends BaseItem {
-  coverImage?: string | null;
-  parent_id?: string | null;
-  is_folder: boolean;
-  in_trash: boolean;
-}
-
-export interface TodoItem extends BaseItem {
-  completed: boolean | null;
-  priority: string | null;
-  due_date: Date | null;
-  status: string | null;
-  notes?: string | null;
-}
-
-export interface EventItem extends BaseItem {
-  start_time: Date;
-  end_time: Date;
-  all_day: boolean | null;
-  color?: string | null;
-  in_trash: boolean;
-}
-
-export interface DiagramItem extends BaseItem {
-  nodes: any[];
-  edges: any[];
-  viewport: any;
-  deleted_at: Date | null;
-  in_trash: boolean;
-}
-
-export interface FolderItem extends BaseItem {
-  in_trash: boolean;
-}
-
-// Search types
-export type SearchType = "page" | "todo" | "event" | "diagram" | "folder";
-export type SearchCollectionType =
-  | "pages"
-  | "todos"
-  | "events"
-  | "diagrams"
-  | "folders";
-export type QuickSearchType = "pages" | "todos" | "events";
-
-// Search result type
 export interface SearchResult {
   id: string;
   type: SearchType;
@@ -65,8 +9,27 @@ export interface SearchResult {
   metadata: Record<string, unknown>;
 }
 
-// Search data structure
-export interface SearchData {
+export interface SearchResponse {
+  success: boolean;
+  error?: string;
+  data: {
+    results: SearchResult[];
+    total: number;
+    query: string;
+  };
+}
+
+export interface QuickSearchResponse {
+  success: boolean;
+  error?: string;
+  data: {
+    results: SearchResult[];
+    total: number;
+    query: string;
+  };
+}
+
+export interface CachedSearchData {
   pages: PageItem[];
   todos: TodoItem[];
   events: EventItem[];
@@ -74,8 +37,16 @@ export interface SearchData {
   folders: FolderItem[];
 }
 
-// Fuse.js options
-export interface FuseOptions {
+export type SearchType = "page" | "todo" | "event" | "diagram" | "folder";
+
+export type SearchCollectionType =
+  | "pages"
+  | "todos"
+  | "events"
+  | "diagrams"
+  | "folders";
+
+export interface FuseOptions<T> {
   keys: string[];
   threshold: number;
   includeScore: boolean;
@@ -85,21 +56,121 @@ export interface FuseOptions {
   distance: number;
 }
 
-// Response data types
-export interface SearchResultsData {
-  results: SearchResult[];
-  total: number;
+export interface PageItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  icon?: string | null;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  in_trash: boolean;
+  is_folder: boolean;
+}
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  completed: boolean | null;
+  priority: string | null;
+  due_date?: Date | null;
+  status?: string | null;
+  notes?: string | null;
+  created_at: Date | null;
+  updated_at: Date | null;
+  user_id: string;
+}
+
+export interface EventItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  start_time: Date;
+  end_time: Date;
+  all_day: boolean | null;
+  color?: string | null;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  in_trash: boolean;
+}
+
+export interface DiagramItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  in_trash: boolean;
+}
+
+export interface FolderItem {
+  id: string;
+  title: string;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  in_trash: boolean;
+}
+
+// Search filter types
+export interface SearchFilters {
+  types?: SearchType[];
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+  tags?: string[];
+  priority?: string[];
+  completed?: boolean;
+}
+
+// Search context types
+export interface SearchContextType {
   query: string;
+  setQuery: (query: string) => void;
+  results: SearchResult[];
+  isLoading: boolean;
+  error: string | null;
+  filters: SearchFilters;
+  setFilters: (filters: SearchFilters) => void;
+  clearFilters: () => void;
+  refreshSearch: () => void;
 }
 
-export interface SearchResponse {
-  success: boolean;
-  error?: string;
-  data: SearchResultsData;
+// Search ranking and scoring
+export interface SearchScoreWeights {
+  title: number;
+  description: number;
+  content: number;
+  tags: number;
+  metadata: number;
 }
 
-export interface QuickSearchResponse {
-  success: boolean;
-  error?: string;
-  data: SearchResultsData;
+// Search analytics
+export interface SearchAnalytics {
+  query: string;
+  resultsCount: number;
+  responseTime: number;
+  selectedResult?: string;
+  timestamp: Date;
+}
+
+// Search history item
+export interface SearchHistoryItem {
+  id: string;
+  query: string;
+  timestamp: Date;
+  resultsCount: number;
+}
+
+// Search preferences
+export interface SearchPreferences {
+  maxResults: number;
+  searchDelay: number;
+  enableFuzzySearch: boolean;
+  searchWeights: SearchScoreWeights;
+  autoRefresh: boolean;
 }
