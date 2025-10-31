@@ -54,7 +54,6 @@ import {
   OnConnect,
   XYPosition,
   Connection,
-  EdgeTypes as ReactFlowEdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
@@ -83,9 +82,9 @@ import {
   Shield,
   Layout,
   GitFork,
-  Edit,
-  Link,
+  Link as AppLink,
 } from "lucide-react";
+import Link from "next/link"
 
 interface DiagramData {
   id: string;
@@ -263,7 +262,6 @@ const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({
   };
 
   const handleLabelChange = useCallback((newLabel: string) => {
-    // This will be handled by the parent component through updateNode
   }, []);
 
   return (
@@ -546,7 +544,7 @@ const ConnectionSettings: FC<ConnectionSettingsProps> = ({
   if (!selectedEdge) {
     return (
       <div className="p-6 text-center text-muted-foreground">
-        <Link className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <AppLink className="w-12 h-12 mx-auto mb-3 opacity-50" />
         <p className="text-sm">Select a connection to edit its properties</p>
       </div>
     );
@@ -1209,7 +1207,12 @@ const DiagramInfo: FC = () => {
     <div className="max-w-full mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center px-6">
-        <h1 className="text-2xl font-bold">Diagram Editor</h1>
+        <h1 className="text-2xl font-bold">
+          Diagram Editor
+                <Button variant={"link"}>
+          <Link href="/dashboard">Go back to dshboard</Link>
+        </Button>
+        </h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportDiagram}>
             <Download className="w-4 h-4 mr-2" />
