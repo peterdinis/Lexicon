@@ -69,9 +69,9 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
       const result = await createDiagramAction({
         title: "Untitled Diagram",
         description: "",
-        nodes: JSON.stringify([]),
-        edges: JSON.stringify([]),
-      } as any);
+        nodes: [],
+        edges: [],
+      });
 
       if (result?.data) {
         const newDiagram = result.data;
