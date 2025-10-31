@@ -5,50 +5,88 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { getFoldersAction } from "@/actions/folderActions";
 import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
+import { z } from "zod";
 
-// Helper function to safely extract and transform data
-function transformPagesData(data: any) {
-  if (!data) return [];
+// Zod schémy pre validáciu dát
+const rawPageSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  title: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+  icon: z.string().optional(),
+  coverImage: z.string().optional(),
+  parent_id: z.string().nullable().optional(),
+  is_folder: z.boolean().optional(),
+  in_trash: z.boolean().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
-  if (Array.isArray(data)) {
-    return data.map((item) => ({
-      id: item.id,
-      user_id: item.user_id,
-      title: item.title,
-      description: item.description,
-      icon: item.icon,
-      cover_image: item.coverImage, // Map coverImage to cover_image
-      parent_id: item.parent_id,
-      is_folder: item.is_folder,
-      in_trash: item.in_trash,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-    }));
-  }
+const rawFolderSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  title: z.string().optional().default(""),
+  in_trash: z.boolean().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
-  return [];
+// Typy pre DashboardClient (musia zodpovedať očakávaným typom)
+interface Page {
+  id: string;
+  title: string;
+  description?: string;
+  parent_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
-function transformFoldersData(data: any) {
-  if (!data) return [];
+interface FolderType {
+  id: string;
+  title: string;
+  parent_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
 
-  if (Array.isArray(data)) {
-    return data.map((item) => ({
+// Helper function to safely extract and transform data
+function transformPagesData(data: unknown): Page[] {
+  try {
+    const parsedData = z.array(rawPageSchema).parse(data);
+    
+    return parsedData.map((item) => ({
       id: item.id,
-      user_id: item.user_id,
-      title: item.title,
-      in_trash: item.in_trash,
+      title: item.title || "Untitled", // Zajistíme, že title je vždy string
+      description: item.description,
+      parent_id: item.parent_id,
       created_at: item.created_at,
       updated_at: item.updated_at,
     }));
+  } catch (error) {
+    console.error("Error transforming pages data:", error);
+    return [];
   }
+}
 
-  return [];
+function transformFoldersData(data: unknown): FolderType[] {
+  try {
+    const parsedData = z.array(rawFolderSchema).parse(data);
+    
+    return parsedData.map((item) => ({
+      id: item.id,
+      title: item.title || "Unnamed Folder",
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+    }));
+  } catch (error) {
+    console.error("Error transforming folders data:", error);
+    return [];
+  }
 }
 
 export default async function DashboardPage() {
-  let pages: any[] = [];
-  let folders: any[] = [];
+  let pages: Page[] = [];
+  let folders: FolderType[] = [];
 
   try {
     const [pagesResponse, foldersResponse] = await Promise.all([
@@ -59,6 +97,8 @@ export default async function DashboardPage() {
     // Transform data to match our types
     pages = transformPagesData(pagesResponse);
     folders = transformFoldersData(foldersResponse);
+
+    console.log("F", folders);
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");

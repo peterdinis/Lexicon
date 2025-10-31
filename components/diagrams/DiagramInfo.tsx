@@ -54,7 +54,6 @@ import {
   OnConnect,
   XYPosition,
   Connection,
-  EdgeTypes as ReactFlowEdgeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
@@ -83,9 +82,9 @@ import {
   Shield,
   Layout,
   GitFork,
-  Edit,
-  Link,
+  Link as AppLink,
 } from "lucide-react";
+import Link from "next/link";
 
 interface DiagramData {
   id: string;
@@ -233,10 +232,11 @@ const TextNode: FC<{ data: TextNodeData; selected?: boolean }> = ({
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg border-2 min-w-[120px] text-center transition-all ${selected
+      className={`px-4 py-3 rounded-lg border-2 min-w-[120px] text-center transition-all ${
+        selected
           ? "border-blue-500 bg-blue-50 shadow-md"
           : "border-gray-300 bg-white hover:shadow-sm"
-        }`}
+      }`}
       style={{
         backgroundColor: data.backgroundColor || "#ffffff",
         borderColor: selected ? "#3b82f6" : data.borderColor || "#d1d5db",
@@ -262,17 +262,17 @@ const ShapeNode: FC<{ data: ShapeNodeData; selected?: boolean }> = ({
     diamond: "rotate-45",
   };
 
-  const handleLabelChange = useCallback((newLabel: string) => {
-    // This will be handled by the parent component through updateNode
-  }, []);
+  const handleLabelChange = useCallback((newLabel: string) => {}, []);
 
   return (
     <div
-      className={`flex items-center justify-center border-2 min-w-[100px] min-h-[60px] transition-all ${shapeStyle[data.shape] || "rounded-lg"
-        } ${selected
+      className={`flex items-center justify-center border-2 min-w-[100px] min-h-[60px] transition-all ${
+        shapeStyle[data.shape] || "rounded-lg"
+      } ${
+        selected
           ? "border-blue-500 shadow-md"
           : "border-gray-300 hover:shadow-sm"
-        }`}
+      }`}
       style={{
         backgroundColor: data.backgroundColor || "#ffffff",
         borderColor: selected ? "#3b82f6" : data.borderColor || "#d1d5db",
@@ -319,10 +319,11 @@ const IconNode: FC<{ data: IconNodeData; selected?: boolean }> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 min-w-20 min-h-20 transition-all ${selected
+      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 min-w-20 min-h-20 transition-all ${
+        selected
           ? "border-blue-500 bg-blue-50 shadow-md"
           : "border-gray-300 bg-white hover:shadow-sm"
-        }`}
+      }`}
       style={{
         backgroundColor: data.backgroundColor || "#ffffff",
         borderColor: selected ? "#3b82f6" : data.borderColor || "#d1d5db",
@@ -546,7 +547,7 @@ const ConnectionSettings: FC<ConnectionSettingsProps> = ({
   if (!selectedEdge) {
     return (
       <div className="p-6 text-center text-muted-foreground">
-        <Link className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <AppLink className="w-12 h-12 mx-auto mb-3 opacity-50" />
         <p className="text-sm">Select a connection to edit its properties</p>
       </div>
     );
@@ -829,96 +830,96 @@ const DiagramFlow: FC<{
   showGrid,
   onConnectionModeChange,
 }) => {
-    const { fitView, zoomIn, zoomOut } = useReactFlow();
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
 
-    return (
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        onEdgeClick={onEdgeClick}
-        onPaneClick={onPaneClick}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        connectionMode={connectionMode}
-        fitView
-        deleteKeyCode={["Backspace", "Delete"]}
-        selectionKeyCode={["Shift"]}
-        multiSelectionKeyCode={["Meta", "Control"]}
-        zoomOnScroll={false}
-        zoomOnPinch={true}
-        panOnScroll={true}
-        panOnScrollSpeed={1}
-        selectionOnDrag={true}
-        defaultEdgeOptions={{
-          type: "custom",
-          style: { stroke: "#b1b1b7", strokeWidth: 2 },
-          markerEnd: {
-            type: "arrowclosed",
-            color: "#b1b1b7",
-          },
-        }}
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onNodeClick={onNodeClick}
+      onEdgeClick={onEdgeClick}
+      onPaneClick={onPaneClick}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      connectionMode={connectionMode}
+      fitView
+      deleteKeyCode={["Backspace", "Delete"]}
+      selectionKeyCode={["Shift"]}
+      multiSelectionKeyCode={["Meta", "Control"]}
+      zoomOnScroll={false}
+      zoomOnPinch={true}
+      panOnScroll={true}
+      panOnScrollSpeed={1}
+      selectionOnDrag={true}
+      defaultEdgeOptions={{
+        type: "custom",
+        style: { stroke: "#b1b1b7", strokeWidth: 2 },
+        markerEnd: {
+          type: "arrowclosed",
+          color: "#b1b1b7",
+        },
+      }}
+    >
+      <Panel position="top-left" className="flex gap-2">
+        <NodeToolbar onAddNode={onAddNode} />
+      </Panel>
+
+      <Panel
+        position="top-right"
+        className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm"
       >
-        <Panel position="top-left" className="flex gap-2">
-          <NodeToolbar onAddNode={onAddNode} />
-        </Panel>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onConnectionModeChange}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Connection Mode:{" "}
+              {connectionMode === ConnectionMode.Strict ? "Strict" : "Loose"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </Panel>
 
-        <Panel
-          position="top-right"
-          className="flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-sm"
-        >
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onConnectionModeChange}
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Connection Mode:{" "}
-                {connectionMode === ConnectionMode.Strict ? "Strict" : "Loose"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </Panel>
+      <Panel position="bottom-right" className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => zoomIn()}>
+          +
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => zoomOut()}>
+          -
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => fitView()}>
+          Fit
+        </Button>
+      </Panel>
 
-        <Panel position="bottom-right" className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => zoomIn()}>
-            +
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => zoomOut()}>
-            -
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => fitView()}>
-            Fit
-          </Button>
-        </Panel>
-
-        <Controls />
-        <MiniMap
-          nodeStrokeColor="#1f2937"
-          nodeColor="#f3f4f6"
-          maskColor="rgba(255, 255, 255, 0.6)"
-          position="bottom-left"
+      <Controls />
+      <MiniMap
+        nodeStrokeColor="#1f2937"
+        nodeColor="#f3f4f6"
+        maskColor="rgba(255, 255, 255, 0.6)"
+        position="bottom-left"
+      />
+      {showGrid && (
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color="#e5e7eb"
         />
-        {showGrid && (
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={20}
-            size={1}
-            color="#e5e7eb"
-          />
-        )}
-      </ReactFlow>
-    );
-  };
+      )}
+    </ReactFlow>
+  );
+};
 
 // --------------------
 // Main Component
@@ -978,7 +979,7 @@ const DiagramInfo: FC = () => {
       .catch((err) => console.error("Failed to load diagram:", err))
       .finally(() => setLoading(false));
   }, [id, setNodes, setEdges]);
-  
+
   const saveDiagram = async (): Promise<void> => {
     if (!diagram) return;
     setSaving(true);
@@ -1209,7 +1210,12 @@ const DiagramInfo: FC = () => {
     <div className="max-w-full mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center px-6">
-        <h1 className="text-2xl font-bold">Diagram Editor</h1>
+        <h1 className="text-2xl font-bold">
+          Diagram Editor
+          <Button variant={"link"}>
+            <Link href="/dashboard">Go back to dshboard</Link>
+          </Button>
+        </h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportDiagram}>
             <Download className="w-4 h-4 mr-2" />

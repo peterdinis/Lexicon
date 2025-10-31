@@ -60,19 +60,15 @@ import {
 import { moveToTrashAction } from "@/actions/trashActions";
 import { updatePageHandler } from "@/actions/pagesActions";
 import { movePageHandler } from "@/actions/pagesActions";
-
-// Importy pre tabuľku
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Table as ReactTable,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -83,6 +79,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// Typy
 interface Page {
   id: string;
   title?: string;
@@ -112,7 +109,113 @@ interface DashboardClientProps {
   itemsPerPage?: number;
 }
 
-// Definícia stĺpcov pre tabuľku stránok
+// Globálne funkcie pre dialógy
+declare global {
+  interface Window {
+    openEditDialog?: (
+      type: "page" | "folder",
+      id: string,
+      title: string,
+      description?: string
+    ) => void;
+    openMoveDialog?: (
+      pageId: string,
+      pageTitle: string,
+      currentFolderId?: string | null
+    ) => void;
+    openFolderDetailDialog?: (folderId: string) => void;
+    openMoveToTrashDialog?: (
+      type: "page" | "folder",
+      id: string,
+      title: string
+    ) => void;
+  }
+}
+
+interface MoveToTrashDialogState {
+  open: boolean;
+  type: "page" | "folder";
+  id: string;
+  title: string;
+}
+
+interface EditDialogState {
+  open: boolean;
+  type: "page" | "folder";
+  id: string;
+  title: string;
+  description?: string;
+}
+
+interface MoveDialogState {
+  open: boolean;
+  pageId: string;
+  pageTitle: string;
+  currentFolderId?: string | null;
+}
+
+interface FolderDetailDialogState {
+  open: boolean;
+  folderId: string | null;
+  data: FolderDetail | null;
+  loading: boolean;
+}
+
+interface TableHeaderProps<T> {
+  table: ReactTable<T>;
+}
+
+const TableHeaderComponent = <T,>({ table }: TableHeaderProps<T>) => (
+  <TableHeader>
+    {table.getHeaderGroups().map((headerGroup) => (
+      <TableRow key={headerGroup.id}>
+        {headerGroup.headers.map((header) => (
+          <TableHead key={header.id}>
+            {header.isPlaceholder
+              ? null
+              : flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
+          </TableHead>
+        ))}
+      </TableRow>
+    ))}
+  </TableHeader>
+);
+
+interface TableBodyProps<T> {
+  table: ReactTable<T>;
+}
+
+const TableBodyComponent = <T,>({ table }: TableBodyProps<T>) => (
+  <TableBody>
+    {table.getRowModel().rows?.length ? (
+      table.getRowModel().rows.map((row) => (
+        <TableRow
+          key={row.id}
+          data-state={row.getIsSelected() && "selected"}
+        >
+          {row.getVisibleCells().map((cell) => (
+            <TableCell key={cell.id}>
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          ))}
+        </TableRow>
+      ))
+    ) : (
+      <TableRow>
+        <TableCell
+          colSpan={table.getAllColumns().length}
+          className="h-24 text-center"
+        >
+          No results.
+        </TableCell>
+      </TableRow>
+    )}
+  </TableBody>
+);
+
 const pageColumns: ColumnDef<Page>[] = [
   {
     accessorKey: "title",
@@ -150,7 +253,6 @@ const pageColumns: ColumnDef<Page>[] = [
   },
 ];
 
-// Definícia stĺpcov pre tabuľku priečinkov
 const folderColumns: ColumnDef<FolderType>[] = [
   {
     accessorKey: "title",
@@ -182,10 +284,9 @@ const folderColumns: ColumnDef<FolderType>[] = [
   },
 ];
 
-// Komponent pre akcie stránky
 const PageActions = ({ page }: { page: Page }) => {
   const openEditDialog = useCallback(() => {
-    (window as any).openEditDialog?.(
+    window.openEditDialog?.(
       "page",
       page.id,
       page.title || "Untitled",
@@ -194,7 +295,7 @@ const PageActions = ({ page }: { page: Page }) => {
   }, [page]);
 
   const openMoveDialog = useCallback(() => {
-    (window as any).openMoveDialog?.(
+    window.openMoveDialog?.(
       page.id,
       page.title || "Untitled",
       page.parent_id,
@@ -202,7 +303,7 @@ const PageActions = ({ page }: { page: Page }) => {
   }, [page]);
 
   const openMoveToTrashDialog = useCallback(() => {
-    (window as any).openMoveToTrashDialog?.(
+    window.openMoveToTrashDialog?.(
       "page",
       page.id,
       page.title || "Untitled",
@@ -241,14 +342,13 @@ const PageActions = ({ page }: { page: Page }) => {
   );
 };
 
-// Komponent pre akcie priečinka
 const FolderActions = ({ folder }: { folder: FolderType }) => {
   const openFolderDetailDialog = useCallback(() => {
-    (window as any).openFolderDetailDialog?.(folder.id);
+    window.openFolderDetailDialog?.(folder.id);
   }, [folder.id]);
 
   const openEditDialog = useCallback(() => {
-    (window as any).openEditDialog?.(
+    window.openEditDialog?.(
       "folder",
       folder.id,
       folder.title || "Unnamed Folder",
@@ -256,7 +356,7 @@ const FolderActions = ({ folder }: { folder: FolderType }) => {
   }, [folder]);
 
   const openMoveToTrashDialog = useCallback(() => {
-    (window as any).openMoveToTrashDialog?.(
+    window.openMoveToTrashDialog?.(
       "folder",
       folder.id,
       folder.title || "Unnamed Folder",
@@ -301,48 +401,21 @@ export default function DashboardClient({
   const [pagesPage, setPagesPage] = useState(1);
   const [foldersPage, setFoldersPage] = useState(1);
 
-  // State pre dialógy
-  const [moveToTrashDialog, setMoveToTrashDialog] = useState<{
-    open: boolean;
-    type: "page" | "folder";
-    id: string;
-    title: string;
-  } | null>(null);
-
-  const [editDialog, setEditDialog] = useState<{
-    open: boolean;
-    type: "page" | "folder";
-    id: string;
-    title: string;
-    description?: string;
-  } | null>(null);
-
-  const [moveDialog, setMoveDialog] = useState<{
-    open: boolean;
-    pageId: string;
-    pageTitle: string;
-    currentFolderId?: string | null;
-  } | null>(null);
-
-  const [folderDetailDialog, setFolderDetailDialog] = useState<{
-    open: boolean;
-    folderId: string | null;
-    data: FolderDetail | null;
-    loading: boolean;
-  }>({
+  const [moveToTrashDialog, setMoveToTrashDialog] = useState<MoveToTrashDialogState | null>(null);
+  const [editDialog, setEditDialog] = useState<EditDialogState | null>(null);
+  const [moveDialog, setMoveDialog] = useState<MoveDialogState | null>(null);
+  const [folderDetailDialog, setFolderDetailDialog] = useState<FolderDetailDialogState>({
     open: false,
     folderId: null,
     data: null,
     loading: false,
   });
 
-  // State pre formuláre
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Memoizované hodnoty pre pagináciu
   const pagesToShow = useMemo(() => {
     const start = (pagesPage - 1) * itemsPerPage;
     return pages.slice(start, start + itemsPerPage);
@@ -356,7 +429,6 @@ export default function DashboardClient({
   const totalPagesPages = Math.ceil(pages.length / itemsPerPage);
   const totalFoldersPages = Math.ceil(folders.length / itemsPerPage);
 
-  // Funkcie pre načítanie dát
   const loadFolderDetail = useCallback(async (folderId: string) => {
     setFolderDetailDialog((prev) => ({ ...prev, loading: true }));
     try {
@@ -489,17 +561,17 @@ export default function DashboardClient({
 
   // Vystavenie funkcií pre globálny prístup
   useEffect(() => {
-    (window as any).openEditDialog = openEditDialog;
-    (window as any).openMoveDialog = openMoveDialog;
-    (window as any).openFolderDetailDialog = openFolderDetailDialog;
-    (window as any).openMoveToTrashDialog = openMoveToTrashDialog;
+    window.openEditDialog = openEditDialog;
+    window.openMoveDialog = openMoveDialog;
+    window.openFolderDetailDialog = openFolderDetailDialog;
+    window.openMoveToTrashDialog = openMoveToTrashDialog;
 
     return () => {
       // Cleanup
-      (window as any).openEditDialog = undefined;
-      (window as any).openMoveDialog = undefined;
-      (window as any).openFolderDetailDialog = undefined;
-      (window as any).openMoveToTrashDialog = undefined;
+      window.openEditDialog = undefined;
+      window.openMoveDialog = undefined;
+      window.openFolderDetailDialog = undefined;
+      window.openMoveToTrashDialog = undefined;
     };
   }, [
     openEditDialog,
@@ -613,19 +685,21 @@ export default function DashboardClient({
 }
 
 // Komponenty pre sekcie
+interface FoldersSectionProps {
+  folders: FolderType[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onFolderClick: (id: string) => void;
+}
+
 const FoldersSection = ({
   folders,
   currentPage,
   totalPages,
   onPageChange,
   onFolderClick,
-}: {
-  folders: FolderType[];
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  onFolderClick: (id: string) => void;
-}) => (
+}: FoldersSectionProps) => (
   <div className="mt-16">
     <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-6">
       Your Folders
@@ -643,17 +717,19 @@ const FoldersSection = ({
   </div>
 );
 
+interface PagesSectionProps {
+  pages: Page[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
 const PagesSection = ({
   pages,
   currentPage,
   totalPages,
   onPageChange,
-}: {
-  pages: Page[];
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) => (
+}: PagesSectionProps) => (
   <div className="mt-16">
     <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-6">
       Recent Pages
@@ -672,13 +748,12 @@ const PagesSection = ({
 );
 
 // Komponenty pre karty
-const FolderCard = ({
-  folder,
-  onClick,
-}: {
+interface FolderCardProps {
   folder: FolderType;
   onClick: (id: string) => void;
-}) => (
+}
+
+const FolderCard = ({ folder, onClick }: FolderCardProps) => (
   <div className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
     <div onClick={() => onClick(folder.id)} className="block cursor-pointer">
       <div className="flex items-center mb-2">
@@ -692,7 +767,11 @@ const FolderCard = ({
   </div>
 );
 
-const PageCard = ({ page }: { page: Page }) => (
+interface PageCardProps {
+  page: Page;
+}
+
+const PageCard = ({ page }: PageCardProps) => (
   <div className="group relative p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
     <Link href={`/page/${page.id}`} className="block">
       <h3 className="font-medium text-neutral-900 dark:text-white mb-2">
@@ -707,15 +786,17 @@ const PageCard = ({ page }: { page: Page }) => (
 );
 
 // Komponent pre pagináciu
+interface PaginationComponentProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
 const PaginationComponent = ({
   currentPage,
   totalPages,
   onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) => {
+}: PaginationComponentProps) => {
   if (totalPages <= 1) return null;
 
   return (
@@ -758,17 +839,19 @@ const PaginationComponent = ({
 };
 
 // Komponenty pre dialógy
+interface FolderDetailDialogProps {
+  dialog: FolderDetailDialogState;
+  onClose: () => void;
+  pagesTable: ReactTable<Page>;
+  foldersTable: ReactTable<FolderType>;
+}
+
 const FolderDetailDialog = ({
   dialog,
   onClose,
   pagesTable,
   foldersTable,
-}: {
-  dialog: { open: boolean; data: FolderDetail | null; loading: boolean };
-  onClose: () => void;
-  pagesTable: any;
-  foldersTable: any;
-}) => (
+}: FolderDetailDialogProps) => (
   <Dialog open={dialog.open} onOpenChange={onClose}>
     <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
@@ -787,13 +870,13 @@ const FolderDetailDialog = ({
         </div>
       ) : dialog.data ? (
         <div className="space-y-6">
-          <TableSection
+          <TableSection<Page>
             title={`Pages (${dialog.data.pages.length})`}
             table={pagesTable}
             columns={pageColumns}
             isEmpty={dialog.data.pages.length === 0}
           />
-          <TableSection
+          <TableSection<FolderType>
             title={`Subfolders (${dialog.data.subfolders.length})`}
             table={foldersTable}
             columns={folderColumns}
@@ -820,76 +903,44 @@ const FolderDetailDialog = ({
   </Dialog>
 );
 
-const TableSection = ({
+interface TableSectionProps<T> {
+  title: string;
+  table: ReactTable<T>;
+  columns: ColumnDef<T>[];
+  isEmpty: boolean;
+}
+
+const TableSection = <T,>({
   title,
   table,
   columns,
   isEmpty,
-}: {
-  title: string;
-  table: any;
-  columns: ColumnDef<any>[];
-  isEmpty: boolean;
-}) => (
+}: TableSectionProps<T>) => (
   <div>
     <h3 className="text-lg font-semibold mb-4">{title}</h3>
     <div className="border rounded-lg">
       <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup: any) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header: any) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {!isEmpty ? (
-            table.getRowModel().rows.map((row: any) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell: any) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+        <TableHeaderComponent<T> table={table} />
+        <TableBodyComponent<T> table={table} />
       </Table>
     </div>
   </div>
 );
+
+interface MoveToTrashDialogProps {
+  dialog: MoveToTrashDialogState | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+}
 
 const MoveToTrashDialog = ({
   dialog,
   onClose,
   onConfirm,
   loading,
-}: {
-  dialog: { open: boolean; type?: string; title?: string } | null;
-  onClose: () => void;
-  onConfirm: () => void;
-  loading: boolean;
-}) => (
-  <AlertDialog open={dialog?.open || false} onOpenChange={onClose}>
+}: MoveToTrashDialogProps) => (
+  <AlertDialog open={!!dialog?.open} onOpenChange={onClose}>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Move to Trash</AlertDialogTitle>
@@ -912,6 +963,17 @@ const MoveToTrashDialog = ({
   </AlertDialog>
 );
 
+interface EditDialogProps {
+  dialog: EditDialogState | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+  editTitle: string;
+  editDescription: string;
+  onTitleChange: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
+}
+
 const EditDialog = ({
   dialog,
   onClose,
@@ -921,17 +983,8 @@ const EditDialog = ({
   editDescription,
   onTitleChange,
   onDescriptionChange,
-}: {
-  dialog: { open: boolean; type?: string } | null;
-  onClose: () => void;
-  onConfirm: () => void;
-  loading: boolean;
-  editTitle: string;
-  editDescription: string;
-  onTitleChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
-}) => (
-  <Dialog open={dialog?.open || false} onOpenChange={onClose}>
+}: EditDialogProps) => (
+  <Dialog open={!!dialog?.open} onOpenChange={onClose}>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>
@@ -975,6 +1028,16 @@ const EditDialog = ({
   </Dialog>
 );
 
+interface MoveDialogProps {
+  dialog: MoveDialogState | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+  folders: FolderType[];
+  selectedFolderId: string | null;
+  onFolderChange: (value: string | null) => void;
+}
+
 const MoveDialog = ({
   dialog,
   onClose,
@@ -983,16 +1046,8 @@ const MoveDialog = ({
   folders,
   selectedFolderId,
   onFolderChange,
-}: {
-  dialog: { open: boolean; pageTitle?: string } | null;
-  onClose: () => void;
-  onConfirm: () => void;
-  loading: boolean;
-  folders: FolderType[];
-  selectedFolderId: string | null;
-  onFolderChange: (value: string | null) => void;
-}) => (
-  <Dialog open={dialog?.open || false} onOpenChange={onClose}>
+}: MoveDialogProps) => (
+  <Dialog open={!!dialog?.open} onOpenChange={onClose}>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Move Page</DialogTitle>

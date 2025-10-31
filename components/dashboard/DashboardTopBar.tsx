@@ -38,6 +38,7 @@ import { FC, useState, useEffect, useCallback } from "react";
 import { useSearch } from "@/hooks/use-search";
 import { SearchResult } from "@/types/applicationTypes";
 import { fetchUser, supabase } from "@/supabase/fetch-user";
+import { Route } from "next";
 
 // SearchResultItem komponent
 const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
@@ -85,7 +86,7 @@ const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
   };
 
   const handleClick = () => {
-    router.push(result.url as any);
+    router.push(result.url as unknown as Route<string>);
     onSelect();
   };
 

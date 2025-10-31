@@ -126,7 +126,6 @@ export async function deleteCalendarEventHandler(id: string) {
 }
 
 export async function hardDeleteCalendarEventHandler(id: string) {
-  // Validate ID
   const { id: validatedId } = eventIdSchema.parse({ id });
   const userId = await getUserId();
 
