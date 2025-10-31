@@ -888,9 +888,7 @@ function TodoDialog({
                   </Label>
                   <Select
                     value={watch("priority") || "medium"}
-                    onValueChange={(v: TodoPriority) =>
-                      setValue("priority", v)
-                    }
+                    onValueChange={(v: TodoPriority) => setValue("priority", v)}
                     disabled={isPending}
                   >
                     <SelectTrigger className="rounded-lg">
@@ -929,9 +927,7 @@ function TodoDialog({
                   </Label>
                   <Select
                     value={watch("status") || "not_started"}
-                    onValueChange={(v: TodoStatus) =>
-                      setValue("status", v)
-                    }
+                    onValueChange={(v: TodoStatus) => setValue("status", v)}
                     disabled={isPending}
                   >
                     <SelectTrigger className="rounded-lg">
@@ -1544,47 +1540,47 @@ export default function TodoWrapper() {
   );
 
   const convertFormDataToTodoUpdates = (data: TodoFormData): Partial<Todo> => {
-  const completed = data.status === "done";
-  
-  return {
-    title: data.title!,
-    description: data.description,
-    due_date: data.due_date || null,
-    priority: data.priority || null,
-    status: data.status || "not_started",
-    notes: data.notes,
-    completed,
+    const completed = data.status === "done";
+
+    return {
+      title: data.title!,
+      description: data.description,
+      due_date: data.due_date || null,
+      priority: data.priority || null,
+      status: data.status || "not_started",
+      notes: data.notes,
+      completed,
+    };
   };
-};
 
-// Potom v handleUpdateTodo použite:
-const handleUpdateTodo = async (id: string, data: TodoFormData) => {
-  const updates = convertFormDataToTodoUpdates(data);
+  // Potom v handleUpdateTodo použite:
+  const handleUpdateTodo = async (id: string, data: TodoFormData) => {
+    const updates = convertFormDataToTodoUpdates(data);
 
-  setOptimisticTodos({
-    type: "update",
-    id,
-    updates,
-  });
+    setOptimisticTodos({
+      type: "update",
+      id,
+      updates,
+    });
 
-  const result = await updateTodoAction(id, updates as any);
+    const result = await updateTodoAction(id, updates as any);
 
-  if (result.success && result.data) {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id
-          ? {
-              ...todo,
-              ...updates,
-              updated_at: new Date().toISOString(),
-            }
-          : todo
-      )
-    );
-    resetFormAndClose();
-    router.refresh();
-  }
-};
+    if (result.success && result.data) {
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id
+            ? {
+                ...todo,
+                ...updates,
+                updated_at: new Date().toISOString(),
+              }
+            : todo,
+        ),
+      );
+      resetFormAndClose();
+      router.refresh();
+    }
+  };
 
   const handleCreateTodo = async (data: TodoFormData) => {
     const tempId = `temp-${Date.now()}`;
