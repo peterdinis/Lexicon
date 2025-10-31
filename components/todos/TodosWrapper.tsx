@@ -1552,8 +1552,7 @@ export default function TodoWrapper() {
       completed,
     };
   };
-
-  // Potom v handleUpdateTodo použite:
+  
   const handleUpdateTodo = async (id: string, data: TodoFormData) => {
     const updates = convertFormDataToTodoUpdates(data);
 
