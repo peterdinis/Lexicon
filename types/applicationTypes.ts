@@ -7,9 +7,6 @@ import {
   folders,
 } from "@/drizzle/schema";
 
-// types/databaseTypes.ts
-
-// Base types
 export interface BaseEntity {
   id: string;
   created_at: Date;
