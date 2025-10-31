@@ -55,7 +55,7 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
         title: "Untitled Diagram",
         description: "",
         nodes: [],
-        edges: []
+        edges: [],
       });
 
       if (result?.data) {
