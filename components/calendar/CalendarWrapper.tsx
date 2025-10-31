@@ -37,110 +37,23 @@ import {
   startOfDay,
   isValid,
 } from "date-fns";
-
-// Import actions - assuming these are properly typed
 import {
   getCalendarEventsByDateRangeAction,
   createCalendarEventAction,
   deleteCalendarEventAction,
   updateCalendarEventAction,
 } from "@/actions/calendarActions";
-
-// Type definitions
-interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string | null;
-  start_time: string;
-  end_time: string;
-  all_day: boolean;
-  color?: string | null;
-  user_id?: string;
-  in_trash?: boolean;
-  created_at?: string | Date;
-  updated_at?: string | Date;
-}
-
-interface CreateCalendarEventData {
-  title: string;
-  description?: string | null;
-  start_time: string;
-  end_time: string;
-  all_day: boolean;
-  color?: string | null;
-}
-
-interface ValidationErrors {
-  title?: string;
-  start_time?: string;
-  end_time?: string;
-}
-
-type OptimisticEvent = CalendarEvent & { pending?: boolean };
-
-interface CalendarViewProps {
-  initialEvents: CalendarEvent[];
-}
-
-interface CalendarActionResponse {
-  data?: CalendarEvent[];
-  success?: boolean;
-  error?: string;
-}
-
-interface UpdateEventData {
-  id: string;
-  title: string;
-  description?: string | null;
-  start_time: string;
-  end_time: string;
-  all_day: boolean;
-  color?: string | null;
-}
-
-// Helper function to convert any event data to CalendarEvent
-function convertToCalendarEvent(event: unknown): CalendarEvent {
-  const e = event as Record<string, unknown>;
-
-  // Helper function to safely convert to Date or string
-  const convertToDateOrString = (dateValue: unknown): string | Date => {
-    if (!dateValue) return new Date();
-
-    if (typeof dateValue === "string") {
-      return dateValue;
-    }
-
-    if (dateValue instanceof Date) {
-      return dateValue.toISOString();
-    }
-
-    // If it's an object but not a Date, try to convert to string
-    if (typeof dateValue === "object" && dateValue !== null) {
-      try {
-        const dateStr = String(dateValue);
-        return dateStr;
-      } catch {
-        return new Date().toISOString();
-      }
-    }
-
-    return new Date().toISOString();
-  };
-
-  return {
-    id: String(e.id || ""),
-    title: String(e.title || ""),
-    description: e.description ? String(e.description) : null,
-    start_time: convertToDateOrString(e.start_time) as unknown as string,
-    end_time: convertToDateOrString(e.end_time) as unknown as string,
-    all_day: Boolean(e.all_day),
-    color: e.color ? String(e.color) : null,
-    user_id: e.user_id ? String(e.user_id) : undefined,
-    in_trash: Boolean(e.in_trash),
-    created_at: convertToDateOrString(e.created_at),
-    updated_at: convertToDateOrString(e.updated_at),
-  };
-}
+import {
+  CalendarEvent,
+  CalendarViewProps,
+  CreateCalendarEventData,
+  OptimisticEvent,
+  OptimisticUpdateAction,
+  UnknownEventData,
+  UpdateEventData,
+  ValidationErrors,
+} from "@/types/calendarTypes";
+import { convertToCalendarEvent } from "./CalendarConvert";
 
 export function CalendarView({ initialEvents }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
@@ -166,32 +79,28 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     {},
   );
 
-  const formatDateTimeForISO = useCallback((dateString: string) => {
-  try {
-    // Odstráň časovú zónu ak existuje (pre datetime-local input)
-    const cleanDateString = dateString.replace(/\.\d{3}Z$/, '');
-    const date = new Date(cleanDateString);
-    
-    // Over platnosť dátumu
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
-    }
-    
-    // Vráť v správnom ISO formáte
-    return date.toISOString();
-  } catch {
-    // Ak konverzia zlyhá, vráť pôvodný reťazec
-    console.warn('Date conversion failed, using original string:', dateString);
-    return dateString;
-  }
-}, []);
+  const formatDateTimeForISO = useCallback((dateString: string): string => {
+    try {
+      if (dateString.endsWith("Z")) {
+        return dateString;
+      }
 
-  // Optimistic updates pre eventy
+      const date = new Date(dateString);
+
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+      }
+
+      return date.toISOString();
+    } catch {
+      console.warn("Date conversion failed, using current date");
+      return new Date().toISOString();
+    }
+  }, []);
+
   const [optimisticEvents, addOptimisticEvent] = useOptimistic<
     OptimisticEvent[],
-    | { type: "add"; event: CreateCalendarEventData }
-    | { type: "update"; event: CalendarEvent }
-    | { type: "delete"; id: string }
+    OptimisticUpdateAction
   >(
     events.map((event) => ({ ...event, pending: false })),
     (state, action) => {
@@ -223,13 +132,15 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
   );
 
   const dateRange = useMemo(() => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+
     return {
-      startDate: format(startOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
-      endDate: format(endOfMonth(currentDate), "yyyy-MM-dd'T'HH:mm:ss"),
+      startDate: format(start, "yyyy-MM-dd'T'00:00:00.000'Z'"),
+      endDate: format(end, "yyyy-MM-dd'T'23:59:59.999'Z'"),
     };
   }, [currentDate]);
 
-  // Načítanie eventov s useCallback
   const loadEventsForMonth = useCallback(async () => {
     setLoading(true);
     try {
@@ -252,7 +163,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     loadEventsForMonth();
   }, [loadEventsForMonth]);
 
-  // Memoizovaná funkcia pre eventy podľa dňa
   const getEventsForDay = useCallback(
     (day: Date) => {
       return optimisticEvents.filter((event) => {
@@ -269,21 +179,18 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     [optimisticEvents],
   );
 
-  const formatDateTimeForInput = useCallback((date: Date) => {
+  const formatDateTimeForInput = useCallback((date: Date): string => {
     return format(date, "yyyy-MM-dd'T'HH:mm");
   }, []);
 
-  // Validácia eventu
   const validateEvent = useCallback(
     (eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
       const errors: ValidationErrors = {};
 
-      // Validácia titulu
       if (!eventData.title.trim()) {
         errors.title = "Title is required";
       }
 
-      // Validácia dátumov
       if (!eventData.start_time) {
         errors.start_time = "Start time is required";
       } else if (!eventData.end_time) {
@@ -294,24 +201,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           const endDate = new Date(eventData.end_time);
           const now = new Date();
 
-          // Validácia platnosti dátumov
           if (!isValid(startDate)) {
             errors.start_time = "Invalid start date";
           } else if (!isValid(endDate)) {
             errors.end_time = "Invalid end date";
-          } else {
-            // Event nemôže začínať v minulosti
             if (isBefore(startDate, startOfDay(now))) {
               errors.start_time = "Event cannot start in the past";
             }
 
-            // End time nemôže byť pred start time
             if (isBefore(endDate, startDate)) {
               errors.end_time = "End time must be after start time";
             }
 
-            // Minimálna dĺžka eventu (5 minút)
-            const minDuration = 5 * 60 * 1000; // 5 minút v milisekundách
+            const minDuration = 5 * 60 * 1000;
             if (endDate.getTime() - startDate.getTime() < minDuration) {
               errors.end_time = "Event must be at least 5 minutes long";
             }
@@ -331,7 +233,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     (value: string) => {
       try {
         const start = new Date(value);
-        const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
 
         setNewEvent((prev) => ({
           ...prev,
@@ -339,21 +241,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           end_time: prev.end_time || formatDateTimeForInput(end),
         }));
 
-        // Clear validation errors when user types
         setValidationErrors((prev) => ({
           ...prev,
           start_time: undefined,
           end_time: undefined,
         }));
       } catch {
-        // Ignore invalid date inputs
+        throw new Error("Something went wrong");
       }
     },
     [formatDateTimeForInput],
   );
 
-  // Vytvorenie eventu
-  const createEvent = async () => {
+  const createEvent = async (): Promise<void> => {
     const errors = validateEvent(newEvent);
 
     if (Object.keys(errors).length > 0) {
@@ -365,7 +265,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
-      // Optimistic update
       addOptimisticEvent({ type: "add", event: newEvent });
 
       const eventData: CreateCalendarEventData = {
@@ -393,13 +292,11 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     } catch (error) {
       console.error("Error creating event:", error);
-      // V prípade chyby znova načítame eventy pre synchronizáciu
       await loadEventsForMonth();
     }
   };
 
-  // Aktualizácia eventu
-  const updateEvent = async () => {
+  const updateEvent = async (): Promise<void> => {
     if (!selectedEvent) return;
 
     const errors = validateEvent(selectedEvent);
@@ -410,15 +307,14 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
 
     try {
-      // Optimistic update
       addOptimisticEvent({ type: "update", event: selectedEvent });
 
       const updateData: UpdateEventData = {
         id: selectedEvent.id,
         title: selectedEvent.title,
         description: selectedEvent.description,
-        start_time: selectedEvent.start_time,
-        end_time: selectedEvent.end_time,
+        start_time: formatDateTimeForISO(selectedEvent.start_time),
+        end_time: formatDateTimeForISO(selectedEvent.end_time),
         all_day: selectedEvent.all_day,
         color: selectedEvent.color,
       };
@@ -437,8 +333,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
   };
 
-  // Vymazanie eventu
-  const deleteEvent = async (id: string) => {
+  const deleteEvent = async (id: string): Promise<void> => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
@@ -562,8 +457,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             {currentAndUpcomingEvents.map((event) => (
               <div
                 key={event.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${event.pending ? "opacity-60" : ""
-                  }`}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  event.pending ? "opacity-60" : ""
+                }`}
                 style={{
                   borderLeft: `4px solid ${event.color || "#3b82f6"}`,
                 }}
@@ -934,18 +830,20 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           return (
             <div
               key={index}
-              className={`min-h-[100px] rounded-lg border p-2 ${isCurrentMonth
+              className={`min-h-[100px] rounded-lg border p-2 ${
+                isCurrentMonth
                   ? "bg-background hover:bg-muted/50"
                   : "bg-muted/30 text-muted-foreground"
-                } ${isToday ? "border-2 border-primary" : "border-border"}`}
+              } ${isToday ? "border-2 border-primary" : "border-border"}`}
             >
               <div
-                className={`mb-1 text-sm ${isToday
+                className={`mb-1 text-sm ${
+                  isToday
                     ? "font-bold text-primary"
                     : isCurrentMonth
                       ? "text-foreground"
                       : "text-muted-foreground"
-                  }`}
+                }`}
               >
                 {format(day, "d")}
               </div>
@@ -953,8 +851,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${event.pending ? "opacity-60" : ""
-                      }`}
+                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${
+                      event.pending ? "opacity-60" : ""
+                    }`}
                     style={{
                       backgroundColor: `${event.color || "#3b82f6"}20`,
                       borderLeft: `3px solid ${event.color || "#3b82f6"}`,

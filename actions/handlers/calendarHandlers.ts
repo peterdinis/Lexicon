@@ -13,21 +13,11 @@ import {
   updateCalendarEventInputSchema,
   dateRangeInputSchema,
 } from "../schemas/calendarSchemas";
-
-interface CalendarEventUpdateData {
-  title?: string;
-  description?: string | null;
-  start_time?: Date;
-  end_time?: Date;
-  color?: string | null;
-  all_day?: boolean;
-  updated_at: Date;
-}
+import { CalendarEventUpdateData } from "@/types/calendarTypes";
 
 export async function createCalendarEventHandler(
   data: CreateCalendarEventInput,
 ) {
-  // Validate input
   const validatedData = createCalendarEventInputSchema.parse(data);
   const userId = await getUserId();
 
@@ -55,7 +45,6 @@ export async function createCalendarEventHandler(
 }
 
 export async function getCalendarEventHandler(id: string) {
-  // Validate ID
   const { id: validatedId } = eventIdSchema.parse({ id });
   const userId = await getUserId();
 
@@ -78,7 +67,6 @@ export async function updateCalendarEventHandler(
   id: string,
   data: UpdateCalendarEventInput,
 ) {
-  // Validate inputs
   const { id: validatedId } = eventIdSchema.parse({ id });
   const validatedData = updateCalendarEventInputSchema.parse(data);
   const userId = await getUserId();
@@ -87,7 +75,6 @@ export async function updateCalendarEventHandler(
     updated_at: new Date(),
   };
 
-  // Only include fields that are provided
   if (validatedData.title !== undefined) updateData.title = validatedData.title;
   if (validatedData.description !== undefined)
     updateData.description = validatedData.description;
@@ -116,7 +103,6 @@ export async function updateCalendarEventHandler(
 }
 
 export async function deleteCalendarEventHandler(id: string) {
-  // Validate ID
   const { id: validatedId } = eventIdSchema.parse({ id });
   const userId = await getUserId();
 
