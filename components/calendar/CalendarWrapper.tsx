@@ -72,29 +72,23 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
   const formatDateTimeForISO = useCallback((dateString: string): string => {
     try {
-      // Ak dátum už má časovú zónu, nechaj ho tak
       if (dateString.endsWith('Z')) {
         return dateString;
       }
 
-      // Inak vytvor nový dátum a pridaj časovú zónu
       const date = new Date(dateString);
 
-      // Over platnosť dátumu
       if (isNaN(date.getTime())) {
         throw new Error('Invalid date');
       }
 
-      // Vráť v správnom ISO formáte s časovou zónou
       return date.toISOString();
     } catch {
-      // Ak konverzia zlyhá, vráť aktuálny dátum
       console.warn('Date conversion failed, using current date');
       return new Date().toISOString();
     }
   }, []);
 
-  // Optimistic updates pre eventy
   const [optimisticEvents, addOptimisticEvent] = useOptimistic<
     OptimisticEvent[],
     OptimisticUpdateAction
@@ -138,7 +132,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     };
   }, [currentDate]);
 
-  // Načítanie eventov s useCallback
   const loadEventsForMonth = useCallback(async () => {
     setLoading(true);
     try {
@@ -161,7 +154,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     loadEventsForMonth();
   }, [loadEventsForMonth]);
 
-  // Memoizovaná funkcia pre eventy podľa dňa
   const getEventsForDay = useCallback(
     (day: Date) => {
       return optimisticEvents.filter((event) => {
@@ -182,17 +174,15 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     return format(date, "yyyy-MM-dd'T'HH:mm");
   }, []);
 
-  // Validácia eventu
   const validateEvent = useCallback(
     (eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
+      
       const errors: ValidationErrors = {};
 
-      // Validácia titulu
       if (!eventData.title.trim()) {
         errors.title = "Title is required";
       }
 
-      // Validácia dátumov
       if (!eventData.start_time) {
         errors.start_time = "Start time is required";
       } else if (!eventData.end_time) {
@@ -203,24 +193,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           const endDate = new Date(eventData.end_time);
           const now = new Date();
 
-          // Validácia platnosti dátumov
           if (!isValid(startDate)) {
             errors.start_time = "Invalid start date";
           } else if (!isValid(endDate)) {
             errors.end_time = "Invalid end date";
-          } else {
-            // Event nemôže začínať v minulosti
             if (isBefore(startDate, startOfDay(now))) {
               errors.start_time = "Event cannot start in the past";
             }
 
-            // End time nemôže byť pred start time
             if (isBefore(endDate, startDate)) {
               errors.end_time = "End time must be after start time";
             }
 
-            // Minimálna dĺžka eventu (5 minút)
-            const minDuration = 5 * 60 * 1000; // 5 minút v milisekundách
+            const minDuration = 5 * 60 * 1000;
             if (endDate.getTime() - startDate.getTime() < minDuration) {
               errors.end_time = "Event must be at least 5 minutes long";
             }
@@ -240,7 +225,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     (value: string) => {
       try {
         const start = new Date(value);
-        const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hodina
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
 
         setNewEvent((prev) => ({
           ...prev,
@@ -248,20 +233,18 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           end_time: prev.end_time || formatDateTimeForInput(end),
         }));
 
-        // Clear validation errors when user types
         setValidationErrors((prev) => ({
           ...prev,
           start_time: undefined,
           end_time: undefined,
         }));
       } catch {
-        // Ignore invalid date inputs
+        throw new Error("Something went wrong")
       }
     },
     [formatDateTimeForInput],
   );
 
-  // Vytvorenie eventu
   const createEvent = async (): Promise<void> => {
     const errors = validateEvent(newEvent);
 
@@ -274,7 +257,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       return;
 
     try {
-      // Optimistic update
       addOptimisticEvent({ type: "add", event: newEvent });
 
       const eventData: CreateCalendarEventData = {
@@ -302,12 +284,10 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       }
     } catch (error) {
       console.error("Error creating event:", error);
-      // V prípade chyby znova načítame eventy pre synchronizáciu
       await loadEventsForMonth();
     }
   };
 
-  // Aktualizácia eventu
   const updateEvent = async (): Promise<void> => {
     if (!selectedEvent) return;
 
@@ -319,7 +299,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
     }
 
     try {
-      // Optimistic update
       addOptimisticEvent({ type: "update", event: selectedEvent });
 
       const updateData: UpdateEventData = {
@@ -345,8 +324,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       await loadEventsForMonth();
     }
   };
-
-  // Vymazanie eventu
+  
   const deleteEvent = async (id: string): Promise<void> => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
