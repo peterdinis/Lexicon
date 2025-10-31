@@ -21,8 +21,6 @@ export interface TodoItem extends BaseItem {
   due_date: Date | null;
   status: string | null;
   notes?: string | null;
-  tags?: string | null;
-  // Note: todos table doesn't have in_trash field
 }
 
 export interface EventItem extends BaseItem {
