@@ -43,7 +43,16 @@ import {
   deleteCalendarEventAction,
   updateCalendarEventAction,
 } from "@/actions/calendarActions";
-import { CalendarEvent, CalendarViewProps, CreateCalendarEventData, OptimisticEvent, OptimisticUpdateAction, UnknownEventData, UpdateEventData, ValidationErrors } from "@/types/calendarTypes";
+import {
+  CalendarEvent,
+  CalendarViewProps,
+  CreateCalendarEventData,
+  OptimisticEvent,
+  OptimisticUpdateAction,
+  UnknownEventData,
+  UpdateEventData,
+  ValidationErrors,
+} from "@/types/calendarTypes";
 import { convertToCalendarEvent } from "./CalendarConvert";
 
 export function CalendarView({ initialEvents }: CalendarViewProps) {
@@ -72,19 +81,19 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
   const formatDateTimeForISO = useCallback((dateString: string): string => {
     try {
-      if (dateString.endsWith('Z')) {
+      if (dateString.endsWith("Z")) {
         return dateString;
       }
 
       const date = new Date(dateString);
 
       if (isNaN(date.getTime())) {
-        throw new Error('Invalid date');
+        throw new Error("Invalid date");
       }
 
       return date.toISOString();
     } catch {
-      console.warn('Date conversion failed, using current date');
+      console.warn("Date conversion failed, using current date");
       return new Date().toISOString();
     }
   }, []);
@@ -176,7 +185,6 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
 
   const validateEvent = useCallback(
     (eventData: CreateCalendarEventData | CalendarEvent): ValidationErrors => {
-      
       const errors: ValidationErrors = {};
 
       if (!eventData.title.trim()) {
@@ -239,7 +247,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           end_time: undefined,
         }));
       } catch {
-        throw new Error("Something went wrong")
+        throw new Error("Something went wrong");
       }
     },
     [formatDateTimeForInput],
@@ -324,7 +332,7 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
       await loadEventsForMonth();
     }
   };
-  
+
   const deleteEvent = async (id: string): Promise<void> => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
@@ -449,8 +457,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
             {currentAndUpcomingEvents.map((event) => (
               <div
                 key={event.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${event.pending ? "opacity-60" : ""
-                  }`}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  event.pending ? "opacity-60" : ""
+                }`}
                 style={{
                   borderLeft: `4px solid ${event.color || "#3b82f6"}`,
                 }}
@@ -821,18 +830,20 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
           return (
             <div
               key={index}
-              className={`min-h-[100px] rounded-lg border p-2 ${isCurrentMonth
-                ? "bg-background hover:bg-muted/50"
-                : "bg-muted/30 text-muted-foreground"
-                } ${isToday ? "border-2 border-primary" : "border-border"}`}
+              className={`min-h-[100px] rounded-lg border p-2 ${
+                isCurrentMonth
+                  ? "bg-background hover:bg-muted/50"
+                  : "bg-muted/30 text-muted-foreground"
+              } ${isToday ? "border-2 border-primary" : "border-border"}`}
             >
               <div
-                className={`mb-1 text-sm ${isToday
-                  ? "font-bold text-primary"
-                  : isCurrentMonth
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                  }`}
+                className={`mb-1 text-sm ${
+                  isToday
+                    ? "font-bold text-primary"
+                    : isCurrentMonth
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                }`}
               >
                 {format(day, "d")}
               </div>
@@ -840,8 +851,9 @@ export function CalendarView({ initialEvents }: CalendarViewProps) {
                 {dayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${event.pending ? "opacity-60" : ""
-                      }`}
+                    className={`group relative cursor-pointer rounded px-1 py-0.5 text-xs hover:opacity-80 transition-opacity ${
+                      event.pending ? "opacity-60" : ""
+                    }`}
                     style={{
                       backgroundColor: `${event.color || "#3b82f6"}20`,
                       borderLeft: `3px solid ${event.color || "#3b82f6"}`,

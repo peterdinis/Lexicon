@@ -79,7 +79,7 @@ export interface CalendarViewProps {
 }
 
 // Type for optimistic update actions
-export type OptimisticUpdateAction = 
+export type OptimisticUpdateAction =
   | { type: "add"; event: CreateCalendarEventData }
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; id: string };

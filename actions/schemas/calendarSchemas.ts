@@ -23,16 +23,20 @@ export const updateCalendarEventSchema = insertCalendarEventSchema
 export const createCalendarEventInputSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),
-  start_time: z.string().min(1, "Start time is required")
-    .transform(val => {
+  start_time: z
+    .string()
+    .min(1, "Start time is required")
+    .transform((val) => {
       try {
         return new Date(val).toISOString();
       } catch {
         return val;
       }
     }),
-  end_time: z.string().min(1, "End time is required")
-    .transform(val => {
+  end_time: z
+    .string()
+    .min(1, "End time is required")
+    .transform((val) => {
       try {
         return new Date(val).toISOString();
       } catch {
