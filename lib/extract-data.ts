@@ -1,7 +1,10 @@
 import { BaseResponse, ExtractableResponse } from "@/types/applicationTypes";
 
 export function extractData<T>(response: ExtractableResponse<T>): T {
-  if (!Array.isArray(response) && (typeof response !== "object" || response === null)) {
+  if (
+    !Array.isArray(response) &&
+    (typeof response !== "object" || response === null)
+  ) {
     return response;
   }
 
@@ -11,6 +14,6 @@ export function extractData<T>(response: ExtractableResponse<T>): T {
       return data;
     }
   }
-  
+
   return response as T;
 }

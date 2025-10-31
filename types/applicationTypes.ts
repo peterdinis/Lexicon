@@ -42,7 +42,12 @@ interface DataResponse<T> extends BaseResponse<T> {
   data: T;
 }
 
-export type ExtractableResponse<T> = T | BaseResponse<T> | SuccessResponse<T> | DataResponse<T> | T[];
+export type ExtractableResponse<T> =
+  | T
+  | BaseResponse<T>
+  | SuccessResponse<T>
+  | DataResponse<T>
+  | T[];
 
 export type SearchResult = {
   id: string;
