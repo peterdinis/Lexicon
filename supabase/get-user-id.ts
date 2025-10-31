@@ -27,4 +27,3 @@ export async function getAuthenticatedUser() {
 
   return user;
 }
-

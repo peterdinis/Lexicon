@@ -9,7 +9,11 @@ import {
   updateDiagramInputSchema,
 } from "../schemas/diagramsShcemas";
 import { revalidatePath } from "next/cache";
-import { DiagramNode, DiagramEdge, DiagramViewport } from "@/types/diagramsTypes";
+import {
+  DiagramNode,
+  DiagramEdge,
+  DiagramViewport,
+} from "@/types/diagramsTypes";
 
 // ----------------------
 // Get Single Diagram

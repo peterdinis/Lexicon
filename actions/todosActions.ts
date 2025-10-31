@@ -76,7 +76,7 @@ export async function updateTodoAction(
     const updateData: TodoUpdateData = {
       updated_at: new Date(),
     };
-    
+
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (priority !== undefined) updateData.priority = priority;

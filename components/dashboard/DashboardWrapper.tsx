@@ -59,6 +59,8 @@ export default async function DashboardPage() {
     // Transform data to match our types
     pages = transformPagesData(pagesResponse);
     folders = transformFoldersData(foldersResponse);
+
+    console.log("F", folders);
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
