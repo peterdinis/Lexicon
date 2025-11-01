@@ -7,19 +7,19 @@ import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 import { z } from "zod";
 
-// Zod schémy pre validáciu dát
+// Updated Zod schemas to handle actual data types
 const rawPageSchema = z.object({
   id: z.string(),
   user_id: z.string(),
   title: z.string().optional().default(""),
   description: z.string().optional().default(""),
-  icon: z.string().optional(),
-  coverImage: z.string().optional(),
+  icon: z.string().nullable().optional(),
+  coverImage: z.string().nullable().optional(),
   parent_id: z.string().nullable().optional(),
   is_folder: z.boolean().optional(),
   in_trash: z.boolean().optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+  created_at: z.union([z.string(), z.date()]).optional(),
+  updated_at: z.union([z.string(), z.date()]).optional(),
 });
 
 const rawFolderSchema = z.object({
@@ -27,11 +27,21 @@ const rawFolderSchema = z.object({
   user_id: z.string(),
   title: z.string().optional().default(""),
   in_trash: z.boolean().optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+  created_at: z.union([z.string(), z.date()]).optional(),
+  updated_at: z.union([z.string(), z.date()]).optional(),
 });
 
-// Typy pre DashboardClient (musia zodpovedať očakávaným typom)
+// Response schema for folders action (might return object with data property)
+const foldersResponseSchema = z.union([
+  z.array(rawFolderSchema), // Direct array
+  z.object({ // Or object with data property
+    data: z.array(rawFolderSchema).optional(),
+    success: z.boolean().optional(),
+    error: z.string().optional(),
+  })
+]);
+
+// Types for DashboardClient
 interface Page {
   id: string;
   title: string;
@@ -56,11 +66,15 @@ function transformPagesData(data: unknown): Page[] {
 
     return parsedData.map((item) => ({
       id: item.id,
-      title: item.title || "Untitled", // Zajistíme, že title je vždy string
+      title: item.title || "Untitled",
       description: item.description,
       parent_id: item.parent_id,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
+      created_at: item.created_at 
+        ? (typeof item.created_at === 'string' ? item.created_at : item.created_at.toISOString())
+        : undefined,
+      updated_at: item.updated_at 
+        ? (typeof item.updated_at === 'string' ? item.updated_at : item.updated_at.toISOString())
+        : undefined,
     }));
   } catch (error) {
     console.error("Error transforming pages data:", error);
@@ -70,13 +84,30 @@ function transformPagesData(data: unknown): Page[] {
 
 function transformFoldersData(data: unknown): FolderType[] {
   try {
-    const parsedData = z.array(rawFolderSchema).parse(data);
-
-    return parsedData.map((item) => ({
+    // First parse with the union schema to handle different response formats
+    const parsedResponse = foldersResponseSchema.parse(data);
+    
+    let foldersArray: z.infer<typeof rawFolderSchema>[] = [];
+    
+    if (Array.isArray(parsedResponse)) {
+      foldersArray = parsedResponse;
+    } else if (parsedResponse.data && Array.isArray(parsedResponse.data)) {
+      foldersArray = parsedResponse.data;
+    } else if (parsedResponse.error) {
+      console.error("Folder action returned error:", parsedResponse.error);
+      return [];
+    }
+    
+    // Now transform the array
+    return foldersArray.map((item) => ({
       id: item.id,
       title: item.title || "Unnamed Folder",
-      created_at: item.created_at,
-      updated_at: item.updated_at,
+      created_at: item.created_at 
+        ? (typeof item.created_at === 'string' ? item.created_at : item.created_at.toISOString())
+        : undefined,
+      updated_at: item.updated_at 
+        ? (typeof item.updated_at === 'string' ? item.updated_at : item.updated_at.toISOString())
+        : undefined,
     }));
   } catch (error) {
     console.error("Error transforming folders data:", error);
@@ -89,16 +120,33 @@ export default async function DashboardPage() {
   let folders: FolderType[] = [];
 
   try {
-    const [pagesResponse, foldersResponse] = await Promise.all([
+    const [pagesResponse, foldersResponse] = await Promise.allSettled([
       getAllPagesHandler(),
       getFoldersAction(),
     ]);
 
-    // Transform data to match our types
-    pages = transformPagesData(pagesResponse);
-    folders = transformFoldersData(foldersResponse);
+    // Handle pages response
+    if (pagesResponse.status === 'fulfilled') {
+      pages = transformPagesData(pagesResponse.value);
+    } else {
+      console.error("Failed to fetch pages:", pagesResponse.reason);
+    }
 
-    console.log("F", folders);
+    // Handle folders response  
+    if (foldersResponse.status === 'fulfilled') {
+      folders = transformFoldersData(foldersResponse.value);
+    } else {
+      console.error("Failed to fetch folders:", foldersResponse.reason);
+    }
+
+    console.log("Pages:", pages.length);
+    console.log("Folders:", folders.length);
+
+    // If both requests failed, redirect to login
+    if (pagesResponse.status === 'rejected' && foldersResponse.status === 'rejected') {
+      redirect("/auth/login");
+    }
+
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");
