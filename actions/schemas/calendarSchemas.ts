@@ -19,7 +19,6 @@ export const updateCalendarEventSchema = insertCalendarEventSchema
     created_at: true,
   });
 
-// Alebo ak potrebuješ ISO formát, pridaj transformáciu:
 export const createCalendarEventInputSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),
@@ -51,15 +50,14 @@ export const updateCalendarEventInputSchema =
   createCalendarEventInputSchema.partial();
 
 export const dateRangeInputSchema = z.object({
-  startDate: z.string().datetime("Invalid start date"),
-  endDate: z.string().datetime("Invalid end date"),
+  startDate: z.date("Invalid start date"),
+  endDate: z.date("Invalid end date"),
 });
 
 export const eventIdSchema = z.object({
-  id: z.string().uuid("Invalid event ID"),
+  id: z.uuid("Invalid event ID"),
 });
 
-// Types
 export type CreateCalendarEventInput = z.infer<
   typeof createCalendarEventInputSchema
 >;

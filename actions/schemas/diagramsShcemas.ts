@@ -26,7 +26,6 @@ export const viewportSchema = z.object({
   zoom: z.number().min(0.1).max(2).default(1),
 });
 
-// Zod Schemas for diagrams
 export const insertDiagramSchema = createInsertSchema(diagrams, {
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().max(1000, "Description too long").optional(),
@@ -43,7 +42,6 @@ export const updateDiagramSchema = insertDiagramSchema.partial().omit({
   created_at: true,
 });
 
-// Validation schemas for handlers
 export const createDiagramInputSchema = z.object({
   title: z
     .string()
@@ -111,10 +109,9 @@ export const updateDiagramInputSchema = z.object({
 });
 
 export const diagramIdSchema = z.object({
-  id: z.string().uuid("Invalid diagram ID"),
+  id: z.uuid("Invalid diagram ID"),
 });
 
-// Types
 export type Diagram = z.infer<typeof createSelectSchema>;
 export type CreateDiagramInput = z.infer<typeof createDiagramInputSchema>;
 export type UpdateDiagramInput = z.infer<typeof updateDiagramInputSchema>;
