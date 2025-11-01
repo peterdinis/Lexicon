@@ -1025,7 +1025,6 @@ interface MoveDialogProps {
   currentFolderId?: string | null;
 }
 
-
 const MoveDialog = ({
   dialog,
   onClose,
@@ -1037,7 +1036,7 @@ const MoveDialog = ({
   currentFolderId,
 }: MoveDialogProps) => {
   const ROOT_VALUE = "__ROOT__";
-  
+
   const availableFolders = useMemo(() => {
     return folders.filter((folder) => folder.id !== currentFolderId);
   }, [folders, currentFolderId]);
@@ -1058,9 +1057,9 @@ const MoveDialog = ({
     return folder?.title || "Unknown Folder";
   };
 
-  const isMovingToSameLocation = 
+  const isMovingToSameLocation =
     (selectedFolderId === null && currentFolderId === null) ||
-    (selectedFolderId === currentFolderId);
+    selectedFolderId === currentFolderId;
 
   return (
     <Dialog open={!!dialog?.open} onOpenChange={onClose}>
@@ -1075,16 +1074,18 @@ const MoveDialog = ({
           <div>
             <Label htmlFor="folder">Destination Folder</Label>
             <Select
-              value={selectedFolderId === null ? ROOT_VALUE : selectedFolderId || ROOT_VALUE}
+              value={
+                selectedFolderId === null
+                  ? ROOT_VALUE
+                  : selectedFolderId || ROOT_VALUE
+              }
               onValueChange={handleFolderChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select destination" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ROOT_VALUE}>
-                  📁 Root (No Folder)
-                </SelectItem>
+                <SelectItem value={ROOT_VALUE}>📁 Root (No Folder)</SelectItem>
                 {availableFolders.map((folder) => (
                   <SelectItem key={folder.id} value={folder.id}>
                     📂 {folder.title || "Unnamed Folder"}
@@ -1129,7 +1130,8 @@ const MoveDialog = ({
                     <Move className="h-4 w-4 text-amber-600" />
                   </div>
                   <p className="text-sm text-amber-800 dark:text-amber-300">
-                    This page is already in this location. Please select a different folder.
+                    This page is already in this location. Please select a
+                    different folder.
                   </p>
                 </div>
               </div>
