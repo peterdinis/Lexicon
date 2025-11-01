@@ -2,47 +2,13 @@
 
 import { db } from "@/drizzle/db";
 import { folders, todos } from "@/drizzle/schema";
-import { getSupabaseServerClient } from "@/supabase/server";
+import { getAuthenticatedUser } from "@/supabase/get-user-id";
+import { CreateTodoData, UpdateTodoData } from "@/types/todosTypes";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-// Custom types for todo operations
-interface CreateTodoData {
-  title: string;
-  description?: string;
-  priority?: string;
-  due_date?: Date | null;
-  status?: string;
-  notes?: string;
-  tags?: string;
-}
-
-interface UpdateTodoData {
-  title?: string;
-  description?: string;
-  priority?: string;
-  due_date?: Date | null;
-  status?: string;
-  completed?: boolean;
-  notes?: string;
-  tags?: string;
-  updated_at: Date;
-}
-
-// ----------------------
-// TODO HANDLERS
-// ----------------------
-
-// CREATE TODO
 export async function createTodoHandler(data: CreateTodoData) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const id = nanoid();
   const newTodo = {
@@ -65,16 +31,8 @@ export async function createTodoHandler(data: CreateTodoData) {
   return createdTodo;
 }
 
-// GET SINGLE TODO
 export async function getTodoHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [todo] = await db
     .select()
@@ -85,16 +43,8 @@ export async function getTodoHandler(id: string) {
   return todo;
 }
 
-// GET ALL TODOS (for a user)
 export async function getAllTodosHandler() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const allTodos = await db
     .select()
@@ -105,16 +55,8 @@ export async function getAllTodosHandler() {
   return allTodos;
 }
 
-// GET TODOS BY STATUS
 export async function getTodosByStatusHandler(status: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const todosList = await db
     .select()
@@ -125,27 +67,18 @@ export async function getTodosByStatusHandler(status: string) {
   return todosList;
 }
 
-// UPDATE TODO
 export async function updateTodoHandler(
   id: string,
   updates: Omit<UpdateTodoData, "updated_at"> & {
     due_date?: Date | string | null;
   },
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const updateData: UpdateTodoData = {
     updated_at: new Date(),
   };
 
-  // Only include fields that are provided
   if (updates.title !== undefined) updateData.title = updates.title;
   if (updates.description !== undefined)
     updateData.description = updates.description;
@@ -155,7 +88,6 @@ export async function updateTodoHandler(
   if (updates.notes !== undefined) updateData.notes = updates.notes;
   if (updates.tags !== undefined) updateData.tags = updates.tags;
   if (updates.due_date !== undefined) {
-    // Convert string to Date if necessary
     updateData.due_date = updates.due_date ? new Date(updates.due_date) : null;
   }
 
@@ -171,14 +103,7 @@ export async function updateTodoHandler(
 
 // DELETE TODO
 export async function deleteTodoHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [deletedTodo] = await db
     .delete(todos)
@@ -190,16 +115,8 @@ export async function deleteTodoHandler(id: string) {
   return { success: true, todo: deletedTodo };
 }
 
-// TOGGLE TODO COMPLETION
 export async function toggleTodoHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [currentTodo] = await db
     .select()
@@ -220,20 +137,8 @@ export async function toggleTodoHandler(id: string) {
   return updatedTodo;
 }
 
-// ----------------------
-// FOLDER HANDLERS
-// ----------------------
-
-// UPDATE FOLDER
 export async function updateFolderHandler(id: string, title: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [updatedFolder] = await db
     .update(folders)
@@ -254,16 +159,8 @@ export async function updateFolderHandler(id: string, title: string) {
   return updatedFolder;
 }
 
-// SOFT DELETE FOLDER (Move to trash)
 export async function deleteFolderHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [deletedFolder] = await db
     .update(folders)
@@ -278,16 +175,8 @@ export async function deleteFolderHandler(id: string) {
   return deletedFolder;
 }
 
-// HARD DELETE FOLDER (Permanent removal)
 export async function hardDeleteFolderHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [deletedFolder] = await db
     .delete(folders)
@@ -298,16 +187,8 @@ export async function hardDeleteFolderHandler(id: string) {
   return { success: true, folder: deletedFolder };
 }
 
-// RESTORE FOLDER FROM TRASH
 export async function restoreFolderHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [restoredFolder] = await db
     .update(folders)

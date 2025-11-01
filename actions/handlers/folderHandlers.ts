@@ -15,7 +15,6 @@ export async function createFolderHandler(
   parentId: string | null,
   title: string,
 ) {
-  // Validate input
   const validatedData = createFolderInputSchema.parse({ parentId, title });
   const userId = await validateUser();
 
@@ -52,7 +51,6 @@ export async function getFolderDetailHandler(folderId: string) {
   const { folderId: validatedId } = folderIdSchema.parse({ folderId });
   const userId = await validateUser();
 
-  // Get folder details
   const [folder] = await db
     .select()
     .from(folders)
@@ -66,7 +64,6 @@ export async function getFolderDetailHandler(folderId: string) {
 
   if (!folder) throw new Error("Folder not found");
 
-  // Get pages in folder (excluding trashed pages)
   const pagesInFolder = await db
     .select()
     .from(pages)
@@ -78,8 +75,7 @@ export async function getFolderDetailHandler(folderId: string) {
       ),
     )
     .orderBy(asc(pages.created_at));
-
-  // Get subfolders (excluding trashed folders)
+    
   const subfolders = await db
     .select()
     .from(folders)

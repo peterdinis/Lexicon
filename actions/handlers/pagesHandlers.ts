@@ -1,21 +1,11 @@
 import { db } from "@/drizzle/db";
 import { pages } from "@/drizzle/schema";
-import { getSupabaseServerClient } from "@/supabase/server";
+import { getAuthenticatedUser } from "@/supabase/get-user-id";
 import { randomUUID } from "crypto";
 import { eq, asc, and } from "drizzle-orm";
 
-// ----------------------
-// Get Single Page
-// ----------------------
 export async function getPageHandler(id: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [page] = await db
     .select()
@@ -32,23 +22,13 @@ export async function getPageHandler(id: string) {
   return page;
 }
 
-// ----------------------
-// Create Page
-// ----------------------
 export async function createPageHandler(
   title: string = "Untitled",
   description: string = "",
   parent_id: string | null = null,
   is_folder: boolean = false,
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [newPage] = await db
     .insert(pages)
@@ -69,9 +49,6 @@ export async function createPageHandler(
   return newPage;
 }
 
-// ----------------------
-// Update Page
-// ----------------------
 export async function updatePageHandler(
   id: string,
   data: {
@@ -82,14 +59,7 @@ export async function updatePageHandler(
     parent_id?: string | null;
   },
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const updateData: {
     updated_at: Date;
@@ -125,18 +95,8 @@ export async function updatePageHandler(
   return updatedPage;
 }
 
-// ----------------------
-// Get All Pages (Exclude trashed)
-// ----------------------
 export async function getAllPagesHandler() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const allPages = await db
     .select()
@@ -147,18 +107,8 @@ export async function getAllPagesHandler() {
   return allPages || [];
 }
 
-// ----------------------
-// Get Pages by Parent (for folder contents)
-// ----------------------
 export async function getPagesByParentHandler(parent_id: string | null = null) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const pagesList = await db
     .select()
@@ -169,18 +119,8 @@ export async function getPagesByParentHandler(parent_id: string | null = null) {
   return pagesList || [];
 }
 
-// ----------------------
-// Soft Delete Page (Move to trash)
-// ----------------------
 export async function deletePageHandler(pageId: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [deletedPage] = await db
     .update(pages)
@@ -196,18 +136,8 @@ export async function deletePageHandler(pageId: string) {
   return { success: true, page: deletedPage };
 }
 
-// ----------------------
-// Hard Delete Page (Permanent removal)
-// ----------------------
 export async function hardDeletePageHandler(pageId: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [deletedPage] = await db
     .delete(pages)
@@ -219,18 +149,8 @@ export async function hardDeletePageHandler(pageId: string) {
   return { success: true };
 }
 
-// ----------------------
-// Restore Page from Trash
-// ----------------------
 export async function restorePageHandler(pageId: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [restoredPage] = await db
     .update(pages)
@@ -246,21 +166,11 @@ export async function restorePageHandler(pageId: string) {
   return { success: true, page: restoredPage };
 }
 
-// ----------------------
-// Move Page
-// ----------------------
 export async function movePageHandler(
   id: string,
   parent_id: string | null = null,
 ) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const [updatedPage] = await db
     .update(pages)
@@ -275,18 +185,8 @@ export async function movePageHandler(
   return updatedPage;
 }
 
-// ----------------------
-// Get Trashed Pages
-// ----------------------
 export async function getTrashedPagesHandler() {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const trashedPages = await db
     .select()
@@ -297,18 +197,8 @@ export async function getTrashedPagesHandler() {
   return trashedPages || [];
 }
 
-// ----------------------
-// Search Pages
-// ----------------------
 export async function searchPagesHandler(query: string) {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) throw new Error(userError.message);
-  if (!user) throw new Error("Unauthorized");
+  const { user } = await getAuthenticatedUser();
 
   const searchResults = await db
     .select()
