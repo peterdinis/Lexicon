@@ -30,8 +30,7 @@ export default async function PageView({ params }: PageViewProps) {
     }
 
     return <PageViewClient id={id} page={page} pages={pages} />;
-  } catch (error: any) {
-    console.error("Error loading page:", error.message);
-    redirect("/dashboard");
+  } catch (error) {
+    throw new Error("Something went wrong");
   }
 }
