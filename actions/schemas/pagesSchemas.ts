@@ -2,7 +2,6 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { pages } from "@/drizzle/schema";
 
-// Zod Schemas
 export const insertPageSchema = createInsertSchema(pages, {
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().max(1000, "Description too long").default(""),
@@ -19,7 +18,6 @@ export const updatePageSchema = insertPageSchema.partial().omit({
   created_at: true,
 });
 
-// Validation schemas for handlers
 export const createPageInputSchema = z.object({
   title: z
     .string()
@@ -58,7 +56,20 @@ export const searchPagesInputSchema = z.object({
     .max(100, "Search query too long"),
 });
 
-// Types
+export const rawPageSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  title: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+  icon: z.string().nullable().optional(),
+  coverImage: z.string().nullable().optional(),
+  parent_id: z.string().nullable().optional(),
+  is_folder: z.boolean().optional(),
+  in_trash: z.boolean().optional().default(false),
+  created_at: z.union([z.string(), z.date()]).optional(),
+  updated_at: z.union([z.string(), z.date()]).optional(),
+});
+
 export type Page = z.infer<typeof createSelectSchema>;
 export type CreatePageInput = z.infer<typeof createPageInputSchema>;
 export type UpdatePageInput = z.infer<typeof updatePageInputSchema>;

@@ -6,43 +6,9 @@ import { getFoldersAction } from "@/actions/folderActions";
 import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 import { z } from "zod";
+import { rawPageSchema } from "@/actions/schemas/pagesSchemas";
+import { foldersResponseSchema, rawFolderSchema } from "@/actions/schemas/folderSchemas";
 
-// Updated Zod schemas to handle actual data types
-const rawPageSchema = z.object({
-  id: z.string(),
-  user_id: z.string(),
-  title: z.string().optional().default(""),
-  description: z.string().optional().default(""),
-  icon: z.string().nullable().optional(),
-  coverImage: z.string().nullable().optional(),
-  parent_id: z.string().nullable().optional(),
-  is_folder: z.boolean().optional(),
-  in_trash: z.boolean().optional().default(false),
-  created_at: z.union([z.string(), z.date()]).optional(),
-  updated_at: z.union([z.string(), z.date()]).optional(),
-});
-
-const rawFolderSchema = z.object({
-  id: z.string(),
-  user_id: z.string(),
-  title: z.string().optional().default(""),
-  in_trash: z.boolean().optional().default(false),
-  created_at: z.union([z.string(), z.date()]).optional(),
-  updated_at: z.union([z.string(), z.date()]).optional(),
-});
-
-// Response schema for folders action (might return object with data property)
-const foldersResponseSchema = z.union([
-  z.array(rawFolderSchema), // Direct array
-  z.object({
-    // Or object with data property
-    data: z.array(rawFolderSchema).optional(),
-    success: z.boolean().optional(),
-    error: z.string().optional(),
-  }),
-]);
-
-// Types for DashboardClient
 interface Page {
   id: string;
   title: string;
@@ -62,14 +28,11 @@ interface FolderType {
   updated_at?: string;
 }
 
-// Helper function to safely extract and transform data
 function transformPagesData(data: unknown): Page[] {
   try {
     const parsedData = z.array(rawPageSchema).parse(data);
-
-    // Filter out trashed pages and transform
     return parsedData
-      .filter((item) => !item.in_trash) // Filter out trashed items
+      .filter((item) => !item.in_trash)
       .map((item) => ({
         id: item.id,
         title: item.title || "Untitled",

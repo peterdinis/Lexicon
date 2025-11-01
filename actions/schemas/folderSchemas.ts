@@ -33,6 +33,24 @@ export const folderIdSchema = z.object({
   folderId: z.string().uuid("Invalid folder ID"),
 });
 
+export const rawFolderSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  title: z.string().optional().default(""),
+  in_trash: z.boolean().optional().default(false),
+  created_at: z.union([z.string(), z.date()]).optional(),
+  updated_at: z.union([z.string(), z.date()]).optional(),
+});
+
+export const foldersResponseSchema = z.union([
+  z.array(rawFolderSchema), 
+  z.object({
+    data: z.array(rawFolderSchema).optional(),
+    success: z.boolean().optional(),
+    error: z.string().optional(),
+  }),
+]);
+
 // Types
 export type Folder = z.infer<typeof createSelectSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>;
