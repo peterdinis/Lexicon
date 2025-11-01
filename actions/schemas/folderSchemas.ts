@@ -43,7 +43,7 @@ export const rawFolderSchema = z.object({
 });
 
 export const foldersResponseSchema = z.union([
-  z.array(rawFolderSchema), 
+  z.array(rawFolderSchema),
   z.object({
     data: z.array(rawFolderSchema).optional(),
     success: z.boolean().optional(),

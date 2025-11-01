@@ -7,7 +7,10 @@ import DashboardClient from "./DashboardClient";
 import { getAllPagesHandler } from "@/actions/handlers/pagesHandlers";
 import { z } from "zod";
 import { rawPageSchema } from "@/actions/schemas/pagesSchemas";
-import { foldersResponseSchema, rawFolderSchema } from "@/actions/schemas/folderSchemas";
+import {
+  foldersResponseSchema,
+  rawFolderSchema,
+} from "@/actions/schemas/folderSchemas";
 
 interface Page {
   id: string;
