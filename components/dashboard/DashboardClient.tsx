@@ -544,11 +544,11 @@ export default function DashboardClient({
 
   const openMoveDialog = useCallback(
     (pageId: string, pageTitle: string, currentFolderId?: string | null) => {
-      setMoveDialog({ 
-        open: true, 
-        pageId, 
-        pageTitle, 
-        currentFolderId 
+      setMoveDialog({
+        open: true,
+        pageId,
+        pageTitle,
+        currentFolderId,
       });
       setSelectedFolderId(null);
     },
@@ -1036,9 +1036,10 @@ const MoveDialog = ({
   currentFolderId,
 }: MoveDialogProps) => {
   const availableFolders = useMemo(() => {
-    return folders.filter(folder => {
+    return folders.filter((folder) => {
       if (folder.id === currentFolderId) return false;
-      if (folder.id === selectedFolderId && folder.id === currentFolderId) return false;
+      if (folder.id === selectedFolderId && folder.id === currentFolderId)
+        return false;
       return true;
     });
   }, [folders, currentFolderId, selectedFolderId]);
@@ -1060,7 +1061,10 @@ const MoveDialog = ({
         <div className="space-y-4">
           <div>
             <Label htmlFor="folder">Select Folder</Label>
-            <Select value={selectedFolderId || ""} onValueChange={handleFolderChange}>
+            <Select
+              value={selectedFolderId || ""}
+              onValueChange={handleFolderChange}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a folder" />
               </SelectTrigger>
@@ -1079,15 +1083,21 @@ const MoveDialog = ({
               </p>
             )}
           </div>
-          
+
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="flex items-start space-x-2">
               <div className="shrink-0 mt-0.5">
                 <Move className="h-4 w-4 text-blue-600" />
               </div>
               <div className="text-sm text-blue-800 dark:text-blue-300">
-                <p><strong>Moving from:</strong> {currentFolderId ? "Current folder" : "Root"}</p>
-                <p><strong>Moving to:</strong> {selectedFolderId ? "Selected folder" : "Root"}</p>
+                <p>
+                  <strong>Moving from:</strong>{" "}
+                  {currentFolderId ? "Current folder" : "Root"}
+                </p>
+                <p>
+                  <strong>Moving to:</strong>{" "}
+                  {selectedFolderId ? "Selected folder" : "Root"}
+                </p>
               </div>
             </div>
           </div>
@@ -1096,8 +1106,8 @@ const MoveDialog = ({
           <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            onClick={onConfirm} 
+          <Button
+            onClick={onConfirm}
             disabled={loading || selectedFolderId === currentFolderId}
           >
             {loading ? "Moving..." : "Move Page"}
