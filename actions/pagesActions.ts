@@ -162,6 +162,7 @@ export async function deletePageHandler(pageId: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true, page: deletedPage };
 }
 
@@ -178,6 +179,7 @@ export async function hardDeletePageHandler(pageId: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true };
 }
 
@@ -198,6 +200,7 @@ export async function restorePageHandler(pageId: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true, page: restoredPage };
 }
 

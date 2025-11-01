@@ -8,6 +8,8 @@ import {
   getFoldersHandler,
   updateFolderHandler,
   deleteFolderHandler,
+  hardDeleteFolderHandler,
+  restoreFolderHandler,
 } from "./handlers/folderHandlers";
 import { revalidatePath } from "next/cache";
 import z from "zod";
@@ -54,6 +56,7 @@ export const updateFolderAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
+
 // DELETE FOLDER ACTION
 export const deleteFolderAction = actionClient
   .inputSchema(deleteFolderSchema)
@@ -62,6 +65,7 @@ export const deleteFolderAction = actionClient
       const result = await deleteFolderHandler(id);
       revalidatePath("/dashboard");
       revalidatePath("/");
+      revalidatePath("/trash");
       return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));
@@ -73,6 +77,36 @@ export const getFolderDetailAction = actionClient
   .action(async ({ parsedInput: { id } }) => {
     try {
       const result = await getFolderDetailHandler(id);
+      return { success: true, data: result };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+// HARD DELETE FOLDER ACTION
+export const hardDeleteFolderAction = actionClient
+  .inputSchema(z.object({ id: z.string().uuid("Invalid folder ID") }))
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      const result = await hardDeleteFolderHandler(id);
+      revalidatePath("/dashboard");
+      revalidatePath("/");
+      revalidatePath("/trash");
+      return { success: true, data: result };
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  });
+
+// RESTORE FOLDER ACTION
+export const restoreFolderAction = actionClient
+  .inputSchema(z.object({ id: z.string().uuid("Invalid folder ID") }))
+  .action(async ({ parsedInput: { id } }) => {
+    try {
+      const result = await restoreFolderHandler(id);
+      revalidatePath("/dashboard");
+      revalidatePath("/");
+      revalidatePath("/trash");
       return { success: true, data: result };
     } catch (err) {
       throw new Error(getErrorMessage(err));
