@@ -10,6 +10,7 @@ import {
   Trash,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -58,8 +59,7 @@ import {
   getFolderDetailAction,
 } from "@/actions/folderActions";
 import { moveToTrashAction } from "@/actions/trashActions";
-import { updatePageHandler } from "@/actions/pagesActions";
-import { movePageHandler } from "@/actions/pagesActions";
+import { updatePageHandler, movePageHandler } from "@/actions/pagesActions";
 import {
   ColumnDef,
   flexRender,
@@ -79,7 +79,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Typy
+// Types
 interface Page {
   id: string;
   title?: string;
@@ -109,7 +109,7 @@ interface DashboardClientProps {
   itemsPerPage?: number;
 }
 
-// Globálne funkcie pre dialógy
+// Global functions for dialogs
 declare global {
   interface Window {
     openEditDialog?: (
@@ -384,6 +384,7 @@ export default function DashboardClient({
   folders,
   itemsPerPage = 6,
 }: DashboardClientProps) {
+  const router = useRouter();
   const [pagesPage, setPagesPage] = useState(1);
   const [foldersPage, setFoldersPage] = useState(1);
 
@@ -436,7 +437,6 @@ export default function DashboardClient({
     }
   }, []);
 
-  // Otvorenie dialogu pre detail priečinka
   const openFolderDetailDialog = useCallback(
     async (folderId: string) => {
       setFolderDetailDialog({
@@ -450,7 +450,6 @@ export default function DashboardClient({
     [loadFolderDetail],
   );
 
-  // Funkcia pre presun do koša
   const handleMoveToTrash = useCallback(async () => {
     if (!moveToTrashDialog) return;
 
@@ -462,7 +461,7 @@ export default function DashboardClient({
       });
 
       if (!result.data) throw new Error("Failed to move to trash");
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       console.error("Error moving to trash:", error);
       alert("Failed to move to trash");
@@ -470,7 +469,7 @@ export default function DashboardClient({
       setLoading(false);
       setMoveToTrashDialog(null);
     }
-  }, [moveToTrashDialog]);
+  }, [moveToTrashDialog, router]);
 
   const handleEdit = useCallback(async () => {
     if (!editDialog) return;
@@ -490,7 +489,7 @@ export default function DashboardClient({
         });
         if (!result.data) throw new Error("Something went wrong");
       }
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       console.error("Error updating:", error);
       alert("Failed to update");
@@ -498,26 +497,30 @@ export default function DashboardClient({
       setLoading(false);
       setEditDialog(null);
     }
-  }, [editDialog, editTitle, editDescription]);
+  }, [editDialog, editTitle, editDescription, router]);
 
   const handleMove = useCallback(async () => {
     if (!moveDialog) return;
+
+    if (selectedFolderId === moveDialog.currentFolderId) {
+      alert("Please select a different folder or move to root.");
+      return;
+    }
 
     setLoading(true);
     try {
       const result = await movePageHandler(moveDialog.pageId, selectedFolderId);
       if (!result) throw new Error("Failed to move page");
-      window.location.reload();
+      router.refresh();
+      setMoveDialog(null);
     } catch (error) {
       console.error("Error moving page:", error);
       alert("Failed to move page");
     } finally {
       setLoading(false);
-      setMoveDialog(null);
     }
-  }, [moveDialog, selectedFolderId]);
+  }, [moveDialog, selectedFolderId, router]);
 
-  // Funkcie pre otváranie dialógov
   const openMoveToTrashDialog = useCallback(
     (type: "page" | "folder", id: string, title: string) => {
       setMoveToTrashDialog({ open: true, type, id, title });
@@ -541,13 +544,17 @@ export default function DashboardClient({
 
   const openMoveDialog = useCallback(
     (pageId: string, pageTitle: string, currentFolderId?: string | null) => {
-      setMoveDialog({ open: true, pageId, pageTitle, currentFolderId });
-      setSelectedFolderId(currentFolderId || null);
+      setMoveDialog({ 
+        open: true, 
+        pageId, 
+        pageTitle, 
+        currentFolderId 
+      });
+      setSelectedFolderId(null);
     },
     [],
   );
 
-  // Vystavenie funkcií pre globálny prístup
   useEffect(() => {
     window.openEditDialog = openEditDialog;
     window.openMoveDialog = openMoveDialog;
@@ -555,7 +562,6 @@ export default function DashboardClient({
     window.openMoveToTrashDialog = openMoveToTrashDialog;
 
     return () => {
-      // Cleanup
       window.openEditDialog = undefined;
       window.openMoveDialog = undefined;
       window.openFolderDetailDialog = undefined;
@@ -568,7 +574,6 @@ export default function DashboardClient({
     openMoveToTrashDialog,
   ]);
 
-  // Vytvorenie tabuliek pre detail priečinka
   const pagesTable = useReactTable({
     data: folderDetailDialog.data?.pages || [],
     columns: pageColumns,
@@ -601,7 +606,6 @@ export default function DashboardClient({
         </p>
       </div>
 
-      {/* Folders Section */}
       {folders.length > 0 && (
         <FoldersSection
           folders={foldersToShow}
@@ -612,7 +616,6 @@ export default function DashboardClient({
         />
       )}
 
-      {/* Pages Section */}
       {pages.length > 0 && (
         <PagesSection
           pages={pagesToShow}
@@ -622,7 +625,6 @@ export default function DashboardClient({
         />
       )}
 
-      {/* Empty State */}
       {pages.length === 0 && folders.length === 0 && (
         <div className="mt-16 text-center">
           <p className="text-neutral-600 dark:text-neutral-400">
@@ -631,7 +633,6 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Dialógy */}
       <FolderDetailDialog
         dialog={folderDetailDialog}
         onClose={() =>
@@ -667,12 +668,12 @@ export default function DashboardClient({
         folders={folders}
         selectedFolderId={selectedFolderId}
         onFolderChange={setSelectedFolderId}
+        currentFolderId={moveDialog?.currentFolderId}
       />
     </div>
   );
 }
 
-// Komponenty pre sekcie
 interface FoldersSectionProps {
   folders: FolderType[];
   currentPage: number;
@@ -735,7 +736,6 @@ const PagesSection = ({
   </div>
 );
 
-// Komponenty pre karty
 interface FolderCardProps {
   folder: FolderType;
   onClick: (id: string) => void;
@@ -773,7 +773,6 @@ const PageCard = ({ page }: PageCardProps) => (
   </div>
 );
 
-// Komponent pre pagináciu
 interface PaginationComponentProps {
   currentPage: number;
   totalPages: number;
@@ -826,7 +825,6 @@ const PaginationComponent = ({
   );
 };
 
-// Komponenty pre dialógy
 interface FolderDetailDialogProps {
   dialog: FolderDetailDialogState;
   onClose: () => void;
@@ -1024,6 +1022,7 @@ interface MoveDialogProps {
   folders: FolderType[];
   selectedFolderId: string | null;
   onFolderChange: (value: string | null) => void;
+  currentFolderId?: string | null;
 }
 
 const MoveDialog = ({
@@ -1034,41 +1033,77 @@ const MoveDialog = ({
   folders,
   selectedFolderId,
   onFolderChange,
-}: MoveDialogProps) => (
-  <Dialog open={!!dialog?.open} onOpenChange={onClose}>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Move Page</DialogTitle>
-        <DialogDescription>
-          Move "{dialog?.pageTitle}" to a different folder.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="folder">Select Folder</Label>
-          <Select value={selectedFolderId || ""} onValueChange={onFolderChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a folder" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Root (No Folder)</SelectItem>
-              {folders.map((folder) => (
-                <SelectItem key={folder.id} value={folder.id}>
-                  {folder.title || "Unnamed Folder"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+  currentFolderId,
+}: MoveDialogProps) => {
+  const availableFolders = useMemo(() => {
+    return folders.filter(folder => {
+      if (folder.id === currentFolderId) return false;
+      if (folder.id === selectedFolderId && folder.id === currentFolderId) return false;
+      return true;
+    });
+  }, [folders, currentFolderId, selectedFolderId]);
+
+  const handleFolderChange = (value: string) => {
+    onFolderChange(value === "" ? null : value);
+  };
+
+  return (
+    <Dialog open={!!dialog?.open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Move Page</DialogTitle>
+          <DialogDescription>
+            Move "{dialog?.pageTitle}" to a different folder.
+            {currentFolderId && " Current folder will be removed."}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="folder">Select Folder</Label>
+            <Select value={selectedFolderId || ""} onValueChange={handleFolderChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a folder" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Root (No Folder)</SelectItem>
+                {availableFolders.map((folder) => (
+                  <SelectItem key={folder.id} value={folder.id}>
+                    {folder.title || "Unnamed Folder"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {availableFolders.length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                No other folders available. Create a new folder first.
+              </p>
+            )}
+          </div>
+          
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <div className="shrink-0 mt-0.5">
+                <Move className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="text-sm text-blue-800 dark:text-blue-300">
+                <p><strong>Moving from:</strong> {currentFolderId ? "Current folder" : "Root"}</p>
+                <p><strong>Moving to:</strong> {selectedFolderId ? "Selected folder" : "Root"}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button onClick={onConfirm} disabled={loading}>
-          {loading ? "Moving..." : "Move Page"}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-);
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={onConfirm} 
+            disabled={loading || selectedFolderId === currentFolderId}
+          >
+            {loading ? "Moving..." : "Move Page"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
