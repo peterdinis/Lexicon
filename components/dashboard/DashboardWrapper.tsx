@@ -34,11 +34,12 @@ const rawFolderSchema = z.object({
 // Response schema for folders action (might return object with data property)
 const foldersResponseSchema = z.union([
   z.array(rawFolderSchema), // Direct array
-  z.object({ // Or object with data property
+  z.object({
+    // Or object with data property
     data: z.array(rawFolderSchema).optional(),
     success: z.boolean().optional(),
     error: z.string().optional(),
-  })
+  }),
 ]);
 
 // Types for DashboardClient
@@ -69,11 +70,15 @@ function transformPagesData(data: unknown): Page[] {
       title: item.title || "Untitled",
       description: item.description,
       parent_id: item.parent_id,
-      created_at: item.created_at 
-        ? (typeof item.created_at === 'string' ? item.created_at : item.created_at.toISOString())
+      created_at: item.created_at
+        ? typeof item.created_at === "string"
+          ? item.created_at
+          : item.created_at.toISOString()
         : undefined,
-      updated_at: item.updated_at 
-        ? (typeof item.updated_at === 'string' ? item.updated_at : item.updated_at.toISOString())
+      updated_at: item.updated_at
+        ? typeof item.updated_at === "string"
+          ? item.updated_at
+          : item.updated_at.toISOString()
         : undefined,
     }));
   } catch (error) {
@@ -86,9 +91,9 @@ function transformFoldersData(data: unknown): FolderType[] {
   try {
     // First parse with the union schema to handle different response formats
     const parsedResponse = foldersResponseSchema.parse(data);
-    
+
     let foldersArray: z.infer<typeof rawFolderSchema>[] = [];
-    
+
     if (Array.isArray(parsedResponse)) {
       foldersArray = parsedResponse;
     } else if (parsedResponse.data && Array.isArray(parsedResponse.data)) {
@@ -97,16 +102,20 @@ function transformFoldersData(data: unknown): FolderType[] {
       console.error("Folder action returned error:", parsedResponse.error);
       return [];
     }
-    
+
     // Now transform the array
     return foldersArray.map((item) => ({
       id: item.id,
       title: item.title || "Unnamed Folder",
-      created_at: item.created_at 
-        ? (typeof item.created_at === 'string' ? item.created_at : item.created_at.toISOString())
+      created_at: item.created_at
+        ? typeof item.created_at === "string"
+          ? item.created_at
+          : item.created_at.toISOString()
         : undefined,
-      updated_at: item.updated_at 
-        ? (typeof item.updated_at === 'string' ? item.updated_at : item.updated_at.toISOString())
+      updated_at: item.updated_at
+        ? typeof item.updated_at === "string"
+          ? item.updated_at
+          : item.updated_at.toISOString()
         : undefined,
     }));
   } catch (error) {
@@ -126,14 +135,14 @@ export default async function DashboardPage() {
     ]);
 
     // Handle pages response
-    if (pagesResponse.status === 'fulfilled') {
+    if (pagesResponse.status === "fulfilled") {
       pages = transformPagesData(pagesResponse.value);
     } else {
       console.error("Failed to fetch pages:", pagesResponse.reason);
     }
 
-    // Handle folders response  
-    if (foldersResponse.status === 'fulfilled') {
+    // Handle folders response
+    if (foldersResponse.status === "fulfilled") {
       folders = transformFoldersData(foldersResponse.value);
     } else {
       console.error("Failed to fetch folders:", foldersResponse.reason);
@@ -143,10 +152,12 @@ export default async function DashboardPage() {
     console.log("Folders:", folders.length);
 
     // If both requests failed, redirect to login
-    if (pagesResponse.status === 'rejected' && foldersResponse.status === 'rejected') {
+    if (
+      pagesResponse.status === "rejected" &&
+      foldersResponse.status === "rejected"
+    ) {
       redirect("/auth/login");
     }
-
   } catch (err) {
     console.error("Dashboard fetch error:", err);
     redirect("/auth/login");

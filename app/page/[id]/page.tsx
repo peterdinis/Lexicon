@@ -3,11 +3,11 @@ import PageViewClient from "@/components/pages/PageViewClient";
 import { getPageHandler, getAllPagesHandler } from "@/actions/pagesActions";
 
 // Povoliť dynamický rendering
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 interface PageViewProps {
-  params: { 
-    id: string 
+  params: {
+    id: string;
   };
 }
 
@@ -22,7 +22,7 @@ export default async function PageView({ params }: PageViewProps) {
   try {
     const [page, pages] = await Promise.all([
       getPageHandler(id),
-      getAllPagesHandler()
+      getAllPagesHandler(),
     ]);
 
     if (!page) {
@@ -30,7 +30,6 @@ export default async function PageView({ params }: PageViewProps) {
     }
 
     return <PageViewClient id={id} page={page} pages={pages} />;
-    
   } catch (error: any) {
     console.error("Error loading page:", error.message);
     redirect("/dashboard");

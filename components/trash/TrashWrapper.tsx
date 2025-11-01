@@ -40,7 +40,7 @@ export function TrashWrapper() {
         const result = await getAllTrashedItemsAction();
 
         let trashData: TrashItems = { pages: [], folders: [] };
-        
+
         if (result?.data?.data?.data) {
           trashData = result.data.data.data as unknown as TrashItems;
         } else if (result?.data?.data) {
@@ -193,7 +193,8 @@ export function TrashWrapper() {
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-2">
-                        Deleted {formatDate(page.deleted_at as unknown as string)}
+                        Deleted{" "}
+                        {formatDate(page.deleted_at as unknown as string)}
                       </p>
                     </div>
                     <div className="flex gap-2 shrink-0">
