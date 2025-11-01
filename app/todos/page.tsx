@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import TodoWrapper from "@/components/todos/TodosWrapper";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import { Page } from "@/types/pageTypes";
+import { getAllPagesHandler } from "@/actions/pagesActions";
 
 export default async function TodosPage() {
   const supabase = await getSupabaseServerClient();
@@ -14,18 +16,24 @@ export default async function TodosPage() {
     redirect("/auth/login");
   }
 
-  const { data: pages } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("user_id", user.id)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
+  let pages:
+    | {
+      id: string;
+      user_id: string;
+      title: string;
+      description: string;
+      parent_id: string | null;
+      is_folder: number;
+      created_at: string;
+      updated_at: string;
+    }[]
+    | Page[] = [];
 
-  const { data: todos } = await supabase
-    .from("todos")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  try {
+    pages = await getAllPagesHandler();
+  } catch (err) {
+    pages = [];
+  }
 
   return (
     <div className="flex h-screen">

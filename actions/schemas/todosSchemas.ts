@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { folders } from "@/drizzle/schema";
 
-// Zod Schemas
 export const insertFolderSchema = createInsertSchema(folders, {
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
 }).omit({
@@ -19,29 +18,28 @@ export const createTodoSchema = z.object({
     .optional()
     .default(""),
   priority: z.enum(["low", "medium", "high"]).optional().default("medium"),
-  due_date: z.string().datetime().nullable().optional(),
+  due_date: z.date().nullable().optional(),
   status: z.string().optional().default("not_started"),
   notes: z.string().optional().default(""),
 });
 
-// Validation schemas for actions
 export const createFolderSchema = z.object({
-  parent_id: z.string().uuid("Invalid parent ID").nullable().default(null),
+  parent_id: z.uuid("Invalid parent ID").nullable().default(null),
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
 });
 
 export const updateFolderInputSchema = z.object({
-  id: z.string().uuid("Invalid folder ID"),
+  id: z.uuid("Invalid folder ID"),
   title: z
     .string()
     .min(1, "Title is required")
     .max(255, "Title too long")
     .optional(),
-  parent_id: z.string().uuid("Invalid parent ID").nullable().optional(),
+  parent_id: z.uuid("Invalid parent ID").nullable().optional(),
 });
 
 export const deleteFolderSchema = z.object({
-  id: z.string().uuid("Invalid folder ID"),
+  id: z.uuid("Invalid folder ID"),
 });
 
 // Types

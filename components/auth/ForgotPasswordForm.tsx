@@ -22,7 +22,6 @@ import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/constants/applicationConstants";
 import { checkEmailAction } from "@/actions/authActions";
-import { CheckEmailResponse } from "@/types/applicationTypes";
 
 // Zod schema
 const ForgotPasswordSchema = z.object({
@@ -56,7 +55,7 @@ const ForgotPasswordForm: FC = () => {
 
     try {
       setCheckingEmail(true);
-      const result = (await checkEmailAction({ email })) as CheckEmailResponse;
+      const result = (await checkEmailAction({ email })) as any;
       setEmailExists(result.exists);
     } catch {
       setEmailExists(undefined);

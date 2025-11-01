@@ -27,13 +27,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Page } from "@/types/applicationTypes";
 import {
   createPageHandler,
   getAllPagesHandler,
   movePageHandler,
 } from "@/actions/pagesActions";
 import { createFolderAction } from "@/actions/folderActions";
+import { Page } from "@/types/pageTypes";
 
 interface DashboardSidebarProps {
   initialPages: Page[];

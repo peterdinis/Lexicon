@@ -43,7 +43,6 @@ export interface CachedSearchData {
   folders: FolderItem[];
 }
 
-// Zmena: Pridanie zodpovedajúcich typov pre schému
 export type SearchType = "page" | "todo" | "event" | "diagram" | "folder";
 export type SearchSchemaType =
   | "pages"
@@ -52,7 +51,7 @@ export type SearchSchemaType =
   | "diagrams"
   | "folders";
 
-// Pomocná funkcia pre konverziu typov
+
 const convertSearchTypesToSchemaTypes = (
   types: SearchType[],
 ): SearchSchemaType[] => {
@@ -145,7 +144,6 @@ export interface FolderItem {
   in_trash: boolean;
 }
 
-// Search filter types
 export interface SearchFilters {
   types?: SearchType[];
   dateRange?: {
@@ -157,7 +155,6 @@ export interface SearchFilters {
   completed?: boolean;
 }
 
-// Search context types
 export interface SearchContextType {
   query: string;
   setQuery: (query: string) => void;
@@ -170,7 +167,6 @@ export interface SearchContextType {
   refreshSearch: () => void;
 }
 
-// Search ranking and scoring
 export interface SearchScoreWeights {
   title: number;
   description: number;
@@ -179,7 +175,6 @@ export interface SearchScoreWeights {
   metadata: number;
 }
 
-// Search analytics
 export interface SearchAnalytics {
   query: string;
   resultsCount: number;
@@ -188,7 +183,6 @@ export interface SearchAnalytics {
   timestamp: Date;
 }
 
-// Search history item
 export interface SearchHistoryItem {
   id: string;
   query: string;
@@ -196,7 +190,6 @@ export interface SearchHistoryItem {
   resultsCount: number;
 }
 
-// Search preferences
 export interface SearchPreferences {
   maxResults: number;
   searchDelay: number;

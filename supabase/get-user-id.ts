@@ -25,5 +25,8 @@ export async function getAuthenticatedUser() {
   if (userError) throw new Error(userError.message);
   if (!user) throw new Error("Unauthorized");
 
-  return user;
+  return {
+    user,
+    userError
+  }
 }
