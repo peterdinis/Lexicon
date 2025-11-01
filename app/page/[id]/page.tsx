@@ -2,13 +2,35 @@ import { redirect } from "next/navigation";
 import PageViewClient from "@/components/pages/PageViewClient";
 import { getPageHandler, getAllPagesHandler } from "@/actions/pagesActions";
 
-export default async function PageView({ params }: { params: { id: string } }) {
+// Povoliť dynamický rendering
+export const dynamic = "force-dynamic";
+
+interface PageViewProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function PageView({ params }: PageViewProps) {
   const { id } = params;
 
-  const page = await getPageHandler(id);
-  if (!page) redirect("/");
+  if (!id) {
+    console.error("Page ID is undefined");
+    redirect("/dashboard");
+  }
 
-  const pages = await getAllPagesHandler();
+  try {
+    const [page, pages] = await Promise.all([
+      getPageHandler(id),
+      getAllPagesHandler(),
+    ]);
 
-  return <PageViewClient id={id} page={page} pages={pages} />;
+    if (!page) {
+      redirect("/dashboard");
+    }
+
+    return <PageViewClient id={id} page={page} pages={pages} />;
+  } catch (error) {
+    throw new Error("Something went wrong");
+  }
 }

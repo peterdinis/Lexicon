@@ -1552,7 +1552,7 @@ export default function TodoWrapper() {
       completed,
     };
   };
-  
+
   const handleUpdateTodo = async (id: string, data: TodoFormData) => {
     const updates = convertFormDataToTodoUpdates(data);
 

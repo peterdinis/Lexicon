@@ -6,18 +6,13 @@ import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { PageHeader } from "@/components/pages/PageHeader";
 import { TiptapEditor } from "@/components/editor/TipTapEditor";
 import { debounce } from "@/lib/debounce";
-import { Page } from "@/types/applicationTypes";
 import { updatePageHandler } from "@/actions/pagesActions";
+import { Page } from "@/types/pageTypes";
 
 interface PageViewClientProps {
   id: string;
   page: Page;
   pages: Page[];
-}
-
-// Lokálny typ pre stav komponentu
-interface LocalPage extends Omit<Page, "cover_image"> {
-  cover_image: string | null;
 }
 
 export default function PageViewClient({
@@ -26,10 +21,7 @@ export default function PageViewClient({
   pages,
 }: PageViewClientProps) {
   const [isPending, startTransition] = useTransition();
-  const [localPage, setLocalPage] = useState<LocalPage>({
-    ...page,
-    cover_image: page.cover_image ?? null,
-  });
+  const [localPage, setLocalPage] = useState<Page>(page);
   const [sidebarPages, setSidebarPages] = useState(pages);
 
   // Memoized debounced save functions
@@ -119,8 +111,8 @@ export default function PageViewClient({
           <PageHeader
             pageId={id}
             title={localPage.title}
-            icon={localPage.icon}
-            coverImage={localPage.cover_image}
+            icon={localPage.icon || undefined}
+            coverImage={localPage.cover_image || undefined}
             onTitleChange={handleTitleChange}
             onIconChange={handleIconChange}
             onCoverChange={handleCoverChange}

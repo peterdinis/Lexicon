@@ -66,6 +66,7 @@ export async function createPageHandler(
 
   if (!newPage) throw new Error("Failed to create page");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
   return newPage;
 }
@@ -110,6 +111,7 @@ export async function updatePageHandler(id: string, data: UpdatePageInput) {
 
   if (!updatedPage) throw new Error("Page not found or unauthorized");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
   return updatedPage;
 }
@@ -158,7 +160,9 @@ export async function deletePageHandler(pageId: string) {
 
   if (!deletedPage) throw new Error("Page not found or unauthorized");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true, page: deletedPage };
 }
 
@@ -173,7 +177,9 @@ export async function hardDeletePageHandler(pageId: string) {
 
   if (!deletedPage) throw new Error("Page not found or unauthorized");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true };
 }
 
@@ -192,7 +198,9 @@ export async function restorePageHandler(pageId: string) {
 
   if (!restoredPage) throw new Error("Page not found or unauthorized");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
+  revalidatePath("/trash");
   return { success: true, page: restoredPage };
 }
 
@@ -215,6 +223,7 @@ export async function movePageHandler(
 
   if (!updatedPage) throw new Error("Failed to move page or unauthorized");
 
+  revalidatePath("/dashboard");
   revalidatePath("/pages");
   return updatedPage;
 }

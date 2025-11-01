@@ -115,12 +115,6 @@ const SearchResultItem: FC<{ result: SearchResult; onSelect: () => void }> = ({
             {result.content}
           </p>
         )}
-        {result.metadata?.created_at && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Vytvorené:{" "}
-            {new Date(result.metadata.created_at).toLocaleDateString("sk-SK")}
-          </p>
-        )}
       </div>
     </div>
   );
@@ -141,8 +135,6 @@ const DashboardTopBar: FC = () => {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
   });
-
-  // Debounced search s lepšou logikou
   useEffect(() => {
     if (!isSearchOpen) return;
 
@@ -163,7 +155,6 @@ const DashboardTopBar: FC = () => {
     }
   }, [searchQuery, isSearchOpen, search]);
 
-  // Reset search when dialog opens/closes
   useEffect(() => {
     if (!isSearchOpen) {
       setSearchQuery("");
@@ -338,7 +329,7 @@ const DashboardTopBar: FC = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Odhlásiť sa
+                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

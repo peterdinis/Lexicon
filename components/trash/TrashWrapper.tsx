@@ -10,16 +10,7 @@ import {
   restoreFromTrashAction,
   permanentlyDeleteAction,
 } from "@/actions/trashActions";
-
-interface Page {
-  id: string;
-  title?: string;
-  description?: string;
-  parent_id?: string | null;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;
-}
+import { Page } from "@/types/pageTypes";
 
 interface FolderType {
   id: string;
@@ -35,9 +26,7 @@ interface TrashItems {
   folders: FolderType[];
 }
 
-interface TrashWrapperProps {}
-
-export function TrashWrapper({}: TrashWrapperProps) {
+export function TrashWrapper() {
   const [pages, setPages] = useState<Page[]>([]);
   const [folders, setFolders] = useState<FolderType[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
@@ -50,15 +39,18 @@ export function TrashWrapper({}: TrashWrapperProps) {
         setIsLoading(true);
         const result = await getAllTrashedItemsAction();
 
-        // SafeActionResult vracia data v result.data
-        if (result?.data?.data) {
-          const trashData = result.data.data as unknown as TrashItems;
-          setPages(Array.isArray(trashData.pages) ? trashData.pages : []);
-          setFolders(Array.isArray(trashData.folders) ? trashData.folders : []);
-        } else {
-          setPages([]);
-          setFolders([]);
+        let trashData: TrashItems = { pages: [], folders: [] };
+
+        if (result?.data?.data?.data) {
+          trashData = result.data.data.data as unknown as TrashItems;
+        } else if (result?.data?.data) {
+          trashData = result.data.data as unknown as TrashItems;
+        } else if (result?.data) {
+          trashData = result.data as unknown as TrashItems;
         }
+
+        setPages(Array.isArray(trashData.pages) ? trashData.pages : []);
+        setFolders(Array.isArray(trashData.folders) ? trashData.folders : []);
       } catch (err) {
         console.error("Error loading trash:", err);
         setPages([]);
@@ -179,7 +171,6 @@ export function TrashWrapper({}: TrashWrapperProps) {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Pages Section */}
           {pages.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-4">
@@ -202,7 +193,8 @@ export function TrashWrapper({}: TrashWrapperProps) {
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-2">
-                        Deleted {formatDate(page.deleted_at)}
+                        Deleted{" "}
+                        {formatDate(page.deleted_at as unknown as string)}
                       </p>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -235,7 +227,6 @@ export function TrashWrapper({}: TrashWrapperProps) {
             </div>
           )}
 
-          {/* Folders Section */}
           {folders.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-4">
