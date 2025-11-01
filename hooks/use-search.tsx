@@ -45,18 +45,31 @@ export interface CachedSearchData {
 
 // Zmena: Pridanie zodpovedajúcich typov pre schému
 export type SearchType = "page" | "todo" | "event" | "diagram" | "folder";
-export type SearchSchemaType = "pages" | "todos" | "events" | "diagrams" | "folders";
+export type SearchSchemaType =
+  | "pages"
+  | "todos"
+  | "events"
+  | "diagrams"
+  | "folders";
 
 // Pomocná funkcia pre konverziu typov
-const convertSearchTypesToSchemaTypes = (types: SearchType[]): SearchSchemaType[] => {
-  return types.map(type => {
+const convertSearchTypesToSchemaTypes = (
+  types: SearchType[],
+): SearchSchemaType[] => {
+  return types.map((type) => {
     switch (type) {
-      case "page": return "pages";
-      case "todo": return "todos";
-      case "event": return "events";
-      case "diagram": return "diagrams";
-      case "folder": return "folders";
-      default: return "pages" as SearchSchemaType;
+      case "page":
+        return "pages";
+      case "todo":
+        return "todos";
+      case "event":
+        return "events";
+      case "diagram":
+        return "diagrams";
+      case "folder":
+        return "folders";
+      default:
+        return "pages" as SearchSchemaType;
     }
   });
 };
@@ -298,7 +311,7 @@ export const useSearch = () => {
   }, []);
 
   // Use results from either search or quick search
-  const results: SearchResult[] = 
+  const results: SearchResult[] =
     (result.data?.data?.results ? result.data.data.results : []) ??
     (quickResult.data?.data?.results ? quickResult.data.data.results : []) ??
     localResults;
