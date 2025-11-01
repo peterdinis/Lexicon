@@ -17,7 +17,7 @@ const rawPageSchema = z.object({
   coverImage: z.string().nullable().optional(),
   parent_id: z.string().nullable().optional(),
   is_folder: z.boolean().optional(),
-  in_trash: z.boolean().optional(),
+  in_trash: z.boolean().optional().default(false),
   created_at: z.union([z.string(), z.date()]).optional(),
   updated_at: z.union([z.string(), z.date()]).optional(),
 });
@@ -26,7 +26,7 @@ const rawFolderSchema = z.object({
   id: z.string(),
   user_id: z.string(),
   title: z.string().optional().default(""),
-  in_trash: z.boolean().optional(),
+  in_trash: z.boolean().optional().default(false),
   created_at: z.union([z.string(), z.date()]).optional(),
   updated_at: z.union([z.string(), z.date()]).optional(),
 });
@@ -48,6 +48,7 @@ interface Page {
   title: string;
   description?: string;
   parent_id?: string | null;
+  in_trash?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -56,6 +57,7 @@ interface FolderType {
   id: string;
   title: string;
   parent_id?: string | null;
+  in_trash?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -65,22 +67,26 @@ function transformPagesData(data: unknown): Page[] {
   try {
     const parsedData = z.array(rawPageSchema).parse(data);
 
-    return parsedData.map((item) => ({
-      id: item.id,
-      title: item.title || "Untitled",
-      description: item.description,
-      parent_id: item.parent_id,
-      created_at: item.created_at
-        ? typeof item.created_at === "string"
-          ? item.created_at
-          : item.created_at.toISOString()
-        : undefined,
-      updated_at: item.updated_at
-        ? typeof item.updated_at === "string"
-          ? item.updated_at
-          : item.updated_at.toISOString()
-        : undefined,
-    }));
+    // Filter out trashed pages and transform
+    return parsedData
+      .filter((item) => !item.in_trash) // Filter out trashed items
+      .map((item) => ({
+        id: item.id,
+        title: item.title || "Untitled",
+        description: item.description,
+        parent_id: item.parent_id,
+        in_trash: item.in_trash,
+        created_at: item.created_at
+          ? typeof item.created_at === "string"
+            ? item.created_at
+            : item.created_at.toISOString()
+          : undefined,
+        updated_at: item.updated_at
+          ? typeof item.updated_at === "string"
+            ? item.updated_at
+            : item.updated_at.toISOString()
+          : undefined,
+      }));
   } catch (error) {
     console.error("Error transforming pages data:", error);
     return [];
@@ -103,21 +109,24 @@ function transformFoldersData(data: unknown): FolderType[] {
       return [];
     }
 
-    // Now transform the array
-    return foldersArray.map((item) => ({
-      id: item.id,
-      title: item.title || "Unnamed Folder",
-      created_at: item.created_at
-        ? typeof item.created_at === "string"
-          ? item.created_at
-          : item.created_at.toISOString()
-        : undefined,
-      updated_at: item.updated_at
-        ? typeof item.updated_at === "string"
-          ? item.updated_at
-          : item.updated_at.toISOString()
-        : undefined,
-    }));
+    // Filter out trashed folders and transform
+    return foldersArray
+      .filter((item) => !item.in_trash) // Filter out trashed items
+      .map((item) => ({
+        id: item.id,
+        title: item.title || "Unnamed Folder",
+        in_trash: item.in_trash,
+        created_at: item.created_at
+          ? typeof item.created_at === "string"
+            ? item.created_at
+            : item.created_at.toISOString()
+          : undefined,
+        updated_at: item.updated_at
+          ? typeof item.updated_at === "string"
+            ? item.updated_at
+            : item.updated_at.toISOString()
+          : undefined,
+      }));
   } catch (error) {
     console.error("Error transforming folders data:", error);
     return [];
@@ -147,9 +156,6 @@ export default async function DashboardPage() {
     } else {
       console.error("Failed to fetch folders:", foldersResponse.reason);
     }
-
-    console.log("Pages:", pages.length);
-    console.log("Folders:", folders.length);
 
     // If both requests failed, redirect to login
     if (
