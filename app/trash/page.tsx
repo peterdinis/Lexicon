@@ -32,8 +32,7 @@ export default async function TrashPage() {
         <DashboardTopBar />
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-4xl p-8">
-            <h1 className="mb-8 text-4xl font-bold">Trash</h1>
-            <TrashWrapper initialPages={[]} />
+            <TrashWrapper />
           </div>
         </main>
       </div>
