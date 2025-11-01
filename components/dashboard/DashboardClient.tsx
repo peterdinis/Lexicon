@@ -1025,6 +1025,7 @@ interface MoveDialogProps {
   currentFolderId?: string | null;
 }
 
+
 const MoveDialog = ({
   dialog,
   onClose,
@@ -1035,18 +1036,31 @@ const MoveDialog = ({
   onFolderChange,
   currentFolderId,
 }: MoveDialogProps) => {
+  const ROOT_VALUE = "__ROOT__";
+  
   const availableFolders = useMemo(() => {
-    return folders.filter((folder) => {
-      if (folder.id === currentFolderId) return false;
-      if (folder.id === selectedFolderId && folder.id === currentFolderId)
-        return false;
-      return true;
-    });
-  }, [folders, currentFolderId, selectedFolderId]);
+    return folders.filter((folder) => folder.id !== currentFolderId);
+  }, [folders, currentFolderId]);
 
   const handleFolderChange = (value: string) => {
-    onFolderChange(value === "" ? null : value);
+    onFolderChange(value === ROOT_VALUE ? null : value);
   };
+
+  const getCurrentFolderName = () => {
+    if (!currentFolderId) return "Root";
+    const folder = folders.find((f) => f.id === currentFolderId);
+    return folder?.title || "Unknown Folder";
+  };
+
+  const getSelectedFolderName = () => {
+    if (!selectedFolderId) return "Root";
+    const folder = folders.find((f) => f.id === selectedFolderId);
+    return folder?.title || "Unknown Folder";
+  };
+
+  const isMovingToSameLocation = 
+    (selectedFolderId === null && currentFolderId === null) ||
+    (selectedFolderId === currentFolderId);
 
   return (
     <Dialog open={!!dialog?.open} onOpenChange={onClose}>
@@ -1054,52 +1068,72 @@ const MoveDialog = ({
         <DialogHeader>
           <DialogTitle>Move Page</DialogTitle>
           <DialogDescription>
-            Move "{dialog?.pageTitle}" to a different folder.
-            {currentFolderId && " Current folder will be removed."}
+            Choose a new location for "{dialog?.pageTitle}"
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="folder">Select Folder</Label>
+            <Label htmlFor="folder">Destination Folder</Label>
             <Select
-              value={selectedFolderId || ""}
+              value={selectedFolderId === null ? ROOT_VALUE : selectedFolderId || ROOT_VALUE}
               onValueChange={handleFolderChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a folder" />
+                <SelectValue placeholder="Select destination" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Root (No Folder)</SelectItem>
+                <SelectItem value={ROOT_VALUE}>
+                  📁 Root (No Folder)
+                </SelectItem>
                 {availableFolders.map((folder) => (
                   <SelectItem key={folder.id} value={folder.id}>
-                    {folder.title || "Unnamed Folder"}
+                    📂 {folder.title || "Unnamed Folder"}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {availableFolders.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-2">
-                No other folders available. Create a new folder first.
+            {availableFolders.length === 0 && currentFolderId && (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                ⚠️ No other folders available. You can only move to Root.
               </p>
             )}
           </div>
 
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <div className="shrink-0 mt-0.5">
-                <Move className="h-4 w-4 text-blue-600" />
-              </div>
-              <div className="text-sm text-blue-800 dark:text-blue-300">
-                <p>
-                  <strong>Moving from:</strong>{" "}
-                  {currentFolderId ? "Current folder" : "Root"}
-                </p>
-                <p>
-                  <strong>Moving to:</strong>{" "}
-                  {selectedFolderId ? "Selected folder" : "Root"}
-                </p>
+          <div className="space-y-2">
+            <div className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  Current location:
+                </span>
+                <span className="font-medium">{getCurrentFolderName()}</span>
               </div>
             </div>
+
+            {selectedFolderId !== undefined && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-blue-700 dark:text-blue-300">
+                    New location:
+                  </span>
+                  <span className="font-medium text-blue-800 dark:text-blue-200">
+                    {getSelectedFolderName()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {isMovingToSameLocation && selectedFolderId !== undefined && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <div className="shrink-0 mt-0.5">
+                    <Move className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
+                    This page is already in this location. Please select a different folder.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -1108,7 +1142,7 @@ const MoveDialog = ({
           </Button>
           <Button
             onClick={onConfirm}
-            disabled={loading || selectedFolderId === currentFolderId}
+            disabled={loading || isMovingToSameLocation}
           >
             {loading ? "Moving..." : "Move Page"}
           </Button>
