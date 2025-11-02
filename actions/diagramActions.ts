@@ -117,7 +117,7 @@ export const restoreDiagramAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
-  
+
 export const getTrashedDiagramsAction = actionClient.action(async () => {
   try {
     const diagrams = await getTrashedDiagramsHandler();

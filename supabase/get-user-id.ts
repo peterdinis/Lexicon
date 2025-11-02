@@ -27,6 +27,6 @@ export async function getAuthenticatedUser() {
 
   return {
     user,
-    userError
-  }
+    userError,
+  };
 }

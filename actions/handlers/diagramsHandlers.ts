@@ -21,12 +21,7 @@ export async function getDiagramHandler(id: string) {
   const [diagram] = await db
     .select()
     .from(diagrams)
-    .where(
-      and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, userId),
-      ),
-    );
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, userId)));
 
   if (!diagram) throw new Error("Diagram not found");
   return diagram;
@@ -122,12 +117,7 @@ export async function getAllDiagramsHandler() {
   const allDiagrams = await db
     .select()
     .from(diagrams)
-    .where(
-      and(
-        eq(diagrams.user_id, userId),
-        eq(diagrams.in_trash, false),
-      ),
-    )
+    .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)))
     .orderBy(asc(diagrams.created_at));
 
   return allDiagrams || [];

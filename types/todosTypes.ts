@@ -16,7 +16,6 @@ export interface TodoResponse {
   error?: string;
 }
 
-
 export interface CreateTodoData {
   title: string;
   description?: string;

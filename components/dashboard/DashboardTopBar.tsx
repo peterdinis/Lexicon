@@ -139,11 +139,7 @@ const DashboardTopBar: FC = () => {
 
     if (searchQuery.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
-        search(
-          searchQuery,
-          ["page", "todo", "event", "diagram", "folder"],
-          10,
-        );
+        search(searchQuery, ["page", "todo", "event", "diagram", "folder"], 10);
       }, 300);
 
       return () => {

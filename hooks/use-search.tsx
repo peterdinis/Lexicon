@@ -51,7 +51,6 @@ export type SearchSchemaType =
   | "diagrams"
   | "folders";
 
-
 const convertSearchTypesToSchemaTypes = (
   types: SearchType[],
 ): SearchSchemaType[] => {

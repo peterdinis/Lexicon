@@ -12,23 +12,13 @@ export async function getAllTrashedItemsHandler(): Promise<{
     const trashedPages = await db
       .select()
       .from(pages)
-      .where(
-        and(
-          eq(pages.user_id, user.id),
-          eq(pages.in_trash, true),
-        ),
-      )
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)))
       .orderBy(desc(pages.updated_at));
 
     const trashedFolders = await db
       .select()
       .from(folders)
-      .where(
-        and(
-          eq(folders.user_id, user.id),
-          eq(folders.in_trash, true),
-        ),
-      )
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, true)))
       .orderBy(desc(folders.updated_at));
 
     return {
@@ -51,23 +41,13 @@ export async function getAllNonTrashedItemsHandler(): Promise<{
     const nonTrashedPages = await db
       .select()
       .from(pages)
-      .where(
-        and(
-          eq(pages.user_id, user.id),
-          eq(pages.in_trash, false),
-        ),
-      )
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, false)))
       .orderBy(desc(pages.created_at));
 
     const nonTrashedFolders = await db
       .select()
       .from(folders)
-      .where(
-        and(
-          eq(folders.user_id, user.id),
-          eq(folders.in_trash, false),
-        ),
-      )
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, false)))
       .orderBy(desc(folders.created_at));
 
     return {
@@ -330,22 +310,12 @@ export async function getTrashStatsHandler(): Promise<{
     const [pagesResult] = await db
       .select({ count: count() })
       .from(pages)
-      .where(
-        and(
-          eq(pages.user_id, user.id),
-          eq(pages.in_trash, true)
-        ),
-      );
+      .where(and(eq(pages.user_id, user.id), eq(pages.in_trash, true)));
 
     const [foldersResult] = await db
       .select({ count: count() })
       .from(folders)
-      .where(
-        and(
-          eq(folders.user_id, user.id),
-          eq(folders.in_trash, true),
-        ),
-      );
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, true)));
 
     return {
       pagesCount: pagesResult?.count || 0,
@@ -397,12 +367,7 @@ export async function getFolderDetailHandler(folderId: string): Promise<{
     const subfolders = await db
       .select()
       .from(folders)
-      .where(
-        and(
-          eq(folders.user_id, user.id),
-          eq(folders.in_trash, false),
-        ),
-      )
+      .where(and(eq(folders.user_id, user.id), eq(folders.in_trash, false)))
       .orderBy(desc(folders.updated_at));
 
     return {

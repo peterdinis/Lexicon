@@ -75,7 +75,7 @@ export async function getFolderDetailHandler(folderId: string) {
       ),
     )
     .orderBy(asc(pages.created_at));
-    
+
   const subfolders = await db
     .select()
     .from(folders)
