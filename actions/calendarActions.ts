@@ -26,7 +26,6 @@ export const createCalendarEventAction = actionClient
     }
   });
 
-// GET SINGLE
 export const getCalendarEventAction = actionClient
   .inputSchema(
     z.object({
@@ -41,7 +40,6 @@ export const getCalendarEventAction = actionClient
     }
   });
 
-// UPDATE
 export const updateCalendarEventAction = actionClient
   .inputSchema(
     updateCalendarEventInputSchema.extend({
@@ -56,7 +54,6 @@ export const updateCalendarEventAction = actionClient
     }
   });
 
-// DELETE
 export const deleteCalendarEventAction = actionClient
   .inputSchema(
     z.object({
@@ -71,7 +68,6 @@ export const deleteCalendarEventAction = actionClient
     }
   });
 
-// GET ALL
 export const getAllCalendarEventsAction = actionClient.action(async () => {
   try {
     return await getAllCalendarEventsHandler();
@@ -80,7 +76,6 @@ export const getAllCalendarEventsAction = actionClient.action(async () => {
   }
 });
 
-// GET BY DATE RANGE
 export const getCalendarEventsByDateRangeAction = actionClient
   .inputSchema(
     z.object({

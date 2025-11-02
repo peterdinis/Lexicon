@@ -78,6 +78,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Spinner } from "../ui/spinner";
 
 // Types
 interface Page {
@@ -1146,7 +1147,7 @@ const MoveDialog = ({
             onClick={onConfirm}
             disabled={loading || isMovingToSameLocation}
           >
-            {loading ? "Moving..." : "Move Page"}
+            {loading ? <Spinner /> : "Move Page"}
           </Button>
         </DialogFooter>
       </DialogContent>

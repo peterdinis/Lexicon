@@ -31,7 +31,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getSupabaseBrowserClient } from "@/supabase/client";
 import { ModeToggle } from "../shared/ModeToggle";
 import { Spinner } from "../ui/spinner";
 import { FC, useState, useEffect, useCallback } from "react";
@@ -140,18 +139,14 @@ const DashboardTopBar: FC = () => {
 
     if (searchQuery.trim().length >= 2) {
       const timeoutId = setTimeout(() => {
-        search(
-          searchQuery,
-          ["pages", "todos", "events", "diagrams", "folders"],
-          10,
-        );
+        search(searchQuery, ["page", "todo", "event", "diagram", "folder"], 10);
       }, 300);
 
       return () => {
         clearTimeout(timeoutId);
       };
     } else if (searchQuery.trim().length === 0) {
-      search("", ["pages"], 0, true);
+      search("", ["page"], 0, true);
     }
   }, [searchQuery, isSearchOpen, search]);
 
@@ -175,7 +170,7 @@ const DashboardTopBar: FC = () => {
       if (searchQuery.trim().length >= 2) {
         search(
           searchQuery,
-          ["pages", "todos", "events", "diagrams", "folders"],
+          ["page", "todo", "event", "diagram", "folder"],
           10,
           true,
         );

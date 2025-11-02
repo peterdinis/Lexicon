@@ -164,7 +164,6 @@ export async function getCalendarEventsByDateRangeHandler(
   startDate: string,
   endDate: string,
 ) {
-  // Validate date range
   const validatedRange = dateRangeInputSchema.parse({ startDate, endDate });
   const userId = await getUserId();
 
@@ -191,7 +190,6 @@ export async function getCalendarEventsByDateRangeHandlerV2(
   startDate: string,
   endDate: string,
 ) {
-  // Validate date range
   const validatedRange = dateRangeInputSchema.parse({ startDate, endDate });
   const userId = await getUserId();
 
@@ -215,7 +213,6 @@ export async function getCalendarEventsByDateRangeHandlerV2(
 }
 
 export async function restoreCalendarEventHandler(id: string) {
-  // Validate ID
   const { id: validatedId } = eventIdSchema.parse({ id });
   const userId = await getUserId();
 

@@ -1,9 +1,10 @@
 import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { CalendarView } from "@/components/calendar/CalendarWrapper";
-import { CalendarEvent, Page } from "@/types/applicationTypes";
 import { getAllCalendarEventsAction } from "@/actions/calendarActions";
 import { getAllPagesHandler } from "@/actions/pagesActions";
+import { Page } from "@/types/pageTypes";
+import { CalendarEvent } from "@/types/calendarTypes";
 
 export default async function CalendarPage() {
   let pages:

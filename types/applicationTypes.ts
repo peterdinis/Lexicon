@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import {
   pages,
   todos,
@@ -61,7 +60,6 @@ export type SearchResult = {
   metadata?: Record<string, unknown>;
 };
 
-// Types for database items
 export type PageItem = typeof pages.$inferSelect;
 export type TodoItem = typeof todos.$inferSelect;
 export type EventItem = typeof calendarEvents.$inferSelect;

@@ -57,7 +57,6 @@ export const updateFolderAction = actionClient
     }
   });
 
-// DELETE FOLDER ACTION
 export const deleteFolderAction = actionClient
   .inputSchema(deleteFolderSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -83,7 +82,6 @@ export const getFolderDetailAction = actionClient
     }
   });
 
-// HARD DELETE FOLDER ACTION
 export const hardDeleteFolderAction = actionClient
   .inputSchema(z.object({ id: z.string().uuid("Invalid folder ID") }))
   .action(async ({ parsedInput: { id } }) => {
@@ -98,7 +96,6 @@ export const hardDeleteFolderAction = actionClient
     }
   });
 
-// RESTORE FOLDER ACTION
 export const restoreFolderAction = actionClient
   .inputSchema(z.object({ id: z.string().uuid("Invalid folder ID") }))
   .action(async ({ parsedInput: { id } }) => {

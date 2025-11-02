@@ -15,21 +15,13 @@ import {
   DiagramViewport,
 } from "@/types/diagramsTypes";
 
-// ----------------------
-// Get Single Diagram
-// ----------------------
 export async function getDiagramHandler(id: string) {
   const userId = await getUserId();
 
   const [diagram] = await db
     .select()
     .from(diagrams)
-    .where(
-      and(
-        eq(diagrams.id, id),
-        eq(diagrams.user_id, userId), // Add user ownership check
-      ),
-    );
+    .where(and(eq(diagrams.id, id), eq(diagrams.user_id, userId)));
 
   if (!diagram) throw new Error("Diagram not found");
   return diagram;
@@ -84,7 +76,6 @@ export async function updateDiagramHandler(
     viewport?: DiagramViewport;
   },
 ) {
-  // Validate inputs
   const { id: validatedId } = diagramIdSchema.parse({ id });
   const validatedData = updateDiagramInputSchema.parse(data);
   const userId = await getUserId();
@@ -100,7 +91,6 @@ export async function updateDiagramHandler(
     updated_at: new Date(),
   };
 
-  // Only include fields that are provided
   if (validatedData.title !== undefined) updateData.title = validatedData.title;
   if (validatedData.description !== undefined)
     updateData.description = validatedData.description;
@@ -121,29 +111,18 @@ export async function updateDiagramHandler(
   return updatedDiagram;
 }
 
-// ----------------------
-// Get All Diagrams
-// ----------------------
 export async function getAllDiagramsHandler() {
   const userId = await getUserId();
 
   const allDiagrams = await db
     .select()
     .from(diagrams)
-    .where(
-      and(
-        eq(diagrams.user_id, userId),
-        eq(diagrams.in_trash, false), // Exclude trashed diagrams
-      ),
-    )
+    .where(and(eq(diagrams.user_id, userId), eq(diagrams.in_trash, false)))
     .orderBy(asc(diagrams.created_at));
 
   return allDiagrams || [];
 }
 
-// ----------------------
-// Soft Delete Diagram (Move to trash)
-// ----------------------
 export async function deleteDiagramHandler(id: string) {
   const userId = await getUserId();
 
@@ -161,9 +140,6 @@ export async function deleteDiagramHandler(id: string) {
   return { success: true, diagram: deletedDiagram };
 }
 
-// ----------------------
-// Hard Delete Diagram (Permanent)
-// ----------------------
 export async function hardDeleteDiagramHandler(id: string) {
   const userId = await getUserId();
 
@@ -177,9 +153,6 @@ export async function hardDeleteDiagramHandler(id: string) {
   return { success: true };
 }
 
-// ----------------------
-// Restore Diagram from Trash
-// ----------------------
 export async function restoreDiagramHandler(id: string) {
   const userId = await getUserId();
 
@@ -197,9 +170,6 @@ export async function restoreDiagramHandler(id: string) {
   return { success: true, diagram: restoredDiagram };
 }
 
-// ----------------------
-// Get Trashed Diagrams
-// ----------------------
 export async function getTrashedDiagramsHandler() {
   const userId = await getUserId();
 
