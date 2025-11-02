@@ -12,20 +12,20 @@ import {
 } from "@/components/ui/card";
 import { Plus, Trash2, FileText, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import { Diagram } from "@/types/applicationTypes";
 import {
   createDiagramAction,
   deleteDiagramAction,
   getAllDiagramsAction,
 } from "@/actions/diagramActions";
 import { Spinner } from "../ui/spinner";
+import { DiagramItem } from "@/types/applicationTypes";
 
 interface DiagramListProps {
-  initialDiagrams: Diagram[];
+  initialDiagrams: DiagramItem[];
 }
 
 export function DiagramList({ initialDiagrams }: DiagramListProps) {
-  const [diagrams, setDiagrams] = useState<Diagram[]>(initialDiagrams);
+  const [diagrams, setDiagrams] = useState<DiagramItem[]>(initialDiagrams);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -91,7 +91,7 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
     }
   };
 
-  const getNodeCount = (diagram: Diagram): number => {
+  const getNodeCount = (diagram: DiagramItem): number => {
     try {
       if (Array.isArray(diagram.nodes)) {
         return diagram.nodes.length;
@@ -104,7 +104,7 @@ export function DiagramList({ initialDiagrams }: DiagramListProps) {
     }
   };
 
-  const getEdgeCount = (diagram: Diagram): number => {
+  const getEdgeCount = (diagram: DiagramItem): number => {
     try {
       if (Array.isArray(diagram.edges)) {
         return diagram.edges.length;
