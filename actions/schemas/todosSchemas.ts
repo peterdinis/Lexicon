@@ -42,7 +42,6 @@ export const deleteFolderSchema = z.object({
   id: z.uuid("Invalid folder ID"),
 });
 
-// Types
 export type Folder = z.infer<typeof createSelectSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 export type UpdateFolderInput = z.infer<typeof updateFolderInputSchema>;

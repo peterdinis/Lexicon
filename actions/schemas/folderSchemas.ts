@@ -49,7 +49,6 @@ export const foldersResponseSchema = z.union([
   }),
 ]);
 
-// Types
 export type Folder = z.infer<typeof createSelectSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderInputSchema>;
 export type UpdateFolderInput = z.infer<typeof updateFolderInputSchema>;

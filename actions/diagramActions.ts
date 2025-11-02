@@ -19,7 +19,6 @@ import {
 } from "./schemas/diagramsShcemas";
 import z from "zod";
 
-// CREATE
 export const createDiagramAction = actionClient
   .inputSchema(createDiagramInputSchema)
   .action(
@@ -46,7 +45,6 @@ export const createDiagramAction = actionClient
     },
   );
 
-// GET SINGLE
 export const getDiagramAction = actionClient
   .inputSchema(diagramIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -68,7 +66,6 @@ export const updateDiagramAction = actionClient
     try {
       const { nodes, edges, viewport, ...rest } = data;
 
-      // Parse JSON fields if they exist
       const parsedData = {
         ...rest,
         nodes: nodes ? JSON.parse(nodes) : undefined,
@@ -82,7 +79,6 @@ export const updateDiagramAction = actionClient
     }
   });
 
-// GET ALL
 export const getAllDiagramsAction = actionClient.action(async () => {
   try {
     const diagrams = await getAllDiagramsHandler();
@@ -92,7 +88,6 @@ export const getAllDiagramsAction = actionClient.action(async () => {
   }
 });
 
-// DELETE (Soft Delete - Move to trash)
 export const deleteDiagramAction = actionClient
   .inputSchema(diagramIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -103,7 +98,6 @@ export const deleteDiagramAction = actionClient
     }
   });
 
-// HARD DELETE (Permanent)
 export const hardDeleteDiagramAction = actionClient
   .inputSchema(diagramIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -114,7 +108,6 @@ export const hardDeleteDiagramAction = actionClient
     }
   });
 
-// RESTORE FROM TRASH
 export const restoreDiagramAction = actionClient
   .inputSchema(diagramIdSchema)
   .action(async ({ parsedInput: { id } }) => {
@@ -124,8 +117,7 @@ export const restoreDiagramAction = actionClient
       throw new Error(getErrorMessage(err));
     }
   });
-
-// GET TRASHED DIAGRAMS
+  
 export const getTrashedDiagramsAction = actionClient.action(async () => {
   try {
     const diagrams = await getTrashedDiagramsHandler();
