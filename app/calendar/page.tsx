@@ -33,7 +33,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="flex h-screen">
-      <DashboardSidebar initialPages={Array.isArray(pages) ? pages : []} />
+      <DashboardSidebar initialPages={pages as any} />
       <div className="flex flex-1 flex-col">
         <DashboardTopBar />
         <main className="flex-1 overflow-auto">

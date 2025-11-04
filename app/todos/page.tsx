@@ -37,7 +37,7 @@ export default async function TodosPage() {
 
   return (
     <div className="flex h-screen">
-      <DashboardSidebar initialPages={pages || []} />
+      <DashboardSidebar initialPages={pages as any} />
       <div className="flex flex-1 flex-col">
         <DashboardTopBar />
         <main className="flex-1 overflow-auto">
