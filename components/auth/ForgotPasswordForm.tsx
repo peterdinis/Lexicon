@@ -56,7 +56,9 @@ const ForgotPasswordForm: FC = () => {
 
     try {
       setCheckingEmail(true);
-      const result = (await checkEmailAction({ email })) as unknown as CheckEmailResponse
+      const result = (await checkEmailAction({
+        email,
+      })) as unknown as CheckEmailResponse;
       setEmailExists(result.exists);
     } catch {
       setEmailExists(undefined);
