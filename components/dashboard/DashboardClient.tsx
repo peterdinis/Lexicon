@@ -79,38 +79,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "../ui/spinner";
+import {
+  DashboardClientProps,
+  EditDialogState,
+  FolderDetail,
+  FolderDetailDialogState,
+  FolderType,
+  MoveDialogState,
+  MoveToTrashDialogState,
+  Page,
+  TableHeaderProps,
+} from "@/types/dashboardTypes";
 
-// Types
-interface Page {
-  id: string;
-  title?: string;
-  description?: string;
-  parent_id?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface FolderType {
-  id: string;
-  title?: string;
-  parent_id?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface FolderDetail {
-  folder: FolderType;
-  pages: Page[];
-  subfolders: FolderType[];
-}
-
-interface DashboardClientProps {
-  pages: Page[];
-  folders: FolderType[];
-  itemsPerPage?: number;
-}
-
-// Global functions for dialogs
 declare global {
   interface Window {
     openEditDialog?: (
@@ -131,39 +111,6 @@ declare global {
       title: string,
     ) => void;
   }
-}
-
-interface MoveToTrashDialogState {
-  open: boolean;
-  type: "page" | "folder";
-  id: string;
-  title: string;
-}
-
-interface EditDialogState {
-  open: boolean;
-  type: "page" | "folder";
-  id: string;
-  title: string;
-  description?: string;
-}
-
-interface MoveDialogState {
-  open: boolean;
-  pageId: string;
-  pageTitle: string;
-  currentFolderId?: string | null;
-}
-
-interface FolderDetailDialogState {
-  open: boolean;
-  folderId: string | null;
-  data: FolderDetail | null;
-  loading: boolean;
-}
-
-interface TableHeaderProps<T> {
-  table: ReactTable<T>;
 }
 
 const TableHeaderComponent = <T,>({ table }: TableHeaderProps<T>) => (
